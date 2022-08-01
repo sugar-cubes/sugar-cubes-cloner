@@ -12,6 +12,6 @@ public interface ObjectCloner<T> {
 
     boolean isTrivial();
 
-    T clone(T original, LaterSupport laterSupport) throws Throwable;
+    T clone(T original, ClonerContext context) throws Throwable;
 
 }

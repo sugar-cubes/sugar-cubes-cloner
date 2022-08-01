@@ -6,6 +6,6 @@ package org.sugarcubes.cloner;
 @FunctionalInterface
 interface UnsafeRunnable {
 
-    void run(ClonerContext context) throws Throwable;
+    void run() throws Throwable;
 
 }

@@ -11,9 +11,9 @@ public abstract class TwoPhaseObjectCloner<T> implements ObjectCloner<T> {
     }
 
     @Override
-    public final T clone(T original, LaterSupport laterSupport) throws Throwable {
+    public final T clone(T original, ClonerContext context) throws Throwable {
         T clone = allocate(original);
-        laterSupport.invokeLater(context -> deepCopy(original, clone, context));
+        context.invokeLater(() -> deepCopy(original, clone, context));
         return clone;
     }
 

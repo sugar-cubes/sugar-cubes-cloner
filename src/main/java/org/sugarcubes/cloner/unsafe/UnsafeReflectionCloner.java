@@ -1,8 +1,15 @@
 package org.sugarcubes.cloner.unsafe;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
+
+import org.sugarcubes.cloner.ClonerContext;
+import org.sugarcubes.cloner.CloningAction;
+import org.sugarcubes.cloner.ObjectAllocator;
+import org.sugarcubes.cloner.ReflectionCloner;
+import org.sugarcubes.cloner.SkipObject;
 
 import sun.misc.Unsafe;
 
@@ -11,7 +18,7 @@ import sun.misc.Unsafe;
  *
  * @author Maxim Butov
  */
-public class UnsafeReflectionCloner {//extends ReflectionCloner {
+public class UnsafeReflectionCloner extends ReflectionCloner {
 
     /**
      * {@link Unsafe} instance.
@@ -27,11 +34,9 @@ public class UnsafeReflectionCloner {//extends ReflectionCloner {
 
     }
 
-    /**
-     * Default constructor.
-     */
-    public UnsafeReflectionCloner() {
-//        super(new UnsafeObjectAllocator());
+    @Override
+    protected ObjectAllocator createAllocator() {
+        return new UnsafeObjectAllocator();
     }
 
     private static <X> TernaryConsumer<Object, Long, Object> getCopyOperation(TernaryConsumer<Object, Long, X> unsafeSetter,
@@ -55,18 +60,39 @@ public class UnsafeReflectionCloner {//extends ReflectionCloner {
         OPERATIONS_WITH_PRIMITIVES.put(double.class, getCopyOperation(UNSAFE::putDouble, UNSAFE::getDouble));
     }
 
-/*
     @Override
-    protected void copyField(Object from, Object into, Field field, ClonerContext context) throws Throwable {
-        long offset = UNSAFE.objectFieldOffset(field);
-        TernaryConsumer<Object, Long, Object> primitiveCopy = OPERATIONS_WITH_PRIMITIVES.get(field.getType());
-        if (primitiveCopy != null) {
-            primitiveCopy.accept(from, offset, into);
+    protected void copyField(Object original, Object clone, Field field, CloningAction action, ClonerContext context) throws Throwable {
+        if (action == CloningAction.SKIP) {
+            return;
         }
-        else {
-            UNSAFE.putObject(into, offset, context.copy(UNSAFE.getObject(from, offset)));
+        long offset = UNSAFE.objectFieldOffset(field);
+        switch (action) {
+            case NULL:
+                UNSAFE.putObject(clone, offset, null);
+                break;
+            case ORIGINAL:
+                TernaryConsumer<Object, Long, Object> primitiveCopy = OPERATIONS_WITH_PRIMITIVES.get(field.getType());
+                if (primitiveCopy != null) {
+                    primitiveCopy.accept(original, offset, clone);
+                }
+                else {
+                    UNSAFE.putObject(clone, offset, UNSAFE.getObject(original, offset));
+                }
+                break;
+            case DEFAULT:
+                Object originalValue = UNSAFE.getObject(original, offset);
+                Object cloneValue;
+                try {
+                    cloneValue = context.copy(originalValue);
+                }
+                catch (SkipObject e) {
+                    return;
+                }
+                UNSAFE.putObject(clone, offset, cloneValue);
+                break;
+            default:
+                throw new IllegalStateException();
         }
     }
-*/
 
 }

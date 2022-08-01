@@ -2,38 +2,32 @@ package org.sugarcubes.cloner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author Maxim Butov
  */
 class ClonerContextImpl implements ClonerContext, LaterSupport {
 
+    final Function<Class<?>, ObjectCloner<?>> clonerFactory;
+
+    ClonerContextImpl(Function<Class<?>, ObjectCloner<?>> clonerFactory) {
+        this.clonerFactory = clonerFactory;
+    }
+
     final Deque<UnsafeRunnable> queue = new ArrayDeque<>();
     final Map<Object, Object> clones = new IdentityHashMap<>();
-    final FieldCache fieldCache;
-
-    final CloningPolicy policy;
-    final ObjectAllocator allocator;
-    final Map<Class<?>, ObjectCloner<?>> cloners;
-
-    ClonerContextImpl(CloningPolicy policy, ObjectAllocator allocator, Map<Class<?>, ObjectCloner<?>> cloners) {
-        this.cloners = new HashMap<>(cloners);
-        this.policy = policy;
-        this.allocator = allocator;
-        this.fieldCache = new FieldCache(policy);
-    }
 
     @Override
     public <T> T copy(T object) throws Throwable {
         if (object == null) {
             return null;
         }
-        ObjectCloner<T> typeCloner = (ObjectCloner) cloners.computeIfAbsent(object.getClass(), type -> findCloner(type));
+        ObjectCloner<T> typeCloner = (ObjectCloner) clonerFactory.apply(object.getClass());
         if (typeCloner.isTrivial()) {
-            return typeCloner.clone(object, null);
+            return typeCloner.clone(object, this);
         }
         Object prev = clones.get(object);
         if (prev != null) {
@@ -52,28 +46,8 @@ class ClonerContextImpl implements ClonerContext, LaterSupport {
     @Override
     public void complete() throws Throwable {
         for (UnsafeRunnable next; (next = queue.pollLast()) != null; ) {
-            next.run(this);
+            next.run();
         }
     }
 
-    private ObjectCloner<?> findCloner(Class<?> type) {
-        CloningAction action = policy.getTypeAction(type);
-        switch (action) {
-            case NULL:
-                return ObjectCloner.NULL;
-            case SKIP:
-                throw new SkipObject();
-            case ORIGINAL:
-                return ObjectCloner.NOOP;
-            case DEFAULT:
-                if (type.isArray()) {
-                    return policy.isComponentTypeImmutable(type.getComponentType()) ? ObjectCloner.SHALLOW : ObjectCloner.OBJECT_ARRAY;
-                }
-                else {
-                    return new ReflectionObjectCloner<>(type, fieldCache, policy, allocator);
-                }
-            default:
-                throw new IllegalStateException();
-        }
-    }
 }

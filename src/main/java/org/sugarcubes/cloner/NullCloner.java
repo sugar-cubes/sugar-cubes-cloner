@@ -11,7 +11,7 @@ public final class NullCloner<T> implements ObjectCloner<T> {
     }
 
     @Override
-    public T clone(T original, LaterSupport laterSupport) throws Throwable {
+    public T clone(T original, ClonerContext context) throws Throwable {
         return null;
     }
 
