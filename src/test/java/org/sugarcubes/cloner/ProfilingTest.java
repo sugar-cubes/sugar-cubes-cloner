@@ -6,8 +6,10 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.sugarcubes.cloner.other.FstCloner;
-import org.sugarcubes.cloner.other.KKCloner;
+import org.sugarcubes.cloner.impl.ReflectionCloner;
+import org.sugarcubes.cloner.impl.SerializableCloner;
+import org.sugarcubes.cloner.thirdparty.FstCloner;
+import org.sugarcubes.cloner.thirdparty.KKCloner;
 import org.sugarcubes.cloner.unsafe.UnsafeReflectionCloner;
 
 public class ProfilingTest {
@@ -22,7 +24,7 @@ public class ProfilingTest {
 
     @BeforeEach
     public void setup() {
-        objects = Stream.generate(() -> TestObjectFactory.randomObject(10, 8))
+        objects = Stream.generate(() -> TestObjectFactory.randomObject(false, 10, 8))
             .limit(32)
             .collect(Collectors.toList());
 //        objects.forEach(serializable::clone);

@@ -3,7 +3,7 @@ package org.sugarcubes.cloner.unsafe;
 import java.lang.reflect.Field;
 
 import org.sugarcubes.cloner.ClonerException;
-import org.sugarcubes.cloner.ReflectionUtils;
+import org.sugarcubes.cloner.impl.ReflectionUtils;
 
 import sun.misc.Unsafe;
 

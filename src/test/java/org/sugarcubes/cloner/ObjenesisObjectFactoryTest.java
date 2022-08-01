@@ -5,6 +5,8 @@ import java.util.concurrent.Callable;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.sugarcubes.cloner.impl.ObjenesisObjectAllocator;
+import org.sugarcubes.cloner.impl.ObjenesisUtils;
 
 /**
  * @author Maxim Butov

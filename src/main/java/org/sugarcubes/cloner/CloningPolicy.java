@@ -26,6 +26,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/**
+ * Set of rules for objects cloning.
+ */
 public interface CloningPolicy {
 
     /**
@@ -54,20 +57,39 @@ public interface CloningPolicy {
         Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class
     )));
 
+    /**
+     * Checks the type is primitive wrapper.
+     *
+     * @param type type
+     *
+     * @return {@code true} if {@code type} is primitive wrapper
+     */
     static boolean isWrapper(Class<?> type) {
         return WRAPPERS_CLASSES.contains(type);
     }
 
+    /**
+     * Checks the type is primitive or enum or primitive wrapper.
+     *
+     * @param type type
+     *
+     * @return {@code true} if {@code type} is primitive or enum or primitive wrapper
+     */
     static boolean isPrimitiveOrEnumOrWrapper(Class<?> type) {
         return type.isPrimitive() || type.isEnum() || isWrapper(type);
     }
 
-    default CloningAction getFieldAction(Field field) {
-        return isComponentTypeImmutable(field.getType()) ? CloningAction.ORIGINAL : CloningAction.DEFAULT;
+    /**
+     *
+     * @param field
+     * @return
+     */
+    default CopyAction getFieldAction(Field field) {
+        return isComponentTypeImmutable(field.getType()) ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
     }
 
-    default CloningAction getTypeAction(Class<?> type) {
-        return isImmutable(type) ? CloningAction.ORIGINAL : CloningAction.DEFAULT;
+    default CopyAction getTypeAction(Class<?> type) {
+        return isImmutable(type) ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
     }
 
     default boolean isImmutable(Class<?> type) {

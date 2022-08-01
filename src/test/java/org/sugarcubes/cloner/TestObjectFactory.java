@@ -38,7 +38,7 @@ public class TestObjectFactory {
 
     private static final Random random = new SecureRandom();
 
-    public static Object randomObject(int width, int depth) {
+    public static Object randomObject(boolean proxy, int width, int depth) {
         if (depth == 0) {
             return randomSupply(
                 random::nextInt,
@@ -48,16 +48,16 @@ public class TestObjectFactory {
                 () -> randomPrimitiveArray(random(boolean.class, byte.class, char.class, short.class, int.class, long.class, float.class, double.class), 1 + random.nextInt(width))
             );
         }
-        Object[] array = randomObjectArray(width, depth);
+        Object[] array = randomObjectArray(proxy, width, depth);
         return randomSupply(
             () -> array,
             () -> {
-                Collection<Object> collection = newCollection();
+                Collection<Object> collection = newCollection(proxy);
                 collection.addAll(Arrays.asList(array));
                 return collection;
             },
             () -> {
-                Map<String, Object> map = newMap();
+                Map<String, Object> map = newMap(proxy);
                 for (Object obj : array) {
                     map.put(randomString(), obj);
                 }
@@ -108,10 +108,10 @@ public class TestObjectFactory {
         throw new IllegalStateException();
     }
 
-    private static Object[] randomObjectArray(int width, int depth) {
+    private static Object[] randomObjectArray(boolean proxy, int width, int depth) {
         Object[] array = new Object[width];
         for (int k = 0; k < array.length; k++) {
-            array[k] = randomObject(Math.max(width + random.nextInt(3) - 1, 1), random.nextInt(depth));
+            array[k] = randomObject(proxy, Math.max(width + random.nextInt(3) - 1, 1), random.nextInt(depth));
         }
         return array;
     }
@@ -124,9 +124,11 @@ public class TestObjectFactory {
         return array;
     }
 
-    private static <T> T newInstance(Class<?>... types) {
+    private static <T> T newInstance(boolean proxy, Class<?>... types) {
         try {
-            return (T) proxy(random(types)).newInstance();
+            Class<?> type = random(types);
+            if (proxy) type = proxy(type);
+            return (T) type.getDeclaredConstructor().newInstance();
         }
         catch (Error | RuntimeException e) {
             throw e;
@@ -139,9 +141,6 @@ public class TestObjectFactory {
     private static final Map<Class<?>, Class<?>> proxies = new HashMap<>();
 
     private static Class<?> proxy(Class<?> type) {
-        if (0 == 0) {
-            return type;
-        }
         return proxies.computeIfAbsent(type, key ->
             new ByteBuddy()
                 .subclass(key)
@@ -151,12 +150,12 @@ public class TestObjectFactory {
         );
     }
 
-    private static <K, V> Map<K, V> newMap() {
-        return newInstance(ConcurrentHashMap.class, HashMap.class, Hashtable.class, IdentityHashMap.class, LinkedHashMap.class, TreeMap.class);
+    private static <K, V> Map<K, V> newMap(boolean proxy) {
+        return newInstance(proxy, ConcurrentHashMap.class, HashMap.class, Hashtable.class, IdentityHashMap.class, LinkedHashMap.class, TreeMap.class);
     }
 
-    private static <T> Collection<T> newCollection() {
-        return newInstance(ArrayDeque.class, ArrayList.class, HashSet.class, LinkedHashSet.class, LinkedList.class, Stack.class, Vector.class);
+    private static <T> Collection<T> newCollection(boolean proxy) {
+        return newInstance(proxy, ArrayDeque.class, ArrayList.class, HashSet.class, LinkedHashSet.class, LinkedList.class, Stack.class, Vector.class);
     }
 
 }

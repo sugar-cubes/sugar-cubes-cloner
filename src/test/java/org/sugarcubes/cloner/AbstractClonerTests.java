@@ -75,7 +75,7 @@ public abstract class AbstractClonerTests {
     void testRandomObjects() throws Exception {
         Cloner cloner = getCloner();
         for (int k = 0; k < 10; k++) {
-            cloner.clone(TestObjectFactory.randomObject(10, 10));
+            cloner.clone(TestObjectFactory.randomObject(false, 10, 10));
         }
     }
 

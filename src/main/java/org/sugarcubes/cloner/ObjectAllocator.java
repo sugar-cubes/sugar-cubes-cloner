@@ -1,7 +1,7 @@
 package org.sugarcubes.cloner;
 
 /**
- * Object factory interface.
+ * Object allocator interface.
  *
  * @author Maxim Butov
  */

@@ -9,9 +9,12 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.sugarcubes.cloner.other.FstCloner;
-import org.sugarcubes.cloner.other.KKCloner;
-import org.sugarcubes.cloner.other.KryoCloner;
+import org.sugarcubes.cloner.impl.ReflectionCloner;
+import org.sugarcubes.cloner.impl.SerializableCloner;
+import org.sugarcubes.cloner.thirdparty.FstCloner;
+import org.sugarcubes.cloner.thirdparty.KKCloner;
+import org.sugarcubes.cloner.thirdparty.KryoCloner;
+import org.sugarcubes.cloner.unsafe.UnsafeReflectionCloner;
 
 /**
  * Benchmarks for cloners.
@@ -38,11 +41,12 @@ public class ClonersBenchmark {
 
         serializableCloner = new SerializableCloner();
         reflectionCloner = new ReflectionCloner();
+        unsafeReflectionCloner = new UnsafeReflectionCloner();
         kryoCloner = new KryoCloner();
         fstCloner = new FstCloner();
         kkCloner = new KKCloner();
 
-        sample = TestObjectFactory.randomObject(10, 10);
+        sample = TestObjectFactory.randomObject(false, 10, 10);
     }
 
     @Benchmark
@@ -55,7 +59,7 @@ public class ClonersBenchmark {
         reflectionCloner.clone(sample);
     }
 
-//    @Benchmark
+    @Benchmark
     public void unsafe() {
         unsafeReflectionCloner.clone(sample);
     }

@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.sugarcubes.cloner.ClonerContext;
-import org.sugarcubes.cloner.CloningAction;
+import org.sugarcubes.cloner.impl.CopyContext;
+import org.sugarcubes.cloner.CopyAction;
 import org.sugarcubes.cloner.ObjectAllocator;
-import org.sugarcubes.cloner.ReflectionCloner;
-import org.sugarcubes.cloner.SkipObject;
+import org.sugarcubes.cloner.impl.ReflectionCloner;
+import org.sugarcubes.cloner.impl.SkipObject;
 
 import sun.misc.Unsafe;
 
@@ -61,8 +61,8 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
     }
 
     @Override
-    protected void copyField(Object original, Object clone, Field field, CloningAction action, ClonerContext context) throws Throwable {
-        if (action == CloningAction.SKIP) {
+    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context) throws Throwable {
+        if (action == CopyAction.SKIP) {
             return;
         }
         long offset = UNSAFE.objectFieldOffset(field);
