@@ -30,7 +30,7 @@
     <module name="SuppressWarningsFilter"/>
 
     <module name="UniqueProperties">
-      <property name="fileExtensions" value="properties" />
+        <property name="fileExtensions" value="properties"/>
     </module>
 
 
@@ -67,7 +67,7 @@
             <property name="countEmpty" value="true"/>
             <property name="tokens" value="METHOD_DEF, CTOR_DEF"/>
         </module>
-            
+
         <module name="OuterTypeNumber">
             <property name="max" value="1"/>
         </module>
@@ -81,7 +81,7 @@
     </module>
 
     <module name="TreeWalker"> <!-- Naming rules -->
-        
+
         <!-- Suppression files and expressions are mot encouraged. So it disabled. -->
         <!-- <module name="SuppressWarnings"/> -->
 
@@ -90,7 +90,7 @@
             <property name="onCommentFormat" value="CHECKSTYLE:ON"/>
         </module>
 
-        <module name="SuppressWarningsHolder" />
+        <module name="SuppressWarningsHolder"/>
 
         <!-- Checks for Naming Conventions.                  -->
         <!-- See http://checkstyle.sf.net/config_naming.html -->
@@ -98,11 +98,11 @@
             An exception is made for LOGGER declaration. Is it make sense?
         -->
         <module name="CatchParameterName">
-          <property name="format" value="^(e|t|ex|[a-z][a-z][a-zA-Z]+)$"/>
+            <property name="format" value="^(e|t|ex|[a-z][a-z][a-zA-Z]+)$"/>
         </module>
 
         <module name="ClassTypeParameterName">
-          <property name="format" value="^[A-Z]$"/>
+            <property name="format" value="^[A-Z]$"/>
         </module>
 
         <module name="ConstantName">
@@ -120,17 +120,17 @@
         <module name="LambdaParameterName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
         </module>
-        
+
         <module name="LocalFinalVariableName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
             <property name="tokens" value="VARIABLE_DEF, PARAMETER_DEF, RESOURCE"/>
         </module>
-        
+
         <module name="LocalVariableName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
             <property name="allowOneCharVarInForLoop" value="false"/>
         </module>
-        
+
         <module name="MemberName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
             <property name="applyToPublic" value="true"/>
@@ -138,7 +138,7 @@
             <property name="applyToPackage" value="true"/>
             <property name="applyToPrivate" value="true"/>
         </module>
-        
+
         <module name="MethodName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
             <property name="allowClassName" value="false"/>
@@ -147,9 +147,9 @@
             <property name="applyToPackage" value="true"/>
             <property name="applyToPrivate" value="true"/>
         </module>
-        
+
         <module name="MethodTypeParameterName">
-           <property name="format" value="^[A-Z]$"/>
+            <property name="format" value="^[A-Z]$"/>
         </module>
 
         <module name="PackageName">
@@ -159,7 +159,7 @@
         <module name="ParameterName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
         </module>
-        
+
         <module name="StaticVariableName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
             <property name="applyToPublic" value="true"/>
@@ -179,25 +179,25 @@
         </module>
 
     </module>
-     
+
     <!-- Checks for imports                              -->
     <!-- See http://checkstyle.sf.net/config_import.html -->
     <module name="TreeWalker"> <!-- Imports rules  -->
 
         <module name="AvoidStarImport">
-           <property name="excludes" value="java.io,java.net,java.lang.Math"/>
-           <property name="allowClassImports" value="false"/>
-           <property name="allowStaticMemberImports" value="false"/>
-        </module>            
+            <property name="excludes" value="java.io,java.net,java.lang.Math"/>
+            <property name="allowClassImports" value="false"/>
+            <property name="allowStaticMemberImports" value="false"/>
+        </module>
 
         <!-- <module name="AvoidStaticImport"/> -->
-        
+
         <module name="IllegalImport">
             <property name="illegalPkgs" value="sun.*"/>
             <!-- <property name="illegalClasses" value="???"/> -->
             <property name="regexp" value="false"/>
         </module>
-        
+
         <module name="ImportOrder">
             <property name="option" value="under"/>
             <property name="groups" value="java,javax,org,net,com"/>
@@ -217,8 +217,8 @@
             <property name="processJavadoc" value="true"/>
         </module>
     </module>
-   
-     
+
+
     <!-- Checks for whitespace                               -->
     <!-- See http://checkstyle.sf.net/config_whitespace.html -->
     <module name="TreeWalker"> <!-- Whitespace rules-->
@@ -226,11 +226,11 @@
         <module name="ArrayTypeStyle">
             <property name="javaStyle" value="true"/>
         </module>
-        
+
         <module name="CommentsIndentation">
             <property name="tokens" value="SINGLE_LINE_COMMENT, BLOCK_COMMENT_BEGIN"/>
         </module>
-        
+
         <!-- TODO: Understand how it works -->
         <!-- <module name="DescendantToken"> -->
 
@@ -254,13 +254,13 @@
         </module>
 
         <module name="TrailingComment">
-          <property name="format" value="^[\s});]*$"/>
+            <property name="format" value="^[\s});]*$"/>
         </module>
 
         <module name="WhitespaceAfter">
             <property name="tokens" value="COMMA, SEMI"/>
         </module>
-        
+
         <module name="WhitespaceAround">
             <property name="tokens" value="ASSIGN, BAND, BAND_ASSIGN, BOR, BOR_ASSIGN, BSR, BSR_ASSIGN, BXOR, BXOR_ASSIGN, COLON, DIV, DIV_ASSIGN, EQUAL, GE, GT, LAND, LCURLY, LE, LITERAL_ASSERT, LITERAL_CATCH, LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF, LITERAL_RETURN, LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, LOR, LT, MINUS, MINUS_ASSIGN, MOD, MOD_ASSIGN, NOT_EQUAL, PLUS, PLUS_ASSIGN, QUESTION, RCURLY, SL, SLIST, SL_ASSIGN, SR, SR_ASSIGN, STAR, STAR_ASSIGN, TYPE_EXTENSION_AND"/>
             <property name="allowEmptyConstructors" value="false"/>
@@ -271,18 +271,18 @@
             <property name="tokens" value="ARRAY_INIT, BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>
             <property name="allowLineBreaks" value="true"/>
         </module>
-        
+
         <module name="NoWhitespaceBefore">
             <property name="tokens" value="SEMI, POST_DEC, POST_INC"/>
             <property name="allowLineBreaks" value="false"/>
         </module>
-        
+
         <module name="ParenPad">
             <property name="option" value="nospace"/>
             <!-- <property name="tokens" value="CTOR_CALL, LPAREN, METHOD_CALL, RPAREN, SUPER_CTOR_CALL"/> -->
             <property name="tokens" value="ANNOTATION, ANNOTATION_FIELD_DEF, CTOR_CALL, CTOR_DEF, DOT, ENUM_CONSTANT_DEF, EXPR, LITERAL_CATCH, LITERAL_DO, LITERAL_FOR, LITERAL_IF, LITERAL_NEW, LITERAL_SWITCH, LITERAL_SYNCHRONIZED, LITERAL_WHILE, METHOD_CALL, METHOD_DEF, QUESTION, RESOURCE_SPECIFICATION, SUPER_CTOR_CALL, LAMBDA"/>
         </module>
-        
+
         <module name="TypecastParenPad">
             <property name="tokens" value="TYPECAST, RPAREN"/>
             <property name="option" value="nospace"/>
@@ -299,7 +299,7 @@
         <module name="OperatorWrap"/>
         -->
     </module>
-    
+
     <module name="TreeWalker"> <!-- Modifier rules -->
 
         <module name="InterfaceMemberImpliedModifier">
@@ -317,9 +317,9 @@
         <module name="RedundantModifier">
             <property name="tokens" value="METHOD_DEF, VARIABLE_DEF, ANNOTATION_FIELD_DEF, INTERFACE_DEF, CLASS_DEF, ENUM_DEF, RESOURCE"/>
         </module>
-        
+
     </module>
-        
+
     <!-- Checks for blocks. You know, those {}'s         -->
     <!-- See http://checkstyle.sf.net/config_blocks.html -->
     <module name="TreeWalker"> <!-- Block rules -->
@@ -341,7 +341,7 @@
         <module name="LeftCurly">
             <property name="option" value="eol"/>
             <property name="ignoreEnums" value="true"/>
-            <property name="tokens" value="ANNOTATION_DEF, CLASS_DEF, CTOR_DEF, ENUM_CONSTANT_DEF, ENUM_DEF, INTERFACE_DEF, LAMBDA, LITERAL_CASE, LITERAL_CATCH, LITERAL_DEFAULT, LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF, LITERAL_SWITCH, LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, METHOD_DEF, OBJBLOCK, STATIC_INIT"/> 
+            <property name="tokens" value="ANNOTATION_DEF, CLASS_DEF, CTOR_DEF, ENUM_CONSTANT_DEF, ENUM_DEF, INTERFACE_DEF, LAMBDA, LITERAL_CASE, LITERAL_CATCH, LITERAL_DEFAULT, LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF, LITERAL_SWITCH, LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, METHOD_DEF, OBJBLOCK, STATIC_INIT"/>
         </module>
 
         <module name="NeedBraces">
@@ -355,9 +355,9 @@
             <property name="shouldStartLine" value="true"/>
             <property name="tokens" value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO, STATIC_INIT, INSTANCE_INIT, LAMBDA"/>
         </module>
-        
+
     </module>
-    
+
     <module name="TreeWalker"> <!-- Javadoc rules -->
 
         <module name="JavadocMethod">
@@ -376,10 +376,10 @@
             <property name="suppressLoadErrors" value="false"/>
             <property name="tokens" value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF"/>
         </module>
-        
+
         <module name="JavadocParagraph">
-          <property name="violateExecutionOnNonTightHtml" value="true"/>
-          <property name="allowNewlineParagraph" value="true"/>
+            <property name="violateExecutionOnNonTightHtml" value="true"/>
+            <property name="allowNewlineParagraph" value="true"/>
         </module>
 
         <module name="JavadocStyle">
@@ -400,7 +400,7 @@
         <module name="JavadocType">
             <property name="scope" value="protected"/>
             <!-- <property name="excludeScope" value="null"/> -->
-            <!-- <property name="authorFormat" value=".*"/> -->
+            <property name="authorFormat" value=".*"/>
             <!-- <property name="versionFormat" value="null"/> -->
 
             <!-- TODO: change to false-->
@@ -429,13 +429,13 @@
     </module>
 
     <module name="TreeWalker"> <!-- Header rules -->
-    <!--
-        <module name="Header">
-            <property name="headerFile" value="java.header"/>
-            <property name="header" value="header text goes here"/>
-            <property name="ignoreLines" value="2, 3, 4"/>
-        </module>
-    -->
+        <!--
+            <module name="Header">
+                <property name="headerFile" value="java.header"/>
+                <property name="header" value="header text goes here"/>
+                <property name="ignoreLines" value="2, 3, 4"/>
+            </module>
+        -->
     </module>
 
     <!--===============================================================================
@@ -457,7 +457,7 @@
             <property name="format" value="System\.err\.println"/>
             <property name="illegalPattern" value="true"/>
         </module>
-        
+
         <module name="Regexp">
             <property name="format" value="\.printStackTrace"/>
             <property name="illegalPattern" value="true"/>
@@ -470,9 +470,9 @@
         </module>
 
         <module name="StringLiteralEquality"/>
-        
+
         <module name="EqualsHashCode"/>
-        
+
         <module name="BooleanExpressionComplexity">
             <property name="max" value="7"/>
         </module>
@@ -494,14 +494,13 @@
 
         <module name="MultipleStringLiterals">
             <property name="allowedDuplicates" value="1"/>
-            <!-- <property name="ignoreStringsRegexp" value="^""$"/> -->
             <property name="ignoreOccurrenceContext" value="ANNOTATION"/>
         </module>
 
         <module name="NPathComplexity">
             <property name="max" value="200"/>
         </module>
-    
+
         <module name="JavaNCSS">
             <property name="methodMaximum" value="150"/>
             <property name="classMaximum" value="1500"/>

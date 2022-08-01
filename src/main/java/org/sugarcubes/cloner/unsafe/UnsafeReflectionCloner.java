@@ -1,11 +1,8 @@
 package org.sugarcubes.cloner.unsafe;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
-
-import org.sugarcubes.cloner.ReflectionCloner;
 
 import sun.misc.Unsafe;
 
@@ -14,7 +11,12 @@ import sun.misc.Unsafe;
  *
  * @author Maxim Butov
  */
-public class UnsafeReflectionCloner extends ReflectionCloner {
+public class UnsafeReflectionCloner {//extends ReflectionCloner {
+
+    /**
+     * {@link Unsafe} instance.
+     */
+    private static final Unsafe UNSAFE = UnsafeUtils.getUnsafe();
 
     /**
      * Three-arguments consumer.
@@ -29,13 +31,8 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
      * Default constructor.
      */
     public UnsafeReflectionCloner() {
-        super(new UnsafeObjectFactory());
+//        super(new UnsafeObjectAllocator());
     }
-
-    /**
-     * {@link Unsafe} instance.
-     */
-    private static final Unsafe UNSAFE = UnsafeUtils.getUnsafe();
 
     private static <X> TernaryConsumer<Object, Long, Object> getCopyOperation(TernaryConsumer<Object, Long, X> unsafeSetter,
         BiFunction<Object, Long, X> unsafeGetter) {
@@ -58,16 +55,18 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
         OPERATIONS_WITH_PRIMITIVES.put(double.class, getCopyOperation(UNSAFE::putDouble, UNSAFE::getDouble));
     }
 
+/*
     @Override
-    protected void copyField(Object from, Object into, Field field, Map<Object, Object> cloned) throws Throwable {
+    protected void copyField(Object from, Object into, Field field, ClonerContext context) throws Throwable {
         long offset = UNSAFE.objectFieldOffset(field);
         TernaryConsumer<Object, Long, Object> primitiveCopy = OPERATIONS_WITH_PRIMITIVES.get(field.getType());
         if (primitiveCopy != null) {
             primitiveCopy.accept(from, offset, into);
         }
         else {
-            UNSAFE.putObject(into, offset, doClone(UNSAFE.getObject(from, offset), cloned));
+            UNSAFE.putObject(into, offset, context.copy(UNSAFE.getObject(from, offset)));
         }
     }
+*/
 
 }

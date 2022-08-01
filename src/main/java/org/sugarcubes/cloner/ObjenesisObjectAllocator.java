@@ -8,21 +8,21 @@ import org.objenesis.ObjenesisStd;
  *
  * @author Maxim Butov
  */
-public class ObjenesisObjectFactory implements ClonerObjectFactory {
+public class ObjenesisObjectAllocator implements ObjectAllocator {
 
     private final Objenesis objenesis;
 
     /**
      * Default constructor.
      */
-    public ObjenesisObjectFactory() {
+    public ObjenesisObjectAllocator() {
         this(new ObjenesisStd());
     }
 
     /**
      * Constructor with an {@link Objenesis} instance.
      */
-    public ObjenesisObjectFactory(Objenesis objenesis) {
+    public ObjenesisObjectAllocator(Objenesis objenesis) {
         this.objenesis = objenesis;
     }
 

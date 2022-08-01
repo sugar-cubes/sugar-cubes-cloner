@@ -5,7 +5,7 @@ package org.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-public interface ClonerObjectFactory {
+public interface ObjectAllocator {
 
     /**
      * Creates an instance of the specified class. Instance may be not initialized.

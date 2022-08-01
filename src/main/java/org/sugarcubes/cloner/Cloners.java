@@ -10,20 +10,7 @@ package org.sugarcubes.cloner;
 public class Cloners {
 
     /**
-     * Returns an instance of {@link ReflectionCloner} with specified object factory.
-     *
-     * @param objectFactory object factory
-     *
-     * @return {@link ReflectionCloner} instance
-     *
-     * @see ReflectionCloner#ReflectionCloner(ClonerObjectFactory)
-     */
-    public static ReflectionCloner reflection(ClonerObjectFactory objectFactory) {
-        return new ReflectionCloner(objectFactory);
-    }
-
-    /**
-     * Returns an instance of {@link ReflectionCloner} with default object factory.
+     * Returns an instance of {@link ReflectionCloner} with default policy and allocator.
      *
      * @return {@link ReflectionCloner} instance
      *

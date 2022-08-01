@@ -3,7 +3,6 @@ package org.sugarcubes.cloner;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 /**
  * Shortcuts of Java Reflection API.
@@ -12,42 +11,66 @@ import java.lang.reflect.Modifier;
  */
 public class ReflectionUtils {
 
+    @FunctionalInterface
+    public interface ReflectionAction<T> {
+
+        T get() throws ReflectiveOperationException;
+
+    }
+
+    @FunctionalInterface
+    public interface VoidReflectionAction extends ReflectionAction<Object> {
+
+        @Override
+        default Object get() throws ReflectiveOperationException {
+            run();
+            return null;
+        }
+
+        void run() throws ReflectiveOperationException;
+
+    }
+
+    /**
+     * Executes call to Reflection API and replaces {@link ReflectiveOperationException} with {@link ClonerException}.
+     */
+    public static <T> T execute(ReflectionAction<T> action) {
+        try {
+            return action.get();
+        }
+        catch (ReflectiveOperationException e) {
+            throw new ClonerException(e);
+        }
+    }
+
+    /**
+     * Returns accessible field.
+     */
     public static Field getField(Class<?> type, String name) {
-        try {
-            return makeAccessible(type.getDeclaredField(name));
-        }
-        catch (ReflectiveOperationException e) {
-            throw new ClonerException(e);
-        }
+        return execute(() -> makeAccessible(type.getDeclaredField(name)));
     }
 
-    public static Method getMethod(Class<?> type, String name, Class<?> ... parameterTypes) {
-        try {
-            return makeAccessible(type.getDeclaredMethod(name, parameterTypes));
-        }
-        catch (ReflectiveOperationException e) {
-            throw new ClonerException(e);
-        }
+    /**
+     * Returns accessible method.
+     */
+    public static Method getMethod(Class<?> type, String name, Class<?>... parameterTypes) {
+        return execute(() -> makeAccessible(type.getDeclaredMethod(name, parameterTypes)));
     }
 
+    /**
+     * Makes object accessible.
+     */
     public static <T extends AccessibleObject> T makeAccessible(T object) {
         object.setAccessible(true);
         return object;
     }
 
-    private static final Field MODIFIERS = getField(Field.class, "modifiers");
+    public static <T> T getFieldValue(Object object, Field field) {
+        return (T) execute(() -> field.get(object));
+    }
 
-    public static Field clearFinalModifier(Field field) {
-        int modifiers = field.getModifiers();
-        if (Modifier.isFinal(modifiers)) {
-            try {
-                MODIFIERS.set(field, modifiers ^ Modifier.FINAL);
-            }
-            catch (IllegalAccessException e) {
-                throw new ClonerException(e);
-            }
-        }
-        return field;
+    public static <T> void setFieldValue(Object object, Field field, T value) {
+        execute((VoidReflectionAction) () -> field.set(object, value));
     }
 
 }

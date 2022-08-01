@@ -3,6 +3,8 @@ package org.sugarcubes.cloner;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,9 +14,11 @@ import org.junit.jupiter.api.Test;
  */
 public abstract class AbstractClonerTests {
 
+    static int counter = 0;
+
     static class A implements Serializable {
 
-        final int x = 1;
+        final int x = ++counter;
         final String y = "2";
         final Object z = null;
 
@@ -31,9 +35,11 @@ public abstract class AbstractClonerTests {
     static class B extends A {
 
         A a = this;
-        int n = 5;
+        int b = 5;
+        Map c = new HashMap();
 
         B(int i) {
+            c.put("c", c);
         }
 
     }
@@ -41,7 +47,7 @@ public abstract class AbstractClonerTests {
     protected abstract Cloner getCloner();
 
     @Test
-    public void testCloner() {
+    void testCloner() {
 
         Cloner cloner = getCloner();
 
@@ -61,8 +67,16 @@ public abstract class AbstractClonerTests {
         Assertions.assertSame(b2.zzz, b2.zzz[1]);
 
         Assertions.assertSame(b2, b2.a);
-        Assertions.assertEquals(b1.n, b2.n);
+        Assertions.assertEquals(b1.b, b2.b);
 
+    }
+
+    @Test
+    void testRandomObjects() throws Exception {
+        Cloner cloner = getCloner();
+        for (int k = 0; k < 10; k++) {
+            cloner.clone(TestObjectFactory.randomObject(10, 10));
+        }
     }
 
 }

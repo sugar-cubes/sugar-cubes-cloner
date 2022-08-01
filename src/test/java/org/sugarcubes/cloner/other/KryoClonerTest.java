@@ -1,6 +1,7 @@
-package org.sugarcubes.cloner;
+package org.sugarcubes.cloner.other;
 
-import org.sugarcubes.cloner.other.KryoCloner;
+import org.sugarcubes.cloner.AbstractClonerTests;
+import org.sugarcubes.cloner.Cloner;
 
 /**
  * @author Maxim Butov

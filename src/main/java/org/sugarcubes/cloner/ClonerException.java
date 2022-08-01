@@ -21,4 +21,11 @@ public class ClonerException extends RuntimeException {
         super(cause);
     }
 
+    /**
+     * Constructor with message.
+     */
+    public ClonerException(String message) {
+        super(message);
+    }
+
 }

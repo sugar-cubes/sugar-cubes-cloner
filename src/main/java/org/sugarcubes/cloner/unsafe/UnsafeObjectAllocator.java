@@ -1,6 +1,6 @@
 package org.sugarcubes.cloner.unsafe;
 
-import org.sugarcubes.cloner.ClonerObjectFactory;
+import org.sugarcubes.cloner.ObjectAllocator;
 
 import sun.misc.Unsafe;
 
@@ -9,7 +9,7 @@ import sun.misc.Unsafe;
  *
  * @author Maxim Butov
  */
-public class UnsafeObjectFactory implements ClonerObjectFactory {
+public class UnsafeObjectAllocator implements ObjectAllocator {
 
     @Override
     public <T> T newInstanceUnsafe(Class<T> clazz) throws Throwable {

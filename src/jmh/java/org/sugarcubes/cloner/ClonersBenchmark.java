@@ -1,9 +1,5 @@
 package org.sugarcubes.cloner;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -14,8 +10,8 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.sugarcubes.cloner.other.FstCloner;
+import org.sugarcubes.cloner.other.KKCloner;
 import org.sugarcubes.cloner.other.KryoCloner;
-import org.sugarcubes.cloner.unsafe.UnsafeReflectionCloner;
 
 /**
  * Benchmarks for cloners.
@@ -25,80 +21,58 @@ import org.sugarcubes.cloner.unsafe.UnsafeReflectionCloner;
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@SuppressWarnings("checkstyle:MagicNumber")
+@SuppressWarnings("checkstyle:all")
 public class ClonersBenchmark {
 
-    static class A implements Serializable {
+    private Cloner serializableCloner;
+    private Cloner reflectionCloner;
+    private Cloner unsafeReflectionCloner;
+    private Cloner kryoCloner;
+    private Cloner fstCloner;
+    private Cloner kkCloner;
 
-        int a = 1;
-        String b = "2";
-        Object c = null;
-
-        int[] d = new Random().ints().limit(1_000).toArray();
-        Object[] e = new Random().ints().boxed().limit(1_000).toArray();
-
-        Object[] f = {
-            3, "4", 5.0, new int[] {6}, new HashMap<>(Collections.singletonMap(7, 8.0)),
-        };
-        Object[] g = new Object[1_000];
-
-        {
-            g[0] = this;
-            g[1] = g;
-        }
-    }
-
-    static class B extends A {
-
-        Object a = this;
-
-        B(int i) {
-        }
-
-    }
-
-    SerializableCloner serializableCloner;
-    ReflectionCloner reflectionCloner;
-    UnsafeReflectionCloner unsafeReflectionCloner;
-    KryoCloner kryoCloner;
-    FstCloner fstCloner;
-
-    Object sample;
+    private Object sample;
 
     @Setup
-    void setup() {
+    public void setup() {
+
         serializableCloner = new SerializableCloner();
         reflectionCloner = new ReflectionCloner();
-        unsafeReflectionCloner = new UnsafeReflectionCloner();
         kryoCloner = new KryoCloner();
         fstCloner = new FstCloner();
+        kkCloner = new KKCloner();
 
-        sample = new B(1);
+        sample = TestObjectFactory.randomObject(10, 10);
     }
 
     @Benchmark
-    void serializable() {
+    public void serializable() {
         serializableCloner.clone(sample);
     }
 
     @Benchmark
-    void reflection() {
+    public void reflection() {
         reflectionCloner.clone(sample);
     }
 
-    @Benchmark
-    void unsafe() {
+//    @Benchmark
+    public void unsafe() {
         unsafeReflectionCloner.clone(sample);
     }
 
     @Benchmark
-    void kryo() {
+    public void kryo() {
         kryoCloner.clone(sample);
     }
 
     @Benchmark
-    void fst() {
+    public void fst() {
         fstCloner.clone(sample);
+    }
+
+    @Benchmark
+    public void kk() {
+        kkCloner.clone(sample);
     }
 
 }
