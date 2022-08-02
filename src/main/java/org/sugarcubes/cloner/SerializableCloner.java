@@ -1,10 +1,8 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import org.sugarcubes.cloner.Cloner;
 
 /**
  * The implementation of {@link Cloner} which uses Java serialization for cloning.

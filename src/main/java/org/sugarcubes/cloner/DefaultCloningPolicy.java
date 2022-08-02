@@ -16,7 +16,7 @@ public class DefaultCloningPolicy implements CloningPolicy {
     /**
      * Set of immutable types.
      */
-    private Set<Class<?>> immutableClasses = new HashSet<>(IMMUTABLE_CLASSES);
+    private Set<Class<?>> immutableClasses = new HashSet<>(IMMUTABLE_TYPES);
 
     private Map<Class<?>, CopyAction> typeActions = new HashMap<>();
 

@@ -32,9 +32,9 @@ import java.util.regex.Pattern;
 public interface CloningPolicy {
 
     /**
-     * JDK immutable classes.
+     * JDK immutable types.
      */
-    Set<Class<?>> IMMUTABLE_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    Set<Class<?>> IMMUTABLE_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         BigDecimal.class, BigInteger.class, Boolean.class, Byte.class,
         Character.class, Class.class,
         Double.class, Duration.class,
@@ -51,9 +51,9 @@ public interface CloningPolicy {
     )));
 
     /**
-     * Primitive wrappers classes.
+     * Primitive wrappers types.
      */
-    Set<Class<?>> WRAPPERS_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    Set<Class<?>> WRAPPERS_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class
     )));
 
@@ -65,7 +65,7 @@ public interface CloningPolicy {
      * @return {@code true} if {@code type} is primitive wrapper
      */
     static boolean isWrapper(Class<?> type) {
-        return WRAPPERS_CLASSES.contains(type);
+        return WRAPPERS_TYPES.contains(type);
     }
 
     /**
@@ -93,7 +93,7 @@ public interface CloningPolicy {
     }
 
     default boolean isImmutable(Class<?> type) {
-        return IMMUTABLE_CLASSES.contains(type);
+        return IMMUTABLE_TYPES.contains(type);
     }
 
     default boolean isFinalAndImmutable(Class<?> type) {

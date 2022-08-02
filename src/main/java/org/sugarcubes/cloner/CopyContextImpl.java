@@ -1,4 +1,4 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
+ * Implementation of {@link CopyContext}.
+ *
  * @author Maxim Butov
  */
 class CopyContextImpl implements CopyContext {

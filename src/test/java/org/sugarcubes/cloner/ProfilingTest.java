@@ -6,8 +6,6 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.sugarcubes.cloner.impl.ReflectionCloner;
-import org.sugarcubes.cloner.impl.SerializableCloner;
 import org.sugarcubes.cloner.thirdparty.FstCloner;
 import org.sugarcubes.cloner.thirdparty.KKCloner;
 import org.sugarcubes.cloner.unsafe.UnsafeReflectionCloner;
@@ -31,7 +29,7 @@ public class ProfilingTest {
 //        objects.forEach(unsafe::clone);
         objects.forEach(reflection::clone);
         objects.forEach(kk::clone);
-        objects.forEach(fst::clone);
+//        objects.forEach(fst::clone);
     }
 
     @Test
@@ -40,7 +38,7 @@ public class ProfilingTest {
 //        objects.forEach(unsafe::clone);
         objects.forEach(reflection::clone);
         objects.forEach(kk::clone);
-        objects.forEach(fst::clone);
+//        objects.forEach(fst::clone);
     }
 
 }

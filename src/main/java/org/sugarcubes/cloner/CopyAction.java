@@ -13,11 +13,6 @@ public enum CopyAction {
     NULL,
 
     /**
-     * Skip the object. This action is suitable for fields.
-     */
-    SKIP,
-
-    /**
      * Return the original object.
      */
     ORIGINAL,

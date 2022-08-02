@@ -3,7 +3,7 @@ package org.sugarcubes.cloner.thirdparty;
 import java.util.function.Supplier;
 
 import org.objenesis.strategy.StdInstantiatorStrategy;
-import org.sugarcubes.cloner.impl.AbstractCloner;
+import org.sugarcubes.cloner.AbstractCloner;
 
 import com.esotericsoftware.kryo.Kryo;
 

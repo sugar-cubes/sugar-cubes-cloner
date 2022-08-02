@@ -1,4 +1,4 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 /**
  * Copier for the specific object type.
@@ -41,7 +41,7 @@ public interface ObjectCopier<T> {
      * @param original original object
      * @param context copying context
      * @return object copy
-     * @throws Throwable in case of errors
+     * @throws Throwable if something went wrong
      */
     T copy(T original, CopyContext context) throws Throwable;
 

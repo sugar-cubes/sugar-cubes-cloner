@@ -1,8 +1,5 @@
 package org.sugarcubes.cloner;
 
-import org.sugarcubes.cloner.impl.ReflectionCloner;
-import org.sugarcubes.cloner.impl.SerializableCloner;
-
 /**
  * Factory for creating different {@link Cloner}s.
  *

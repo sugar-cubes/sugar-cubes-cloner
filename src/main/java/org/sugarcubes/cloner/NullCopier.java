@@ -1,4 +1,4 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 /**
  * Copier which always returns {@code null}.

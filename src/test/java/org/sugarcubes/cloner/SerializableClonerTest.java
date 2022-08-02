@@ -1,8 +1,8 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import org.sugarcubes.cloner.AbstractClonerTests;
 import org.sugarcubes.cloner.Cloner;
-import org.sugarcubes.cloner.impl.SerializableCloner;
+import org.sugarcubes.cloner.SerializableCloner;
 
 /**
  * @author Maxim Butov

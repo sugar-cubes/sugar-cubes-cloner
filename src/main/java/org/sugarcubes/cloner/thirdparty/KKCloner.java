@@ -1,6 +1,6 @@
 package org.sugarcubes.cloner.thirdparty;
 
-import org.sugarcubes.cloner.impl.AbstractCloner;
+import org.sugarcubes.cloner.AbstractCloner;
 
 import com.rits.cloning.Cloner;
 

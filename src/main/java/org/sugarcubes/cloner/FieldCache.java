@@ -1,4 +1,4 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -10,9 +10,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.sugarcubes.cloner.CloningPolicy;
-import org.sugarcubes.cloner.CopyAction;
 
 public class FieldCache {
 
@@ -42,8 +39,7 @@ public class FieldCache {
             .peek(ReflectionUtils::makeAccessible)
             .collect(Collectors.toMap(Function.identity(), policy::getFieldAction))
             .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != CopyAction.SKIP);
+            .stream();
     }
 
 }

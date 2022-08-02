@@ -1,4 +1,4 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 /**
  * Utility to determine the availability of Objenesis.

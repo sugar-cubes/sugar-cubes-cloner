@@ -9,8 +9,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.sugarcubes.cloner.impl.ReflectionCloner;
-import org.sugarcubes.cloner.impl.SerializableCloner;
 import org.sugarcubes.cloner.thirdparty.FstCloner;
 import org.sugarcubes.cloner.thirdparty.KKCloner;
 import org.sugarcubes.cloner.thirdparty.KryoCloner;

@@ -1,8 +1,10 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import java.lang.reflect.Array;
 
 /**
+ * Two phase copier of an array of objects.
+ *
  * @author Maxim Butov
  */
 public final class ObjectArrayCopier extends TwoPhaseObjectCopier<Object[]> {
@@ -17,12 +19,7 @@ public final class ObjectArrayCopier extends TwoPhaseObjectCopier<Object[]> {
     @Override
     public void deepCopy(Object[] original, Object[] clone, CopyContext context) throws Throwable {
         for (int k = 0; k < original.length; k++) {
-            try {
-                clone[k] = context.copy(original[k]);
-            }
-            catch (SkipObject e) {
-                // continue
-            }
+            clone[k] = context.copy(original[k]);
         }
     }
 

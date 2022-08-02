@@ -1,4 +1,4 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import org.sugarcubes.cloner.Cloner;
 import org.sugarcubes.cloner.ClonerException;
@@ -29,7 +29,7 @@ public abstract class AbstractCloner implements Cloner {
      * @param object object to clone, not null
      * @return clone of the object
      *
-     * @throws Throwable in case of error
+     * @throws Throwable if something went wrong
      */
     protected abstract Object doClone(Object object) throws Throwable;
 

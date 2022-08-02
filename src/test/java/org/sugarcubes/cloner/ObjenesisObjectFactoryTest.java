@@ -5,8 +5,6 @@ import java.util.concurrent.Callable;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.sugarcubes.cloner.impl.ObjenesisObjectAllocator;
-import org.sugarcubes.cloner.impl.ObjenesisUtils;
 
 /**
  * @author Maxim Butov
@@ -17,7 +15,7 @@ public class ObjenesisObjectFactoryTest {
 
         @Override
         public Object call() throws Exception {
-            return new ObjenesisObjectAllocator();
+            return new ObjenesisAllocator();
         }
 
     }
@@ -36,7 +34,7 @@ public class ObjenesisObjectFactoryTest {
 
     @Test
     public void testObjenesis() throws Throwable {
-        new ObjenesisObjectAllocator().newInstance(Integer.class);
+        new ObjenesisAllocator().newInstance(Integer.class);
     }
 
 }

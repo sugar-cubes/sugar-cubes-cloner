@@ -5,11 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.sugarcubes.cloner.impl.CopyContext;
 import org.sugarcubes.cloner.CopyAction;
 import org.sugarcubes.cloner.ObjectAllocator;
-import org.sugarcubes.cloner.impl.ReflectionCloner;
-import org.sugarcubes.cloner.impl.SkipObject;
+import org.sugarcubes.cloner.CopyContext;
+import org.sugarcubes.cloner.ReflectionCloner;
 
 import sun.misc.Unsafe;
 
@@ -61,10 +60,8 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
     }
 
     @Override
-    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context) throws Throwable {
-        if (action == CopyAction.SKIP) {
-            return;
-        }
+    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context)
+        throws Throwable {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (action) {
             case NULL:
@@ -80,15 +77,7 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
                 }
                 break;
             case DEFAULT:
-                Object originalValue = UNSAFE.getObject(original, offset);
-                Object cloneValue;
-                try {
-                    cloneValue = context.copy(originalValue);
-                }
-                catch (SkipObject e) {
-                    return;
-                }
-                UNSAFE.putObject(clone, offset, cloneValue);
+                UNSAFE.putObject(clone, offset, context.copy(UNSAFE.getObject(original, offset)));
                 break;
             default:
                 throw new IllegalStateException();

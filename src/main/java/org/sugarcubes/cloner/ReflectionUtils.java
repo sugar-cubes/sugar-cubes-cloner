@@ -1,13 +1,11 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import org.sugarcubes.cloner.ClonerException;
-
 /**
- * Shortcuts of Java Reflection API.
+ * Shortcuts for Java Reflection API.
  *
  * @author Maxim Butov
  */
@@ -65,14 +63,6 @@ public class ReflectionUtils {
     public static <T extends AccessibleObject> T makeAccessible(T object) {
         object.setAccessible(true);
         return object;
-    }
-
-    public static <T> T getFieldValue(Object object, Field field) {
-        return (T) execute(() -> field.get(object));
-    }
-
-    public static <T> void setFieldValue(Object object, Field field, T value) {
-        execute((VoidReflectionAction) () -> field.set(object, value));
     }
 
 }

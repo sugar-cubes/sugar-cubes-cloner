@@ -1,34 +1,34 @@
-package org.sugarcubes.cloner.impl;
+package org.sugarcubes.cloner;
 
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 import org.sugarcubes.cloner.ObjectAllocator;
 
 /**
- * Object factory which uses Objenesis library to create objects.
+ * Allocator which uses Objenesis library to create objects.
  *
  * @author Maxim Butov
  */
-public class ObjenesisObjectAllocator implements ObjectAllocator {
+public class ObjenesisAllocator implements ObjectAllocator {
 
     private final Objenesis objenesis;
 
     /**
      * Default constructor.
      */
-    public ObjenesisObjectAllocator() {
+    public ObjenesisAllocator() {
         this(new ObjenesisStd());
     }
 
     /**
      * Constructor with an {@link Objenesis} instance.
      */
-    public ObjenesisObjectAllocator(Objenesis objenesis) {
+    public ObjenesisAllocator(Objenesis objenesis) {
         this.objenesis = objenesis;
     }
 
     @Override
-    public <T> T newInstanceUnsafe(Class<T> clazz) throws Throwable {
+    public <T> T newInstance(Class<T> clazz) throws Throwable {
         return objenesis.newInstance(clazz);
     }
 
