@@ -81,3 +81,7 @@ Does not use recursion. A kind of DFS algorithm is used for the object graph tra
 ### Limitations
 
 Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeObjectAllocator](src/main/java/org/sugarcubes/cloner/unsafe/UnsafeObjectAllocator.java).
+        
+### License
+
+Apache License 2.0
