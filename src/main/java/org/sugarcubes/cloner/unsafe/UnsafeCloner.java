@@ -17,20 +17,20 @@ import sun.misc.Unsafe;
  *
  * @author Maxim Butov
  */
-public class UnsafeReflectionCloner extends ReflectionCloner {
+public class UnsafeCloner extends ReflectionCloner {
 
     /**
      * Constructor.
      */
-    public UnsafeReflectionCloner() {
-        super(new UnsafeObjectAllocator());
+    public UnsafeCloner() {
+        super(new UnsafeAllocator());
     }
 
     /**
      * Constructor.
      */
-    public UnsafeReflectionCloner(CloningPolicy policy) {
-        super(new UnsafeObjectAllocator(), policy);
+    public UnsafeCloner(CloningPolicy policy) {
+        super(new UnsafeAllocator(), policy);
     }
 
     /**

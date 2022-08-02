@@ -12,7 +12,7 @@ import org.openjdk.jmh.annotations.State;
 import org.sugarcubes.cloner.thirdparty.FstCloner;
 import org.sugarcubes.cloner.thirdparty.KKCloner;
 import org.sugarcubes.cloner.thirdparty.KryoCloner;
-import org.sugarcubes.cloner.unsafe.UnsafeReflectionCloner;
+import org.sugarcubes.cloner.unsafe.UnsafeCloner;
 
 /**
  * Benchmarks for cloners.
@@ -39,7 +39,7 @@ public class ClonersBenchmark {
 
         serializableCloner = new SerializationCloner();
         reflectionCloner = new ReflectionCloner();
-        unsafeReflectionCloner = new UnsafeReflectionCloner();
+        unsafeReflectionCloner = new UnsafeCloner();
         kryoCloner = new KryoCloner();
         fstCloner = new FstCloner();
         kkCloner = new KKCloner();

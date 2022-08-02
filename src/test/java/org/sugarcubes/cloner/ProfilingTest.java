@@ -8,14 +8,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sugarcubes.cloner.thirdparty.FstCloner;
 import org.sugarcubes.cloner.thirdparty.KKCloner;
-import org.sugarcubes.cloner.unsafe.UnsafeReflectionCloner;
+import org.sugarcubes.cloner.unsafe.UnsafeCloner;
 
 public class ProfilingTest {
 
     private List<Object> objects;
 
     private Cloner serializable = new SerializationCloner();
-    private Cloner unsafe = new UnsafeReflectionCloner();
+    private Cloner unsafe = new UnsafeCloner();
     private Cloner reflection = new ReflectionCloner();
     private Cloner kk = new KKCloner();
     private Cloner fst = new FstCloner();

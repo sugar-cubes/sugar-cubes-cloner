@@ -9,7 +9,7 @@ import sun.misc.Unsafe;
  *
  * @author Maxim Butov
  */
-public class UnsafeObjectAllocator implements ObjectAllocator {
+public class UnsafeAllocator implements ObjectAllocator {
 
     @Override
     public <T> T newInstance(Class<T> clazz) throws Throwable {
