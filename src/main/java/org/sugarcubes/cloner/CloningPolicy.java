@@ -116,7 +116,7 @@ public interface CloningPolicy {
     }
 
     /**
-     * Returns {@code true} if type is immutable and final. This means there is no mutable subtype of this typy.
+     * Returns {@code true} if type is immutable and final. This means there is no mutable subtype of this type.
      *
      * @param type type
      * @return {@code true} if type is immutable and final
@@ -128,7 +128,7 @@ public interface CloningPolicy {
     /**
      * Returns {@code true} if array component type or field type guarantees that the stored value is immutable.
      * We cannot use {@code isImmutable(componentType)}, because, for instance, the value of field defined as
-     * {@code private BigInteger value;} willbe immutable value in this case, although it can refer to some mutable subtype of
+     * {@code private BigInteger value;} will be immutable value in this case, although it can refer to some mutable subtype of
      * {@code BigInteger}.
      *
      * @param componentType array component type of field type

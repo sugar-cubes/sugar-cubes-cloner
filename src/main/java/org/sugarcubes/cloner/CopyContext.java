@@ -15,7 +15,7 @@ public interface CopyContext {
     void invokeLater(UnsafeRunnable runnable);
 
     /**
-     * Returns the instant copy of the object. It can be a copy, saved previusly into cache, or fresh copy.
+     * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy.
      *
      * @param object original
      * @return clone
