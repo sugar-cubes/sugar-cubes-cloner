@@ -29,7 +29,7 @@ class CopyContextImpl implements CopyContext {
         }
         ObjectCopier<T> typeCloner = (ObjectCopier) clonerFactory.apply(object.getClass());
         if (typeCloner.isTrivial()) {
-            return typeCloner.copy(object, this);
+            return typeCloner.copy(object, null);
         }
         Object prev = clones.get(object);
         if (prev != null) {

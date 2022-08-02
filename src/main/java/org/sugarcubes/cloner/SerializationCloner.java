@@ -9,12 +9,12 @@ import java.io.ObjectOutputStream;
  *
  * @author Maxim Butov
  */
-public class SerializableCloner extends AbstractCloner {
+public class SerializationCloner extends AbstractCloner {
 
     /**
      * Singleton instance of the cloner.
      */
-    public static final Cloner INSTANCE = new SerializableCloner();
+    public static final Cloner INSTANCE = new SerializationCloner();
 
     /**
      * A faster implementation.

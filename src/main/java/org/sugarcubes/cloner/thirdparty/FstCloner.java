@@ -13,12 +13,21 @@ import org.sugarcubes.cloner.AbstractCloner;
  */
 public class FstCloner extends AbstractCloner {
 
+    /**
+     * FST coder.
+     */
     private final FSTCoder coder;
 
+    /**
+     * Constructor.
+     */
     public FstCloner() {
         this(new DefaultCoder());
     }
 
+    /**
+     * Constructor.
+     */
     public FstCloner(FSTCoder coder) {
         this.coder = coder;
     }

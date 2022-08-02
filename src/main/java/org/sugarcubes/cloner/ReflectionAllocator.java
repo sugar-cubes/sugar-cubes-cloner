@@ -3,9 +3,8 @@ package org.sugarcubes.cloner;
 /**
  * Allocator which uses no-arg constructor to create object.
  *
- * @see ObjenesisAllocator
- *
  * @author Maxim Butov
+ * @see ObjenesisAllocator
  */
 public class ReflectionAllocator implements ObjectAllocator {
 

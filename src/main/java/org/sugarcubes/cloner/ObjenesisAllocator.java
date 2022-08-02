@@ -2,7 +2,6 @@ package org.sugarcubes.cloner;
 
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
-import org.sugarcubes.cloner.ObjectAllocator;
 
 /**
  * Allocator which uses Objenesis library to create objects.
@@ -11,6 +10,9 @@ import org.sugarcubes.cloner.ObjectAllocator;
  */
 public class ObjenesisAllocator implements ObjectAllocator {
 
+    /**
+     * Objenesis instance.
+     */
     private final Objenesis objenesis;
 
     /**

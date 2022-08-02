@@ -11,13 +11,22 @@ import java.lang.reflect.Method;
  */
 public class ReflectionUtils {
 
+    /**
+     * Variant of the {@link java.util.function.Supplier} with declared exception.
+     */
     @FunctionalInterface
     public interface ReflectionAction<T> {
 
+        /**
+         * Actual work.
+         */
         T get() throws ReflectiveOperationException;
 
     }
 
+    /**
+     * Void modification of {@link ReflectionAction}.
+     */
     @FunctionalInterface
     public interface VoidReflectionAction extends ReflectionAction<Object> {
 
@@ -27,6 +36,9 @@ public class ReflectionUtils {
             return null;
         }
 
+        /**
+         * Actual work.
+         */
         void run() throws ReflectiveOperationException;
 
     }
@@ -41,6 +53,26 @@ public class ReflectionUtils {
         catch (ReflectiveOperationException e) {
             throw new ClonerException(e);
         }
+    }
+
+    /**
+     * Checks the availability of the class in current class loader.
+     */
+    public static boolean isClassAvailable(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        }
+        catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Safe version of {@link Class#forName(String)}.
+     */
+    public static Class<?> classForName(String className) {
+        return execute(() -> Class.forName(className));
     }
 
     /**

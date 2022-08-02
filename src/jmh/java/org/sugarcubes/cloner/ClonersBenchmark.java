@@ -37,7 +37,7 @@ public class ClonersBenchmark {
     @Setup
     public void setup() {
 
-        serializableCloner = new SerializableCloner();
+        serializableCloner = new SerializationCloner();
         reflectionCloner = new ReflectionCloner();
         unsafeReflectionCloner = new UnsafeReflectionCloner();
         kryoCloner = new KryoCloner();

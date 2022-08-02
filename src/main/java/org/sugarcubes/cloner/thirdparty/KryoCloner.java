@@ -16,16 +16,28 @@ import com.esotericsoftware.kryo.Kryo;
  */
 public class KryoCloner extends AbstractCloner {
 
+    /**
+     * {@link Kryo} factory.
+     */
     private final Supplier<Kryo> kryo;
 
+    /**
+     * Constructor.
+     */
     public KryoCloner(Supplier<Kryo> kryo) {
         this.kryo = kryo;
     }
 
+    /**
+     * Constructor.
+     */
     public KryoCloner(Kryo kryo) {
         this(() -> kryo);
     }
 
+    /**
+     * Constructor.
+     */
     public KryoCloner() {
         this(
             () -> {

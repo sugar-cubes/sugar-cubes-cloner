@@ -3,7 +3,7 @@ package org.sugarcubes.cloner;
 import java.lang.reflect.Array;
 
 /**
- * Two phase copier of an array of objects.
+ * Two-phase copier of an array of objects.
  *
  * @author Maxim Butov
  */

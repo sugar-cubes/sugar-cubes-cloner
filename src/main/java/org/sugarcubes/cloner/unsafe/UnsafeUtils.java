@@ -14,6 +14,9 @@ import sun.misc.Unsafe;
  */
 public class UnsafeUtils {
 
+    /**
+     * The {@link Unsafe#theUnsafe}.
+     */
     private static final Unsafe UNSAFE;
 
     static {

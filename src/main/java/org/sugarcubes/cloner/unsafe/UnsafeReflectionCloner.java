@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import org.sugarcubes.cloner.CloningPolicy;
 import org.sugarcubes.cloner.CopyAction;
-import org.sugarcubes.cloner.ObjectAllocator;
 import org.sugarcubes.cloner.CopyContext;
 import org.sugarcubes.cloner.ReflectionCloner;
 
@@ -18,6 +18,20 @@ import sun.misc.Unsafe;
  * @author Maxim Butov
  */
 public class UnsafeReflectionCloner extends ReflectionCloner {
+
+    /**
+     * Constructor.
+     */
+    public UnsafeReflectionCloner() {
+        super(new UnsafeObjectAllocator());
+    }
+
+    /**
+     * Constructor.
+     */
+    public UnsafeReflectionCloner(CloningPolicy policy) {
+        super(new UnsafeObjectAllocator(), policy);
+    }
 
     /**
      * {@link Unsafe} instance.
@@ -33,11 +47,6 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
 
     }
 
-    @Override
-    protected ObjectAllocator createAllocator() {
-        return new UnsafeObjectAllocator();
-    }
-
     private static <X> TernaryConsumer<Object, Long, Object> getCopyOperation(TernaryConsumer<Object, Long, X> unsafeSetter,
         BiFunction<Object, Long, X> unsafeGetter) {
         return (from, offset, into) -> unsafeSetter.accept(into, offset, unsafeGetter.apply(from, offset));
@@ -46,17 +55,17 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
     /**
      * Mapping of primitive types to copy operations.
      */
-    private static final Map<Class<?>, TernaryConsumer<Object, Long, Object>> OPERATIONS_WITH_PRIMITIVES = new HashMap<>();
+    private static final Map<Class<?>, TernaryConsumer<Object, Long, Object>> COPY_OPERATIONS = new HashMap<>();
 
     static {
-        OPERATIONS_WITH_PRIMITIVES.put(boolean.class, getCopyOperation(UNSAFE::putBoolean, UNSAFE::getBoolean));
-        OPERATIONS_WITH_PRIMITIVES.put(byte.class, getCopyOperation(UNSAFE::putByte, UNSAFE::getByte));
-        OPERATIONS_WITH_PRIMITIVES.put(char.class, getCopyOperation(UNSAFE::putChar, UNSAFE::getChar));
-        OPERATIONS_WITH_PRIMITIVES.put(short.class, getCopyOperation(UNSAFE::putShort, UNSAFE::getShort));
-        OPERATIONS_WITH_PRIMITIVES.put(int.class, getCopyOperation(UNSAFE::putInt, UNSAFE::getInt));
-        OPERATIONS_WITH_PRIMITIVES.put(long.class, getCopyOperation(UNSAFE::putLong, UNSAFE::getLong));
-        OPERATIONS_WITH_PRIMITIVES.put(float.class, getCopyOperation(UNSAFE::putFloat, UNSAFE::getFloat));
-        OPERATIONS_WITH_PRIMITIVES.put(double.class, getCopyOperation(UNSAFE::putDouble, UNSAFE::getDouble));
+        COPY_OPERATIONS.put(boolean.class, getCopyOperation(UNSAFE::putBoolean, UNSAFE::getBoolean));
+        COPY_OPERATIONS.put(byte.class, getCopyOperation(UNSAFE::putByte, UNSAFE::getByte));
+        COPY_OPERATIONS.put(char.class, getCopyOperation(UNSAFE::putChar, UNSAFE::getChar));
+        COPY_OPERATIONS.put(short.class, getCopyOperation(UNSAFE::putShort, UNSAFE::getShort));
+        COPY_OPERATIONS.put(int.class, getCopyOperation(UNSAFE::putInt, UNSAFE::getInt));
+        COPY_OPERATIONS.put(long.class, getCopyOperation(UNSAFE::putLong, UNSAFE::getLong));
+        COPY_OPERATIONS.put(float.class, getCopyOperation(UNSAFE::putFloat, UNSAFE::getFloat));
+        COPY_OPERATIONS.put(double.class, getCopyOperation(UNSAFE::putDouble, UNSAFE::getDouble));
     }
 
     @Override
@@ -68,7 +77,7 @@ public class UnsafeReflectionCloner extends ReflectionCloner {
                 UNSAFE.putObject(clone, offset, null);
                 break;
             case ORIGINAL:
-                TernaryConsumer<Object, Long, Object> primitiveCopy = OPERATIONS_WITH_PRIMITIVES.get(field.getType());
+                TernaryConsumer<Object, Long, Object> primitiveCopy = COPY_OPERATIONS.get(field.getType());
                 if (primitiveCopy != null) {
                     primitiveCopy.accept(original, offset, clone);
                 }

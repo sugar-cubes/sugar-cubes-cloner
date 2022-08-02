@@ -1,13 +1,16 @@
 package org.sugarcubes.cloner;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
 /**
  * @author Maxim Butov
@@ -30,6 +33,7 @@ public abstract class AbstractClonerTests {
             zzz[0] = this;
             zzz[1] = zzz;
         }
+
     }
 
     static class B extends A {
@@ -48,34 +52,32 @@ public abstract class AbstractClonerTests {
 
     @Test
     void testCloner() {
-
         Cloner cloner = getCloner();
 
-        Assertions.assertNull(cloner.clone(null));
+        assertThat(cloner.clone(null), nullValue());
 
         B b1 = new B(1);
         B b2 = cloner.clone(b1);
 
-        Assertions.assertEquals(b1.x, b2.x);
-        Assertions.assertSame(b1.y, b2.y);
-        Assertions.assertNull(b2.z);
-        Assertions.assertSame(b2.a, b2);
+        assertThat(b2.x, is(b1.x));
+        assertThat(b2.y, sameInstance(b1.y));
+        assertThat(b2.z, nullValue());
+        assertThat(b2.a, sameInstance(b2));
+        assertThat(b2.b, is(b1.b));
 
-        Assertions.assertTrue(Arrays.equals(b1.xxx, b2.xxx));
-        Assertions.assertTrue(Arrays.deepEquals(b1.yyy, b2.yyy));
-        Assertions.assertSame(b2, b2.zzz[0]);
-        Assertions.assertSame(b2.zzz, b2.zzz[1]);
-
-        Assertions.assertSame(b2, b2.a);
-        Assertions.assertEquals(b1.b, b2.b);
-
+        assertThat(b2.xxx, is(b1.xxx));
+        assertThat(b2.yyy, is(b1.yyy));
+        assertThat(b2.zzz[0], sameInstance(b2));
+        assertThat(b2.zzz[1], sameInstance(b2.zzz));
     }
 
     @Test
     void testRandomObjects() throws Exception {
         Cloner cloner = getCloner();
         for (int k = 0; k < 10; k++) {
-            cloner.clone(TestObjectFactory.randomObject(false, 10, 10));
+            Object original = TestObjectFactory.randomObject(false, 10, 10);
+            Object clone = cloner.clone(original);
+            assertThat(clone, notNullValue());
         }
     }
 

@@ -33,7 +33,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
      *
      * @param original original object
      * @param clone clone
-     * @param context context
+     * @param context copying context
      * @throws Throwable if something went wrong
      */
     public abstract void deepCopy(T original, T clone, CopyContext context) throws Throwable;

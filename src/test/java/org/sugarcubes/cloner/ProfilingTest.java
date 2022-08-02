@@ -14,7 +14,7 @@ public class ProfilingTest {
 
     private List<Object> objects;
 
-    private Cloner serializable = new SerializableCloner();
+    private Cloner serializable = new SerializationCloner();
     private Cloner unsafe = new UnsafeReflectionCloner();
     private Cloner reflection = new ReflectionCloner();
     private Cloner kk = new KKCloner();

@@ -18,10 +18,16 @@ public class KKCloner extends AbstractCloner {
      */
     private final com.rits.cloning.Cloner delegate;
 
+    /**
+     * Constructor.
+     */
     public KKCloner() {
         this(new com.rits.cloning.Cloner());
     }
 
+    /**
+     * Constructor.
+     */
     public KKCloner(com.rits.cloning.Cloner delegate) {
         this.delegate = delegate;
     }
