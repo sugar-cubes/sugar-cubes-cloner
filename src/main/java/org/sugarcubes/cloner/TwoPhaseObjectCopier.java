@@ -1,7 +1,7 @@
 package org.sugarcubes.cloner;
 
 /**
- * Two-phase cloner.
+ * Two-phase copier.
  *
  * @author Maxim Butov
  */
@@ -20,7 +20,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
     }
 
     /**
-     * The first phase of cloning. Creates an "empty" copy of the original object.
+     * The first phase of copying. Creates an "empty" copy of the original object.
      *
      * @param original original object
      * @return clone
@@ -29,7 +29,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
     public abstract T allocate(T original) throws Throwable;
 
     /**
-     * The second phase of cloning. Copying of the inner state from the original object into the clone.
+     * The second phase of copying, copies the inner state from the original object into the clone.
      *
      * @param original original object
      * @param clone clone

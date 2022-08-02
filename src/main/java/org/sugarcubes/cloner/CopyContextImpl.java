@@ -31,11 +31,11 @@ class CopyContextImpl implements CopyContext {
         if (typeCloner.isTrivial()) {
             return typeCloner.copy(object, null);
         }
-        Object prev = clones.get(object);
-        if (prev != null) {
-            return (T) prev;
+        T clone = (T) clones.get(object);
+        if (clone != null) {
+            return clone;
         }
-        T clone = typeCloner.copy(object, this);
+        clone = typeCloner.copy(object, this);
         clones.put(object, clone);
         return clone;
     }

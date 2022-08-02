@@ -69,7 +69,7 @@ public class ReflectionUtils {
     }
 
     /**
-     * Safe version of {@link Class#forName(String)}.
+     * Version of {@link Class#forName(String)} with unchecked exception.
      */
     public static Class<?> classForName(String className) {
         return execute(() -> Class.forName(className));

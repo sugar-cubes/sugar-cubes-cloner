@@ -21,13 +21,13 @@ return new ObjectInputStream(new ByteArrayInputStream(buffer.toByteArray())).rea
 This code can be simplified with Apache commons-lang [SerializationUtils.clone(object)](https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SerializationUtils.html#clone-T-) or Spring Framework [SerializationUtils.deserialize(SerializationUtils.serialize(object))](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/util/SerializationUtils.html).
 
 Pros:
-- Portable, works on any JVM
-- No external dependencies
+- portable, works on any JVM
+- no external dependencies
 
 Cons:
-- Slow
-- Requires all objects to be serializable
-- May be customized only by changing [serialization](https://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html) process
+- slow
+- requires all objects to be serializable
+- may be customized only by changing [serialization](https://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html) process
 
 ### Alternative serialization libraries
                                        
@@ -35,19 +35,19 @@ Still serialization, but with non-standard libraries, such as:
 - [fast-serialization](https://github.com/RuedigerMoeller/fast-serialization)
 - [kryo](https://github.com/EsotericSoftware/kryo)
       
-Faster than java.io serialization but still non-custmizable.
+Faster than java.io serialization but still almost non-customizable.
 
 ### Cloning libraries
 
-#### [cloning](https://github.com/kostaskougios/cloning)
-- Fast.
-- Uses recursive algorithm, on some object graphs can overflow the stack. 
-- Has problems with cyclic dependencies, e.g. such map:
+#### [kostaskougios/cloning](https://github.com/kostaskougios/cloning)
+- fast
+- uses recursive algorithm 
+- has problems with cyclic dependencies, e.g. such map:
 ```java
 Map map = new HashMap();
 map.put("me", map);
 ``` 
-will not be cloned (stack overflow).                                                      
+will not be cloned (stack overflow)                                                      
 
 ## The solution
 
@@ -60,18 +60,25 @@ will not be cloned (stack overflow).
 - [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java)
 
 ### Usage
+
+Fast cloning
 ```java
 Object clone = Cloners.reflection().clone(original);
 ```
 
+Slow cloning
+```java
+Object clone = Cloners.serialization().clone(original);
+```
+
 ### Customization
 ```java
-Cloner cloner = new ReflectionCloner(new ObjenesisAllocator())
-    .copier(MyObject.class, new MyObjectCopier())
-    .type(ThreadLocal.class, CopyAction.ORIGINAL)
-    .field(MyObject.class, "cachedValue", CopyAction.NULL);
+Cloner cloner = new ReflectionCloner(new ObjenesisAllocator())  // new cloner instance with custom allocator
+    .copier(MyObject.class, new MyObjectCopier())               // custom copier for MyObject type
+    .type(ThreadLocal.class, CopyAction.ORIGINAL)               // copy ThreadLocal-s as is 
+    .field(MyObject.class, "cachedValue", CopyAction.NULL);     // skip MyObject.cachedValue field
 
-    MyObject myObjectClone = cloner.clone(myObject);
+    MyObject myObjectClone = cloner.clone(myObject);            // perform cloning
 ```
           
 ### Implementation

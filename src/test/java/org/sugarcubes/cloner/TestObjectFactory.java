@@ -127,7 +127,9 @@ public class TestObjectFactory {
     private static <T> T newInstance(boolean proxy, Class<?>... types) {
         try {
             Class<?> type = random(types);
-            if (proxy) type = proxy(type);
+            if (proxy) {
+                type = proxy(type);
+            }
             return (T) type.getDeclaredConstructor().newInstance();
         }
         catch (Error | RuntimeException e) {

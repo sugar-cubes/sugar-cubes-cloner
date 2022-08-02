@@ -10,8 +10,8 @@ package org.sugarcubes.cloner;
 public class ReflectionAllocator implements ObjectAllocator {
 
     @Override
-    public <T> T newInstance(Class<T> clazz) throws Throwable {
-        return ReflectionUtils.makeAccessible(clazz.getDeclaredConstructor()).newInstance();
+    public <T> T newInstance(Class<T> type) throws Throwable {
+        return ReflectionUtils.makeAccessible(type.getDeclaredConstructor()).newInstance();
     }
 
 }

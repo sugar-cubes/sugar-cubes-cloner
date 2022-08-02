@@ -12,8 +12,8 @@ import sun.misc.Unsafe;
 public class UnsafeAllocator implements ObjectAllocator {
 
     @Override
-    public <T> T newInstance(Class<T> clazz) throws Throwable {
-        return (T) UnsafeUtils.getUnsafe().allocateInstance(clazz);
+    public <T> T newInstance(Class<T> type) throws Throwable {
+        return (T) UnsafeUtils.getUnsafe().allocateInstance(type);
     }
 
 }

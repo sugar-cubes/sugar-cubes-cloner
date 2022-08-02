@@ -18,12 +18,12 @@ public interface ObjectAllocator {
     }
 
     /**
-     * Creates an instance of the specified class. Instance may be not initialized.
+     * Creates an instance of the specified type. Instance may be not initialized.
      *
-     * @param clazz class to instantiate
-     * @return new instance of the class
+     * @param type type to instantiate
+     * @return new instance of the type
      * @throws Throwable if something went wrong
      */
-    <T> T newInstance(Class<T> clazz) throws Throwable;
+    <T> T newInstance(Class<T> type) throws Throwable;
 
 }

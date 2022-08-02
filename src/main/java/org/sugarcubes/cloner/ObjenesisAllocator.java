@@ -30,8 +30,8 @@ public class ObjenesisAllocator implements ObjectAllocator {
     }
 
     @Override
-    public <T> T newInstance(Class<T> clazz) throws Throwable {
-        return objenesis.newInstance(clazz);
+    public <T> T newInstance(Class<T> type) throws Throwable {
+        return objenesis.newInstance(type);
     }
 
 }
