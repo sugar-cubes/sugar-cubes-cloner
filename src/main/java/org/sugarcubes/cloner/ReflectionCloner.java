@@ -34,7 +34,7 @@ public class ReflectionCloner extends AbstractCloner {
 
     private GraphTraversalAlgorithm traversalAlgorithm = GraphTraversalAlgorithm.DEPTH_FIRST;
 
-    private final Map<Class<?>, ObjectCopier<?>> copiers = new HashMap<>(DEFAULT_COPIERS);
+    private final LazyCache<Class<?>, ObjectCopier<?>> copiers;
 
     private final ClassFieldCache fieldCache = new ClassFieldCache();
 
@@ -77,6 +77,8 @@ public class ReflectionCloner extends AbstractCloner {
         this.policy = argNotNull(policy, "Policy");
         this.typeActions = new LazyCache<>(policy::getTypeAction);
         this.fieldActions = new LazyCache<>(policy::getFieldAction);
+        this.copiers = new LazyCache<>(this::getCopier);
+        this.copiers.putAll(DEFAULT_COPIERS);
     }
 
     /**
@@ -150,7 +152,7 @@ public class ReflectionCloner extends AbstractCloner {
 
     @Override
     protected Object doClone(Object object) throws Throwable {
-        CopyContext context = new CopyContextImpl(type -> copiers.computeIfAbsent(type, this::getCopier), traversalAlgorithm);
+        CopyContext context = new CopyContextImpl(copiers::get, traversalAlgorithm);
         Object clone = context.copy(object);
         context.join();
         return clone;
