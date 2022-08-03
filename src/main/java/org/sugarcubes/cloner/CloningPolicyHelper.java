@@ -43,6 +43,7 @@ public class CloningPolicyHelper {
     /**
      * Returns {@code true} if type is immutable and final. This means there is no mutable subtype of this type.
      *
+     * @param policy cloning policy
      * @param type type
      * @return {@code true} if type is immutable and final
      */
@@ -56,6 +57,7 @@ public class CloningPolicyHelper {
      * {@code private BigInteger value;} will be immutable value in this case, although it can refer to some mutable subtype of
      * {@code BigInteger}.
      *
+     * @param policy cloning policy
      * @param componentType array component type of field type
      * @return {@code true} if value guaranteed to be immutable
      */

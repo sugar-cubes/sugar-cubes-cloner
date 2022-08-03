@@ -30,8 +30,9 @@ public interface CopyContext {
      * @param <T> object type
      * @param original original
      * @param clone clone
+     * @return clone
      */
-    <T> void register(T original, T clone);
+    <T> T register(T original, T clone);
 
     /**
      * Completes all the delayed tasks.

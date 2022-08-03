@@ -63,6 +63,8 @@ will not be cloned (stack overflow)
 | [GraphTraversalAlgorithm](src/main/java/org/sugarcubes/cloner/GraphTraversalAlgorithm.java) | DFS (default) or BFS. |
 | [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)| Allocator (instantiator) interface. |
 | [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier. |
+            
+[Full javadoc.](docs/javadoc/index.html?raw=true)
 
 ### Usage
 

@@ -9,6 +9,9 @@ public class ClonerException extends RuntimeException {
 
     /**
      * Constructor with message and cause.
+     *
+     * @param message message
+     * @param cause original exception
      */
     public ClonerException(String message, Throwable cause) {
         super(message, cause);
@@ -16,6 +19,8 @@ public class ClonerException extends RuntimeException {
 
     /**
      * Constructor with cause.
+     *
+     * @param cause original exception
      */
     public ClonerException(Throwable cause) {
         super(cause);
@@ -23,6 +28,8 @@ public class ClonerException extends RuntimeException {
 
     /**
      * Constructor with message.
+     *
+     * @param message message
      */
     public ClonerException(String message) {
         super(message);

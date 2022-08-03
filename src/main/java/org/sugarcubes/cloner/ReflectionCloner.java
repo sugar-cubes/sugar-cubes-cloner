@@ -50,6 +50,8 @@ public class ReflectionCloner extends AbstractCloner {
 
     /**
      * Constructor.
+     *
+     * @param allocator object allocator
      */
     public ReflectionCloner(ObjectAllocator allocator) {
         this(allocator, CloningPolicy.DEFAULT);
@@ -57,6 +59,8 @@ public class ReflectionCloner extends AbstractCloner {
 
     /**
      * Constructor.
+     *
+     * @param policy cloning policy
      */
     public ReflectionCloner(CloningPolicy policy) {
         this(ObjectAllocator.defaultAllocator(), policy);
@@ -64,6 +68,9 @@ public class ReflectionCloner extends AbstractCloner {
 
     /**
      * Constructor.
+     *
+     * @param allocator object allocator
+     * @param policy cloning policy
      */
     public ReflectionCloner(ObjectAllocator allocator, CloningPolicy policy) {
         this.allocator = argNotNull(allocator, "Allocator");
@@ -83,7 +90,7 @@ public class ReflectionCloner extends AbstractCloner {
     public <T> ReflectionCloner copier(Class<T> type, ObjectCopier<T> copier) {
         argNotNull(type, "Type");
         argNotNull(copier, "Copier");
-        isNull(copiers.put(type, copier), "Copier for type %s already set.", type.getName());
+        isNull(copiers.put(type, copier), "Copier for %s already set.", type.getName());
         return this;
     }
 
@@ -97,7 +104,7 @@ public class ReflectionCloner extends AbstractCloner {
     public ReflectionCloner type(Class<?> type, CopyAction action) {
         argNotNull(type, "Type");
         argNotNull(action, "Action");
-        isNull(typeActions.put(type, action), "Action for type %s already set.", type.getName());
+        isNull(typeActions.put(type, action), "Action for %s already set.", type.getName());
         return this;
     }
 
@@ -111,7 +118,7 @@ public class ReflectionCloner extends AbstractCloner {
     public ReflectionCloner field(Field field, CopyAction action) {
         argNotNull(field, "Field");
         argNotNull(action, "Action");
-        isNull(fieldActions.put(field, action), "Action for field %s already set.", field);
+        isNull(fieldActions.put(field, action), "Action for %s already set.", field);
         return this;
     }
 

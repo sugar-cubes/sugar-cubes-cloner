@@ -50,4 +50,10 @@ public class Cloners {
         return serialization().clone(object);
     }
 
+    /**
+     * Utility class.
+     */
+    private Cloners() {
+    }
+
 }

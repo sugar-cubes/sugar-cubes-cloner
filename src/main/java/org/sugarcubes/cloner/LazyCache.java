@@ -9,7 +9,7 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-public class LazyCache<K, V> {
+public final class LazyCache<K, V> {
 
     /**
      * Key-value mapping function.
@@ -23,6 +23,8 @@ public class LazyCache<K, V> {
 
     /**
      * Constructor.
+     *
+     * @param mappingFunction key-value mapping function
      */
     public LazyCache(Function<K, V> mappingFunction) {
         this.mappingFunction = mappingFunction;

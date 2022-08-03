@@ -1,7 +1,7 @@
 package org.sugarcubes.cloner;
 
 /**
- * Copier which always returns original object.
+ * Base class for trivial copoiers.
  *
  * @author Maxim Butov
  */

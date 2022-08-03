@@ -50,3 +50,8 @@ jmh {
     warmupForks.set(0)
     warmupIterations.set(1)
 }
+
+tasks.register<Copy>("exportJavadocs") {
+    from(layout.buildDirectory.file("docs"))
+    into(layout.projectDirectory.file("docs"))
+}

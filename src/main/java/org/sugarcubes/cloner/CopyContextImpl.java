@@ -55,8 +55,12 @@ public class CopyContextImpl implements CopyContext {
     }
 
     @Override
-    public <T> void register(T original, T clone) {
-        clones.put(original, clone);
+    public <T> T register(T original, T clone) {
+        Object prev = clones.put(original, clone);
+        if (prev != null) {
+            throw new IllegalStateException("Already registered.");
+        }
+        return clone;
     }
 
     @Override

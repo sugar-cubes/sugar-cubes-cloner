@@ -15,7 +15,7 @@ import java.util.stream.Stream;
  *
  * @author Maxim Butov
  */
-public class ClassFieldCache {
+public final class ClassFieldCache {
 
     /**
      * Actual cache.

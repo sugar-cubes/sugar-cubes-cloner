@@ -24,6 +24,8 @@ public class ObjenesisAllocator implements ObjectAllocator {
 
     /**
      * Constructor with an {@link Objenesis} instance.
+     *
+     * @param objenesis {@link Objenesis} instance
      */
     public ObjenesisAllocator(Objenesis objenesis) {
         this.objenesis = objenesis;

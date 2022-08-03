@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -120,6 +122,15 @@ abstract class AbstractClonerTests {
 
         assertThat(clone, not(sameInstance(original)));
         assertThat(clone.i, is(original.i));
+    }
+
+    @Test
+    void testRandomObjects() {
+        List<Object> objects = Stream.generate(() -> TestObjectFactory.randomObject(10, 10))
+            .limit(10)
+            .parallel()
+            .collect(Collectors.toList());
+        cloner.clone(objects);
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-public class SimpleQueue<T> {
+public final class SimpleQueue<T> {
 
     /**
      * Creates FIFO queue based on {@link LinkedList}.
@@ -73,7 +73,7 @@ public class SimpleQueue<T> {
     /**
      * Polls item from queue. Synonym of {@link java.util.Queue#poll()}.
      *
-     * @return item
+     * @return item or {@code null} if queue is empty
      */
     public T poll() {
         return pollMethod.apply(queue);

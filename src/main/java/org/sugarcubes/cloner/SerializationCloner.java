@@ -19,7 +19,7 @@ public class SerializationCloner extends AbstractCloner {
     /**
      * A faster implementation.
      */
-    static class ByteArrayOutputStream extends java.io.ByteArrayOutputStream {
+    static final class ByteArrayOutputStream extends java.io.ByteArrayOutputStream {
 
         static final int SIZE = 0x1000;
 

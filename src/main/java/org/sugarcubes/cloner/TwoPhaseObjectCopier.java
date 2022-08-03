@@ -14,8 +14,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
 
     @Override
     public final T copy(T original, CopyContext context) throws Throwable {
-        T clone = allocate(original);
-        context.register(original, clone);
+        T clone = context.register(original, allocate(original));
         context.fork(() -> deepCopy(original, clone, context));
         return clone;
     }

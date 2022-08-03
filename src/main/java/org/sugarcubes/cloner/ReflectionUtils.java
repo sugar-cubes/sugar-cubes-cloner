@@ -19,6 +19,9 @@ public class ReflectionUtils {
 
         /**
          * Actual work.
+         *
+         * @return work result
+         * @throws ReflectiveOperationException in case of reflection error
          */
         T get() throws ReflectiveOperationException;
 
@@ -38,6 +41,8 @@ public class ReflectionUtils {
 
         /**
          * Actual work.
+         *
+         * @throws ReflectiveOperationException in case of reflection error
          */
         void run() throws ReflectiveOperationException;
 
@@ -61,6 +66,9 @@ public class ReflectionUtils {
 
     /**
      * Checks the availability of the class in current class loader.
+     *
+     * @param className name of the class
+     * @return {@code true} if class is available
      */
     public static boolean isClassAvailable(String className) {
         try {
@@ -84,6 +92,11 @@ public class ReflectionUtils {
 
     /**
      * Returns accessible field.
+     * Same as {@link Class#getDeclaredField(String)}.
+     *
+     * @param type {@link Class} instance
+     * @param name field name
+     * @return field
      */
     public static Field getField(Class<?> type, String name) {
         return execute(() -> makeAccessible(type.getDeclaredField(name)));
@@ -91,6 +104,12 @@ public class ReflectionUtils {
 
     /**
      * Returns accessible method.
+     * Same as {@link Class#getDeclaredMethod(String, Class[])}.
+     *
+     * @param type {@link Class} instance
+     * @param name method name
+     * @param parameterTypes parameter types
+     * @return method
      */
     public static Method getMethod(Class<?> type, String name, Class<?>... parameterTypes) {
         return execute(() -> makeAccessible(type.getDeclaredMethod(name, parameterTypes)));
@@ -100,6 +119,8 @@ public class ReflectionUtils {
      * Makes object accessible.
      *
      * @param <T> can be field or method or constructor
+     * @param object field or method or constructor
+     * @return same object
      */
     public static <T extends AccessibleObject> T makeAccessible(T object) {
         object.setAccessible(true);

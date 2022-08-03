@@ -21,10 +21,11 @@ public class ProfilingTest {
 
         objects = Stream.generate(() -> TestObjectFactory.randomObject(10, 8))
             .limit(100)
+            .parallel()
             .collect(Collectors.toList());
-        
+
         doTests();
-        
+
     }
 
     @Test
