@@ -7,9 +7,6 @@ import java.util.List;
 
 import com.google.common.io.ByteStreams;
 
-/**
- * @author Maxim Butov
- */
 public class CustomClassLoader extends ClassLoader {
 
     private final List<String> disabledPrefixes = new ArrayList<>();

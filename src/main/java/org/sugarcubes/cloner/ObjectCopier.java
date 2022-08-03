@@ -33,7 +33,9 @@ public interface ObjectCopier<T> {
      *
      * @return {@code true} if the copier is trivial
      */
-    boolean isTrivial();
+    default boolean isTrivial() {
+        return false;
+    }
 
     /**
      * Creates a copy of the original object.

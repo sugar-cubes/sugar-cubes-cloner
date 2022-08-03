@@ -9,6 +9,9 @@ public abstract class AbstractCloner implements Cloner {
 
     @Override
     public <T> T clone(T object) {
+        if (object == null) {
+            return null;
+        }
         try {
             return (T) doClone(object);
         }

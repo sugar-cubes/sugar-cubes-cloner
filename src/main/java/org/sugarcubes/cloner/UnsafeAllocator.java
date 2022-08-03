@@ -1,6 +1,4 @@
-package org.sugarcubes.cloner.unsafe;
-
-import org.sugarcubes.cloner.ObjectAllocator;
+package org.sugarcubes.cloner;
 
 import sun.misc.Unsafe;
 

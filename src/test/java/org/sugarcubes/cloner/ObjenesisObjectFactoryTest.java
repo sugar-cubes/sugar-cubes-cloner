@@ -6,9 +6,6 @@ import java.util.concurrent.Callable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author Maxim Butov
- */
 public class ObjenesisObjectFactoryTest {
 
     public static class TestCase implements Callable {

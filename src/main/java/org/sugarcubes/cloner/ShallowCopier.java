@@ -15,13 +15,10 @@ public final class ShallowCopier<T extends Cloneable> implements ObjectCopier<T>
     private static final Method CLONE_METHOD = ReflectionUtils.getMethod(Object.class, "clone");
 
     @Override
-    public boolean isTrivial() {
-        return false;
-    }
-
-    @Override
     public T copy(T original, CopyContext context) throws Throwable {
-        return (T) CLONE_METHOD.invoke(original);
+        T clone = (T) CLONE_METHOD.invoke(original);
+        context.register(original, clone);
+        return clone;
     }
 
 }

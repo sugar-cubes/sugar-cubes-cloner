@@ -9,10 +9,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.sugarcubes.cloner.thirdparty.FstCloner;
-import org.sugarcubes.cloner.thirdparty.KKCloner;
-import org.sugarcubes.cloner.thirdparty.KryoCloner;
-import org.sugarcubes.cloner.unsafe.UnsafeCloner;
 
 /**
  * Benchmarks for cloners.
@@ -25,56 +21,35 @@ import org.sugarcubes.cloner.unsafe.UnsafeCloner;
 @SuppressWarnings("checkstyle:all")
 public class ClonersBenchmark {
 
-    private Cloner serializableCloner;
-    private Cloner reflectionCloner;
-    private Cloner unsafeReflectionCloner;
-    private Cloner kryoCloner;
-    private Cloner fstCloner;
-    private Cloner kkCloner;
+    private Cloner serialization;
+    private Cloner reflection;
+    private Cloner unsafe;
 
     private Object sample;
 
     @Setup
     public void setup() {
 
-        serializableCloner = new SerializationCloner();
-        reflectionCloner = new ReflectionCloner();
-        unsafeReflectionCloner = new UnsafeCloner();
-        kryoCloner = new KryoCloner();
-        fstCloner = new FstCloner();
-        kkCloner = new KKCloner();
+        serialization = new SerializationCloner();
+        reflection = new ReflectionCloner();
+        unsafe = new UnsafeCloner();
 
-        sample = TestObjectFactory.randomObject(false, 10, 10);
+        sample = TestObjectFactory.randomObject(10, 10);
     }
 
     @Benchmark
-    public void serializable() {
-        serializableCloner.clone(sample);
+    public void serialization() {
+        serialization.clone(sample);
     }
 
     @Benchmark
     public void reflection() {
-        reflectionCloner.clone(sample);
+        reflection.clone(sample);
     }
 
     @Benchmark
     public void unsafe() {
-        unsafeReflectionCloner.clone(sample);
-    }
-
-    @Benchmark
-    public void kryo() {
-        kryoCloner.clone(sample);
-    }
-
-    @Benchmark
-    public void fst() {
-        fstCloner.clone(sample);
-    }
-
-    @Benchmark
-    public void kk() {
-        kkCloner.clone(sample);
+        unsafe.clone(sample);
     }
 
 }

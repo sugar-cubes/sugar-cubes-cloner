@@ -1,9 +1,6 @@
-package org.sugarcubes.cloner.unsafe;
+package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
-
-import org.sugarcubes.cloner.ClonerException;
-import org.sugarcubes.cloner.ReflectionUtils;
 
 import sun.misc.Unsafe;
 
@@ -38,4 +35,9 @@ public class UnsafeUtils {
         return UNSAFE;
     }
 
+    /**
+     * Utility class.
+     */
+    private UnsafeUtils() {
+    }
 }

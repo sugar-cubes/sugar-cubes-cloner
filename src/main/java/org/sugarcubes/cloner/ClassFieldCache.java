@@ -35,13 +35,15 @@ public class ClassFieldCache {
     public List<Field> get(Class<?> type) {
         List<Field> fields = cache.get(type);
         if (fields == null) {
-            fields = Stream.concat(
-                    get(type.getSuperclass()).stream(),
-                    Arrays.stream(type.getDeclaredFields())
-                        .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                        .peek(ReflectionUtils::makeAccessible)
-                )
-                .collect(Collectors.toList());
+            fields = Collections.unmodifiableList(
+                Stream.concat(
+                        get(type.getSuperclass()).stream(),
+                        Arrays.stream(type.getDeclaredFields())
+                            .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                            .peek(ReflectionUtils::makeAccessible)
+                    )
+                    .collect(Collectors.toList())
+            );
             cache.put(type, fields);
         }
         return fields;

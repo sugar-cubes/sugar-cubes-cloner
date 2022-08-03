@@ -97,4 +97,10 @@ public class ReflectionUtils {
         return object;
     }
 
+    /**
+     * Utility class.
+     */
+    private ReflectionUtils() {
+    }
+
 }

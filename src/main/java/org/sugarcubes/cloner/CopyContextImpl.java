@@ -1,7 +1,5 @@
 package org.sugarcubes.cloner;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -11,43 +9,64 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-class CopyContextImpl implements CopyContext {
+public class CopyContextImpl implements CopyContext {
 
-    final Function<Class<?>, ObjectCopier<?>> clonerFactory;
+    private final Function<Class<?>, ObjectCopier<?>> copierFactory;
+    private final SimpleQueue<UnsafeRunnable> queue;
 
-    CopyContextImpl(Function<Class<?>, ObjectCopier<?>> clonerFactory) {
-        this.clonerFactory = clonerFactory;
+    private final Map<Object, Object> clones = new IdentityHashMap<>();
+
+    /**
+     * Creates new instance of copying context.
+     *
+     * @param copierFactory method reference for obtaining copiers
+     * @param traversalAlgorithm object graph traversal algorithm
+     */
+    public CopyContextImpl(Function<Class<?>, ObjectCopier<?>> copierFactory, GraphTraversalAlgorithm traversalAlgorithm) {
+        this.copierFactory = copierFactory;
+        switch (traversalAlgorithm) {
+            case DEPTH_FIRST:
+                queue = SimpleQueue.lifo();
+                break;
+            case BREADTH_FIRST:
+                queue = SimpleQueue.fifo();
+                break;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
-    final Deque<UnsafeRunnable> queue = new ArrayDeque<>();
-    final Map<Object, Object> clones = new IdentityHashMap<>();
 
     @Override
-    public <T> T copy(T object) throws Throwable {
-        if (object == null) {
+    public <T> T copy(T original) throws Throwable {
+        if (original == null) {
             return null;
         }
-        ObjectCopier<T> typeCloner = (ObjectCopier) clonerFactory.apply(object.getClass());
+        ObjectCopier<T> typeCloner = (ObjectCopier) copierFactory.apply(original.getClass());
         if (typeCloner.isTrivial()) {
-            return typeCloner.copy(object, null);
+            return typeCloner.copy(original, null);
         }
-        T clone = (T) clones.get(object);
+        T clone = (T) clones.get(original);
         if (clone != null) {
             return clone;
         }
-        clone = typeCloner.copy(object, this);
-        clones.put(object, clone);
+        clone = typeCloner.copy(original, this);
         return clone;
     }
 
     @Override
-    public void invokeLater(UnsafeRunnable runnable) {
-        queue.offerLast(runnable);
+    public <T> void register(T original, T clone) {
+        clones.put(original, clone);
     }
 
     @Override
-    public void complete() throws Throwable {
-        for (UnsafeRunnable next; (next = queue.pollLast()) != null; ) {
+    public void fork(UnsafeRunnable runnable) {
+        queue.offer(runnable);
+    }
+
+    @Override
+    public void join() throws Throwable {
+        for (UnsafeRunnable next; (next = queue.poll()) != null; ) {
             next.run();
         }
     }

@@ -5,11 +5,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.sugarcubes.cloner.Check.argNotNull;
+import static org.sugarcubes.cloner.Check.isNull;
+
 /**
  * The implementation of {@link Cloner} which uses Java reflection API for cloning.
  *
  * @author Maxim Butov
  */
+@SuppressWarnings("checkstyle:MultipleStringLiterals")
 public class ReflectionCloner extends AbstractCloner {
 
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
@@ -17,6 +21,8 @@ public class ReflectionCloner extends AbstractCloner {
     static {
         HashMap<Class<?>, ObjectCopier<?>> defaultCopiers = new HashMap<>();
 
+        defaultCopiers.put(java.util.Date.class, ObjectCopier.SHALLOW);
+        defaultCopiers.put(java.util.GregorianCalendar.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
         defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
 
@@ -25,6 +31,8 @@ public class ReflectionCloner extends AbstractCloner {
 
     private final ObjectAllocator allocator;
     private final CloningPolicy policy;
+
+    private GraphTraversalAlgorithm traversalAlgorithm = GraphTraversalAlgorithm.DEPTH_FIRST;
 
     private final Map<Class<?>, ObjectCopier<?>> copiers = new HashMap<>(DEFAULT_COPIERS);
 
@@ -58,9 +66,8 @@ public class ReflectionCloner extends AbstractCloner {
      * Constructor.
      */
     public ReflectionCloner(ObjectAllocator allocator, CloningPolicy policy) {
-        this.allocator = allocator;
-        this.policy = policy;
-
+        this.allocator = argNotNull(allocator, "Allocator");
+        this.policy = argNotNull(policy, "Policy");
         this.typeActions = new LazyCache<>(policy::getTypeAction);
         this.fieldActions = new LazyCache<>(policy::getFieldAction);
     }
@@ -73,7 +80,9 @@ public class ReflectionCloner extends AbstractCloner {
      * @return same cloner instance
      */
     public <T> ReflectionCloner copier(Class<T> type, ObjectCopier<T> copier) {
-        copiers.put(type, copier);
+        argNotNull(type, "Type");
+        argNotNull(copier, "Copier");
+        isNull(copiers.put(type, copier), "Copier for type %s already set.", type.getName());
         return this;
     }
 
@@ -85,7 +94,9 @@ public class ReflectionCloner extends AbstractCloner {
      * @return same cloner instance
      */
     public ReflectionCloner type(Class<?> type, CopyAction action) {
-        typeActions.put(type, action);
+        argNotNull(type, "Type");
+        argNotNull(action, "Action");
+        isNull(typeActions.put(type, action), "Action for type %s already set.", type.getName());
         return this;
     }
 
@@ -97,7 +108,9 @@ public class ReflectionCloner extends AbstractCloner {
      * @return same cloner instance
      */
     public ReflectionCloner field(Field field, CopyAction action) {
-        fieldActions.put(field, action);
+        argNotNull(field, "Field");
+        argNotNull(action, "Action");
+        isNull(fieldActions.put(field, action), "Action for field %s already set.", field);
         return this;
     }
 
@@ -110,15 +123,28 @@ public class ReflectionCloner extends AbstractCloner {
      * @return same cloner instance
      */
     public ReflectionCloner field(Class<?> type, String field, CopyAction action) {
-        fieldActions.put(ReflectionUtils.execute(() -> type.getDeclaredField(field)), action);
+        argNotNull(type, "Type");
+        argNotNull(field, "Field");
+        argNotNull(action, "Action");
+        return field(ReflectionUtils.execute(() -> type.getDeclaredField(field)), action);
+    }
+
+    /**
+     * Sets traversal algorithm for objects graph.
+     *
+     * @param traversalAlgorithm traversal algorithm
+     * @return same cloner instance
+     */
+    public ReflectionCloner traversalAlgorithm(GraphTraversalAlgorithm traversalAlgorithm) {
+        this.traversalAlgorithm = argNotNull(traversalAlgorithm, "Traversal algorithm");
         return this;
     }
 
     @Override
     protected Object doClone(Object object) throws Throwable {
-        CopyContextImpl context = new CopyContextImpl(type -> copiers.computeIfAbsent(type, this::getCopier));
+        CopyContext context = new CopyContextImpl(type -> copiers.computeIfAbsent(type, this::getCopier), traversalAlgorithm);
         Object clone = context.copy(object);
-        context.complete();
+        context.join();
         return clone;
     }
 
@@ -137,7 +163,7 @@ public class ReflectionCloner extends AbstractCloner {
                 return ObjectCopier.NOOP;
             case DEFAULT:
                 if (type.isArray()) {
-                    return policy.isComponentTypeImmutable(type.getComponentType()) ?
+                    return CloningPolicyHelper.isComponentTypeImmutable(policy, type.getComponentType()) ?
                         ObjectCopier.SHALLOW : ObjectCopier.OBJECT_ARRAY;
                 }
                 else {

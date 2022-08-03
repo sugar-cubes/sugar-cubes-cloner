@@ -1,7 +1,6 @@
 package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
@@ -59,40 +58,13 @@ public interface CloningPolicy {
     )));
 
     /**
-     * Primitive wrappers types.
-     */
-    Set<Class<?>> WRAPPERS_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class
-    )));
-
-    /**
-     * Checks the type is primitive wrapper.
-     *
-     * @param type type
-     * @return {@code true} if {@code type} is primitive wrapper
-     */
-    static boolean isWrapper(Class<?> type) {
-        return WRAPPERS_TYPES.contains(type);
-    }
-
-    /**
-     * Checks the type is primitive or enum or primitive wrapper.
-     *
-     * @param type type
-     * @return {@code true} if {@code type} is primitive or enum or primitive wrapper
-     */
-    static boolean isPrimitiveOrEnumOrWrapper(Class<?> type) {
-        return type.isPrimitive() || type.isEnum() || isWrapper(type);
-    }
-
-    /**
      * Returns action to apply to a field value.
      *
      * @param field field
      * @return action
      */
     default CopyAction getFieldAction(Field field) {
-        return isComponentTypeImmutable(field.getType()) ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
+        return CloningPolicyHelper.isComponentTypeImmutable(this, field.getType()) ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
     }
 
     /**
@@ -113,29 +85,6 @@ public interface CloningPolicy {
      */
     default boolean isImmutable(Class<?> type) {
         return IMMUTABLE_TYPES.contains(type);
-    }
-
-    /**
-     * Returns {@code true} if type is immutable and final. This means there is no mutable subtype of this type.
-     *
-     * @param type type
-     * @return {@code true} if type is immutable and final
-     */
-    default boolean isFinalAndImmutable(Class<?> type) {
-        return Modifier.isFinal(type.getModifiers()) && isImmutable(type);
-    }
-
-    /**
-     * Returns {@code true} if array component type or field type guarantees that the stored value is immutable.
-     * We cannot use {@code isImmutable(componentType)}, because, for instance, the value of field defined as
-     * {@code private BigInteger value;} will be immutable value in this case, although it can refer to some mutable subtype of
-     * {@code BigInteger}.
-     *
-     * @param componentType array component type of field type
-     * @return {@code true} if value guaranteed to be immutable
-     */
-    default boolean isComponentTypeImmutable(Class<?> componentType) {
-        return CloningPolicy.isPrimitiveOrEnumOrWrapper(componentType) || isFinalAndImmutable(componentType);
     }
 
 }

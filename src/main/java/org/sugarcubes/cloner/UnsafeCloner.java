@@ -1,14 +1,9 @@
-package org.sugarcubes.cloner.unsafe;
+package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
-
-import org.sugarcubes.cloner.CloningPolicy;
-import org.sugarcubes.cloner.CopyAction;
-import org.sugarcubes.cloner.CopyContext;
-import org.sugarcubes.cloner.ReflectionCloner;
 
 import sun.misc.Unsafe;
 

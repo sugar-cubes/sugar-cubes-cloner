@@ -5,15 +5,10 @@ package org.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-public final class NullCopier<T> implements ObjectCopier<T> {
+public final class NullCopier<T> extends TrivialCopier<T> {
 
     @Override
-    public boolean isTrivial() {
-        return true;
-    }
-
-    @Override
-    public T copy(T original, CopyContext context) throws Throwable {
+    public T trivialCopy(T original) {
         return null;
     }
 
