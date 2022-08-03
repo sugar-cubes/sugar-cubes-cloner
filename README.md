@@ -1,5 +1,5 @@
 
-# The java cloner library
+# The java cloner library [![build](https://github.com/mbutov/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/mbutov/sugar-cubes-cloner/actions/workflows/build.yml)
            
 This library is a part of [sugar-cubes-library](https://github.com/mbutov/sugar-cubes).
 
