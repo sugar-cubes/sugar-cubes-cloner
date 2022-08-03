@@ -20,6 +20,7 @@ public interface ObjectAllocator {
     /**
      * Creates an instance of the specified type. Instance may be not initialized.
      *
+     * @param <T> object type
      * @param type type to instantiate
      * @return new instance of the type
      * @throws Throwable if something went wrong

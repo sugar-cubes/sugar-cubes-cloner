@@ -16,6 +16,7 @@ public class SimpleQueue<T> {
     /**
      * Creates FIFO queue based on {@link LinkedList}.
      *
+     * @param <T> object type
      * @return FIFO queue
      */
     public static <T> SimpleQueue<T> fifo() {
@@ -25,6 +26,7 @@ public class SimpleQueue<T> {
     /**
      * Creates LIFO queue based on {@link ArrayDeque}.
      *
+     * @param <T> object type
      * @return LIFO queue
      */
     public static <T> SimpleQueue<T> lifo() {
@@ -70,6 +72,8 @@ public class SimpleQueue<T> {
 
     /**
      * Polls item from queue. Synonym of {@link java.util.Queue#poll()}.
+     *
+     * @return item
      */
     public T poll() {
         return pollMethod.apply(queue);

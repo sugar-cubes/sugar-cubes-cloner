@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Cache (type => list of non-static fields).
+ * Cache (type, list of non-static fields).
  *
  * @author Maxim Butov
  */
@@ -31,6 +31,9 @@ public class ClassFieldCache {
 
     /**
      * Returns list of non-static fields of type.
+     *
+     * @param type type
+     * @return list of non-static fields
      */
     public List<Field> get(Class<?> type) {
         List<Field> fields = cache.get(type);

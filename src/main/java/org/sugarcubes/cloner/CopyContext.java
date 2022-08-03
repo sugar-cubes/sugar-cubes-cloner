@@ -17,6 +17,7 @@ public interface CopyContext {
     /**
      * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy.
      *
+     * @param <T> object type
      * @param original original
      * @return clone
      * @throws Throwable if something went wrong
@@ -26,6 +27,7 @@ public interface CopyContext {
     /**
      * Registers object as cloned.
      *
+     * @param <T> object type
      * @param original original
      * @param clone clone
      */

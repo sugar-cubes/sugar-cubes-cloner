@@ -31,6 +31,7 @@ public class Cloners {
     /**
      * Clones object using {@link #reflection()} cloner.
      *
+     * @param <T> object type
      * @param object original object
      * @return clone
      */
@@ -41,6 +42,7 @@ public class Cloners {
     /**
      * Clones object using {@link #serialization()} cloner.
      *
+     * @param <T> object type
      * @param object original object
      * @return clone
      */

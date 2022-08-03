@@ -75,6 +75,7 @@ public class ReflectionCloner extends AbstractCloner {
     /**
      * Registers custom copier for type.
      *
+     * @param <T> object type
      * @param type object type
      * @param copier custom copier
      * @return same cloner instance

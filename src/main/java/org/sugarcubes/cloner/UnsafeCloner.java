@@ -23,6 +23,8 @@ public class UnsafeCloner extends ReflectionCloner {
 
     /**
      * Constructor.
+     *
+     * @param policy policy
      */
     public UnsafeCloner(CloningPolicy policy) {
         super(new UnsafeAllocator(), policy);

@@ -45,6 +45,10 @@ public class ReflectionUtils {
 
     /**
      * Executes call to Reflection API and replaces {@link ReflectiveOperationException} with {@link ClonerException}.
+     *
+     * @param <T> object type
+     * @param action code to execute
+     * @return execution result
      */
     public static <T> T execute(ReflectionAction<T> action) {
         try {
@@ -70,6 +74,9 @@ public class ReflectionUtils {
 
     /**
      * Version of {@link Class#forName(String)} with unchecked exception.
+     *
+     * @param className class name
+     * @return {@link Class} instance
      */
     public static Class<?> classForName(String className) {
         return execute(() -> Class.forName(className));
@@ -91,6 +98,8 @@ public class ReflectionUtils {
 
     /**
      * Makes object accessible.
+     *
+     * @param <T> can be field or method or constructor
      */
     public static <T extends AccessibleObject> T makeAccessible(T object) {
         object.setAccessible(true);

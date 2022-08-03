@@ -10,6 +10,7 @@ public class Check {
     /**
      * Checks the value is not null or throws exception.
      *
+     * @param <T> object type
      * @param value value
      * @param message format for exception message
      * @param args arguments for exception message
@@ -26,6 +27,7 @@ public class Check {
     /**
      * Checks the value is not null or throws exception.
      *
+     * @param <T> object type
      * @param value value
      * @param name argument name
      * @return value
