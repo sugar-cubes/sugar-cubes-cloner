@@ -92,7 +92,7 @@ Does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_sea
 
 ### Known limitations
 
-Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeAllocator](src/main/java/org/sugarcubes/cloner/unsafe/UnsafeAllocator.java).
+Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeAllocator](src/main/java/org/sugarcubes/cloner/UnsafeAllocator.java).
         
 ### License
 
