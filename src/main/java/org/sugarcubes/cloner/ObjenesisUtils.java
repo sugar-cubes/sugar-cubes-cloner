@@ -16,4 +16,10 @@ public class ObjenesisUtils {
         return ReflectionUtils.isClassAvailable("org.objenesis.ObjenesisStd");
     }
 
+    /**
+     * Utility class.
+     */
+    private ObjenesisUtils() {
+    }
+
 }

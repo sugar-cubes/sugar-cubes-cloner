@@ -52,21 +52,26 @@ will not be cloned (stack overflow)
 ## The solution
 
 ### Interface
-- [Cloner](src/main/java/org/sugarcubes/cloner/Cloner.java)
-- [Cloners](src/main/java/org/sugarcubes/cloner/Cloners.java)
-- [CloningPolicy](src/main/java/org/sugarcubes/cloner/CloningPolicy.java)
-- [CopyAction](src/main/java/org/sugarcubes/cloner/CopyAction.java)
-- [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)
-- [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java)
+
+| Class | Description |
+| --- | --- |
+| [Cloner](src/main/java/org/sugarcubes/cloner/Cloner.java) | The cloner interface. |
+| [ClonerException](src/main/java/org/sugarcubes/cloner/ClonerException.java) | Wrapper for all (checked and unchecked) exceptions, happened during cloning. Unchecked. |
+| [Cloners](src/main/java/org/sugarcubes/cloner/Cloners.java) | Factory for standard cloners. |
+| [CloningPolicy](src/main/java/org/sugarcubes/cloner/CloningPolicy.java) | Set of class/field rules for cloning. |
+| [CopyAction](src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (null/original/clone). |
+| [GraphTraversalAlgorithm](src/main/java/org/sugarcubes/cloner/GraphTraversalAlgorithm.java) | DFS (default) or BFS. |
+| [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)| Allocator (instantiator) interface. |
+| [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier. |
 
 ### Usage
 
-Fast cloning
+Reflection cloning:
 ```java
 Object clone = Cloners.reflection().clone(original);
 ```
 
-Slow cloning
+Serialization cloning:
 ```java
 Object clone = Cloners.serialization().clone(original);
 ```
@@ -75,7 +80,7 @@ Object clone = Cloners.serialization().clone(original);
 ```java
 Cloner cloner = new ReflectionCloner(new ObjenesisAllocator())  // new cloner instance with custom allocator
     .copier(MyObject.class, new MyObjectCopier())               // custom copier for MyObject type
-    .type(ThreadLocal.class, CopyAction.ORIGINAL)               // copy ThreadLocal-s as is 
+    .type(ThreadLocal.class, CopyAction.ORIGINAL)               // copy thread locals by reference 
     .field(MyObject.class, "cachedValue", CopyAction.NULL);     // skip MyObject.cachedValue field
 
     MyObject myObjectClone = cloner.clone(myObject);            // perform cloning
@@ -83,12 +88,12 @@ Cloner cloner = new ReflectionCloner(new ObjenesisAllocator())  // new cloner in
           
 ### Implementation
                   
-Does not use recursion. A kind of DFS algorithm is used for the object graph traversal. The algorithm can easily be switched to BFS, see queue in [CopyContextImpl](src/main/java/org/sugarcubes/cloner/CopyContextImpl.java).
+Does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
 
-### Limitations
+### Known limitations
 
 Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeAllocator](src/main/java/org/sugarcubes/cloner/unsafe/UnsafeAllocator.java).
         
 ### License
 
-Apache License 2.0
+[Apache License 2.0](LICENSE.txt) © Maxim Butov
