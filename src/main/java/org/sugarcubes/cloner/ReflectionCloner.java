@@ -4,9 +4,12 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 
 import static org.sugarcubes.cloner.Check.argNotNull;
 import static org.sugarcubes.cloner.Check.isNull;
+import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable;
+import static org.sugarcubes.cloner.Executable.unchecked;
 
 /**
  * The implementation of {@link Cloner} which uses Java reflection API for cloning.
@@ -14,7 +17,7 @@ import static org.sugarcubes.cloner.Check.isNull;
  * @author Maxim Butov
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
-public class ReflectionCloner extends AbstractCloner {
+public class ReflectionCloner implements Cloner {
 
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
 
@@ -23,6 +26,7 @@ public class ReflectionCloner extends AbstractCloner {
 
         defaultCopiers.put(java.util.Date.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(java.util.GregorianCalendar.class, ObjectCopier.SHALLOW);
+        defaultCopiers.put(java.util.BitSet.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
         defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
 
@@ -33,6 +37,7 @@ public class ReflectionCloner extends AbstractCloner {
     private final CloningPolicy policy;
 
     private GraphTraversalAlgorithm traversalAlgorithm = GraphTraversalAlgorithm.DEPTH_FIRST;
+    private ForkJoinPool pool;
 
     private final LazyCache<Class<?>, ObjectCopier<?>> copiers;
 
@@ -92,7 +97,10 @@ public class ReflectionCloner extends AbstractCloner {
     public <T> ReflectionCloner copier(Class<T> type, ObjectCopier<T> copier) {
         argNotNull(type, "Type");
         argNotNull(copier, "Copier");
-        isNull(copiers.put(type, copier), "Copier for %s already set.", type.getName());
+        // one can replace default copiers
+        if (copiers.put(type, copier) != DEFAULT_COPIERS.get(type)) {
+            throw new IllegalArgumentException(String.format("Copier for %s already set.", type.getName()));
+        }
         return this;
     }
 
@@ -136,7 +144,7 @@ public class ReflectionCloner extends AbstractCloner {
         argNotNull(type, "Type");
         argNotNull(field, "Field");
         argNotNull(action, "Action");
-        return field(ReflectionUtils.execute(() -> type.getDeclaredField(field)), action);
+        return field(unchecked(() -> type.getDeclaredField(field)), action);
     }
 
     /**
@@ -145,17 +153,57 @@ public class ReflectionCloner extends AbstractCloner {
      * @param traversalAlgorithm traversal algorithm
      * @return same cloner instance
      */
-    public ReflectionCloner traversalAlgorithm(GraphTraversalAlgorithm traversalAlgorithm) {
+    public ReflectionCloner traversal(GraphTraversalAlgorithm traversalAlgorithm) {
         this.traversalAlgorithm = argNotNull(traversalAlgorithm, "Traversal algorithm");
         return this;
     }
 
+    /**
+     * Enable parallel mode with given fork-join pool.
+     *
+     * @param pool fork-join pool
+     * @return same cloner instance
+     */
+    public ReflectionCloner parallel(ForkJoinPool pool) {
+        if (this.pool != null) {
+            throw new IllegalStateException("Already parallel.");
+        }
+        argNotNull(pool, "Pool");
+        this.pool = pool;
+        return this;
+    }
+
+    /**
+     * Enable parallel mode with common fork-join pool.
+     *
+     * @return same cloner instance
+     */
+    public ReflectionCloner parallel() {
+        return parallel(ForkJoinPool.commonPool());
+    }
+
     @Override
-    protected Object doClone(Object object) throws Throwable {
-        CopyContext context = new CopyContextImpl(copiers::get, traversalAlgorithm);
-        Object clone = context.copy(object);
-        context.join();
-        return clone;
+    public <T> T clone(T object) {
+        if (pool == null) {
+            SimpleQueue<Executable<?>> queue;
+            switch (traversalAlgorithm) {
+                case DEPTH_FIRST:
+                    queue = SimpleQueue.lifo();
+                    break;
+                case BREADTH_FIRST:
+                    queue = SimpleQueue.fifo();
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+            CopyContextImpl context = new CopyContextImpl(copiers::get, queue);
+            T clone = context.copy(object);
+            context.join();
+            return clone;
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
@@ -173,7 +221,7 @@ public class ReflectionCloner extends AbstractCloner {
                 return ObjectCopier.NOOP;
             case DEFAULT:
                 if (type.isArray()) {
-                    return CloningPolicyHelper.isComponentTypeImmutable(policy, type.getComponentType()) ?
+                    return isComponentTypeImmutable(policy, type.getComponentType()) ?
                         ObjectCopier.SHALLOW : ObjectCopier.OBJECT_ARRAY;
                 }
                 else {
@@ -187,21 +235,21 @@ public class ReflectionCloner extends AbstractCloner {
     /**
      * Default copier for objects.
      */
-    private final ReflectionObjectCopier<?> reflectionCopier = new ReflectionObjectCopier<>();
+    private final ReflectionCopier<?> reflectionCopier = new ReflectionCopier<>();
 
     /**
      * Copier which creates object with {@link ReflectionCloner#allocator}, when copying, enumerates fields,
      * filters by policy and copies via reflection.
      */
-    private class ReflectionObjectCopier<T> extends TwoPhaseObjectCopier<T> {
+    private class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
 
         @Override
-        public T allocate(T original) throws Throwable {
+        public T allocate(T original) {
             return (T) allocator.newInstance(original.getClass());
         }
 
         @Override
-        public void deepCopy(T original, T clone, CopyContext context) throws Throwable {
+        public void deepCopy(T original, T clone, CopyContext context) {
             for (Field field : fieldCache.get(original.getClass())) {
                 copyField(original, clone, field, fieldActions.get(field), context);
             }
@@ -217,19 +265,17 @@ public class ReflectionCloner extends AbstractCloner {
      * @param field field to copy
      * @param action action
      * @param context copying context
-     * @throws Throwable if something went wrong
      */
-    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context)
-        throws Throwable {
+    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context) {
         switch (action) {
             case NULL:
-                field.set(clone, null);
+                Executable.Void.unchecked(() -> field.set(clone, null));
                 break;
             case ORIGINAL:
-                field.set(clone, field.get(original));
+                Executable.Void.unchecked(() -> field.set(clone, field.get(original)));
                 break;
             case DEFAULT:
-                field.set(clone, context.copy(field.get(original)));
+                Executable.Void.unchecked(() -> field.set(clone, context.copy(field.get(original))));
                 break;
             default:
                 throw new IllegalStateException();

@@ -3,6 +3,10 @@ package org.sugarcubes.cloner;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
@@ -25,6 +29,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable;
+
 /**
  * Set of rules for objects cloning.
  *
@@ -46,9 +52,10 @@ public interface CloningPolicy {
         Character.class, Class.class,
         Double.class, Duration.class,
         Float.class,
-        Instant.class, Integer.class,
+        Inet4Address.class, Inet6Address.class, InetSocketAddress.class, Instant.class, Integer.class,
         LocalDate.class, LocalDateTime.class, LocalTime.class, Long.class,
         MonthDay.class,
+        NetworkInterface.class,
         OffsetDateTime.class, OffsetTime.class,
         Pattern.class, Period.class,
         Short.class, String.class,
@@ -64,7 +71,7 @@ public interface CloningPolicy {
      * @return action
      */
     default CopyAction getFieldAction(Field field) {
-        return CloningPolicyHelper.isComponentTypeImmutable(this, field.getType()) ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
+        return isComponentTypeImmutable(this, field.getType()) ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
     }
 
     /**

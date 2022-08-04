@@ -13,7 +13,7 @@ public abstract class TrivialCopier<T> implements ObjectCopier<T> {
     }
 
     @Override
-    public final T copy(T original, CopyContext context) throws Throwable {
+    public final T copy(T original, CopyContext context) {
         return trivialCopy(original);
     }
 

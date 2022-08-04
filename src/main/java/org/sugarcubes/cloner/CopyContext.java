@@ -12,7 +12,7 @@ public interface CopyContext {
      *
      * @param runnable runnable
      */
-    void fork(UnsafeRunnable runnable);
+    void fork(Executable<?> runnable);
 
     /**
      * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy.
@@ -20,9 +20,8 @@ public interface CopyContext {
      * @param <T> object type
      * @param original original
      * @return clone
-     * @throws Throwable if something went wrong
      */
-    <T> T copy(T original) throws Throwable;
+    <T> T copy(T original);
 
     /**
      * Registers object as cloned.
@@ -32,13 +31,11 @@ public interface CopyContext {
      * @param clone clone
      * @return clone
      */
-    <T> T register(T original, T clone);
+    <T> T register(T original, Executable<T> clone);
 
     /**
      * Completes all the delayed tasks.
-     *
-     * @throws Throwable if something went wrong
      */
-    void join() throws Throwable;
+    void join();
 
 }

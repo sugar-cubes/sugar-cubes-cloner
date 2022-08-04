@@ -3,10 +3,13 @@ package org.sugarcubes.cloner;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -43,6 +46,9 @@ public class TestObjectFactory {
                 random::nextLong,
                 random::nextDouble,
                 TestObjectFactory::randomString,
+                TestObjectFactory::randomDate,
+                TestObjectFactory::randomCalendar,
+                () -> Instant.ofEpochMilli(random.nextLong()),
                 () -> randomPrimitiveArray(random(boolean.class, byte.class, char.class, short.class, int.class, long.class, float.class, double.class), 1 + random.nextInt(width))
             );
         }
@@ -66,6 +72,16 @@ public class TestObjectFactory {
 
     private static String randomString() {
         return new BigInteger(256, random).toString(36);
+    }
+
+    private static Date randomDate() {
+        return new Date(System.currentTimeMillis());
+    }
+
+    private static GregorianCalendar randomCalendar() {
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.setTime(randomDate());
+        return calendar;
     }
 
     @SafeVarargs

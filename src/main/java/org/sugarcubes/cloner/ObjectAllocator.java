@@ -23,8 +23,7 @@ public interface ObjectAllocator {
      * @param <T> object type
      * @param type type to instantiate
      * @return new instance of the type
-     * @throws Throwable if something went wrong
      */
-    <T> T newInstance(Class<T> type) throws Throwable;
+    <T> T newInstance(Class<T> type);
 
 }

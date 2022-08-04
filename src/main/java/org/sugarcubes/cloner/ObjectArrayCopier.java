@@ -10,14 +10,14 @@ import java.lang.reflect.Array;
 public final class ObjectArrayCopier extends TwoPhaseObjectCopier<Object[]> {
 
     @Override
-    public Object[] allocate(Object[] original) throws Throwable {
+    public Object[] allocate(Object[] original) {
         Class<?> componentType = original.getClass().getComponentType();
         return componentType == Object.class ? new Object[original.length] :
             (Object[]) Array.newInstance(componentType, original.length);
     }
 
     @Override
-    public void deepCopy(Object[] original, Object[] clone, CopyContext context) throws Throwable {
+    public void deepCopy(Object[] original, Object[] clone, CopyContext context) {
         for (int k = 0; k < original.length; k++) {
             clone[k] = context.copy(original[k]);
         }

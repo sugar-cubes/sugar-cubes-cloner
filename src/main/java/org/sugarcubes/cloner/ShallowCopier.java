@@ -20,8 +20,8 @@ public final class ShallowCopier<T extends Cloneable> implements ObjectCopier<T>
     }
 
     @Override
-    public T copy(T original, CopyContext context) throws Throwable {
-        return context.register(original, (T) CLONE_METHOD.invoke(original));
+    public T copy(T original, CopyContext context) {
+        return context.register(original, () -> (T) CLONE_METHOD.invoke(original));
     }
 
 }

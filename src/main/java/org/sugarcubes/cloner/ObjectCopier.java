@@ -43,8 +43,7 @@ public interface ObjectCopier<T> {
      * @param original original object
      * @param context copying context or {@code null} if the copier is trivial
      * @return object copy
-     * @throws Throwable if something went wrong
      */
-    T copy(T original, CopyContext context) throws Throwable;
+    T copy(T original, CopyContext context);
 
 }

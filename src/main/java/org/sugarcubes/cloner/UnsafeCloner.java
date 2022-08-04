@@ -66,8 +66,7 @@ public class UnsafeCloner extends ReflectionCloner {
     }
 
     @Override
-    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context)
-        throws Throwable {
+    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context) {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (action) {
             case NULL:

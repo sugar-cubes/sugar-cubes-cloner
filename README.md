@@ -1,7 +1,9 @@
 
 # The java cloner library [![build](https://github.com/mbutov/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/mbutov/sugar-cubes-cloner/actions/workflows/build.yml)
-           
-This library is a part of [sugar-cubes-library](https://github.com/mbutov/sugar-cubes).
+                  
+Deep cloning of any objects.
+
+Java 8 compatible.
 
 ## Objectives
 
@@ -29,25 +31,17 @@ Cons:
 - requires all objects to be serializable
 - may be customized only by changing [serialization](https://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html) process
 
-### Alternative serialization libraries
+### Other serialization libraries
                                        
 Still serialization, but with non-standard libraries, such as:
 - [fast-serialization](https://github.com/RuedigerMoeller/fast-serialization)
-- [kryo](https://github.com/EsotericSoftware/kryo)
       
 Faster than java.io serialization but still almost non-customizable.
 
-### Cloning libraries
+### Other cloning libraries
 
-#### [kostaskougios/cloning](https://github.com/kostaskougios/cloning)
-- fast
-- uses recursive algorithm 
-- has problems with cyclic dependencies, e.g. such map:
-```java
-Map map = new HashMap();
-map.put("me", map);
-``` 
-will not be cloned (stack overflow)                                                      
+- [kryo](https://github.com/EsotericSoftware/kryo#deep-and-shallow-copies)
+- [kostaskougios/cloning](https://github.com/kostaskougios/cloning)
 
 ## The solution
 
@@ -66,17 +60,12 @@ will not be cloned (stack overflow)
             
 ### Usage
 
-Reflection cloning:
 ```java
 Object clone = Cloners.reflection().clone(original);
 ```
 
-Serialization cloning:
-```java
-Object clone = Cloners.serialization().clone(original);
-```
-
 ### Customization
+
 ```java
 Cloner cloner = new ReflectionCloner(new ObjenesisAllocator())  // new cloner instance with custom allocator
     .copier(MyObject.class, new MyObjectCopier())               // custom copier for MyObject type

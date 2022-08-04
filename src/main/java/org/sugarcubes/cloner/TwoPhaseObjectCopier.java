@@ -13,9 +13,9 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
     }
 
     @Override
-    public final T copy(T original, CopyContext context) throws Throwable {
-        T clone = context.register(original, allocate(original));
-        context.fork(() -> deepCopy(original, clone, context));
+    public final T copy(T original, CopyContext context) {
+        T clone = context.register(original, () -> allocate(original));
+        context.fork(Executable.Void.of(() -> deepCopy(original, clone, context)));
         return clone;
     }
 
@@ -24,9 +24,8 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
      *
      * @param original original object
      * @return clone
-     * @throws Throwable if something went wrong
      */
-    public abstract T allocate(T original) throws Throwable;
+    public abstract T allocate(T original);
 
     /**
      * The second phase of copying, copies the inner state from the original object into the clone.
@@ -34,8 +33,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
      * @param original original object
      * @param clone clone
      * @param context copying context
-     * @throws Throwable if something went wrong
      */
-    public abstract void deepCopy(T original, T clone, CopyContext context) throws Throwable;
+    public abstract void deepCopy(T original, T clone, CopyContext context);
 
 }

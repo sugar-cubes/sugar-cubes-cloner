@@ -12,7 +12,7 @@ import java.util.function.Function;
 public class CopyContextImpl implements CopyContext {
 
     private final Function<Class<?>, ObjectCopier<?>> copierFactory;
-    private final SimpleQueue<UnsafeRunnable> queue;
+    private final SimpleQueue<Executable<?>> queue;
 
     private final Map<Object, Object> clones = new IdentityHashMap<>();
 
@@ -20,25 +20,15 @@ public class CopyContextImpl implements CopyContext {
      * Creates new instance of copying context.
      *
      * @param copierFactory method reference for obtaining copiers
-     * @param traversalAlgorithm object graph traversal algorithm
+     * @param queue queue for delayed tasks
      */
-    public CopyContextImpl(Function<Class<?>, ObjectCopier<?>> copierFactory, GraphTraversalAlgorithm traversalAlgorithm) {
+    public CopyContextImpl(Function<Class<?>, ObjectCopier<?>> copierFactory, SimpleQueue<Executable<?>> queue) {
         this.copierFactory = copierFactory;
-        switch (traversalAlgorithm) {
-            case DEPTH_FIRST:
-                queue = SimpleQueue.lifo();
-                break;
-            case BREADTH_FIRST:
-                queue = SimpleQueue.fifo();
-                break;
-            default:
-                throw new IllegalStateException();
-        }
+        this.queue = queue;
     }
 
-
     @Override
-    public <T> T copy(T original) throws Throwable {
+    public <T> T copy(T original) {
         if (original == null) {
             return null;
         }
@@ -55,23 +45,23 @@ public class CopyContextImpl implements CopyContext {
     }
 
     @Override
-    public <T> T register(T original, T clone) {
-        Object prev = clones.put(original, clone);
-        if (prev != null) {
-            throw new IllegalStateException("Already registered.");
+    public <T> T register(T original, Executable<T> executable) {
+        Object clone;
+        synchronized (original) {
+            clone = clones.computeIfAbsent(original, key -> executable.unchecked());
         }
-        return clone;
+        return (T) clone;
     }
 
     @Override
-    public void fork(UnsafeRunnable runnable) {
+    public void fork(Executable<?> runnable) {
         queue.offer(runnable);
     }
 
     @Override
-    public void join() throws Throwable {
-        for (UnsafeRunnable next; (next = queue.poll()) != null; ) {
-            next.run();
+    public void join() {
+        for (Executable<?> next; (next = queue.poll()) != null; ) {
+            next.unchecked();
         }
     }
 
