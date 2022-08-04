@@ -7,6 +7,7 @@ import java.util.function.Supplier;
  * Variant of {@link java.util.concurrent.Callable} with any throwable.
  *
  * @param <T> result type
+ *
  * @author Maxim Butov
  */
 @FunctionalInterface
