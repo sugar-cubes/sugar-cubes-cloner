@@ -7,7 +7,6 @@ import java.util.function.Supplier;
  * Variant of {@link java.util.concurrent.Callable} with any throwable.
  *
  * @param <T> result type
- *
  * @author Maxim Butov
  */
 @FunctionalInterface
@@ -40,15 +39,13 @@ public interface Executable<T> {
     }
 
     /**
-     * A void-result {@link Executable}.
-     *
-     * @param <E> exception type
+     * A void result {@link Executable}.
      */
     @FunctionalInterface
-    interface Void<E extends Throwable> extends Executable<Object> {
+    interface Void extends Executable<Object> {
 
         @Override
-        default Object execute() throws E {
+        default Object execute() throws Throwable {
             perform();
             return null;
         }
@@ -56,18 +53,17 @@ public interface Executable<T> {
         /**
          * Does the work.
          *
-         * @throws E if something went wrong
+         * @throws Throwable if something went wrong
          */
-        void perform() throws E;
+        void perform() throws Throwable;
 
         /**
          * Creates {@link Void} by lambda or method reference.
          *
-         * @param <E> exception type
          * @param executable lambda or method reference
          * @return executable
          */
-        static <E extends Throwable> Void<E> of(Void<E> executable) {
+        static Void of(Void executable) {
             return executable;
         }
 
@@ -78,7 +74,7 @@ public interface Executable<T> {
          * @param executable lambda or method reference
          * @throws ClonerException if something went wrong
          */
-        static <E extends Throwable> void unchecked(Void<E> executable) throws ClonerException {
+        static <E extends Throwable> void unchecked(Void executable) throws ClonerException {
             executable.unchecked();
         }
 
@@ -88,11 +84,10 @@ public interface Executable<T> {
      * Creates {@link Executable} by lambda or method reference.
      *
      * @param <T> result type
-     * @param <E> exception type
      * @param executable lambda or method reference
      * @return executable
      */
-    static <T, E extends Throwable> Executable<T> of(Executable<T> executable) {
+    static <T> Executable<T> of(Executable<T> executable) {
         return executable;
     }
 
@@ -100,12 +95,11 @@ public interface Executable<T> {
      * Runs the executable.
      *
      * @param <T> result type
-     * @param <E> exception type
      * @param executable lambda or method reference
      * @return execution result
      * @throws ClonerException if something went wrong
      */
-    static <T, E extends Throwable> T unchecked(Executable<T> executable) throws ClonerException {
+    static <T> T unchecked(Executable<T> executable) throws ClonerException {
         return executable.unchecked();
     }
 
