@@ -1,10 +1,11 @@
 package org.sugarcubes.cloner;
 
 import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-
-import static org.sugarcubes.cloner.Executable.unchecked;
+import java.lang.reflect.Modifier;
 
 /**
  * Shortcuts for Java Reflection API.
@@ -12,6 +13,59 @@ import static org.sugarcubes.cloner.Executable.unchecked;
  * @author Maxim Butov
  */
 public class ReflectionUtils {
+
+    /**
+     * Variant of the {@link java.util.function.Supplier} with declared exception.
+     */
+    @FunctionalInterface
+    public interface ReflectionAction<T> {
+
+        /**
+         * Actual work.
+         *
+         * @return work result
+         * @throws ReflectiveOperationException in case of reflection error
+         */
+        T get() throws ReflectiveOperationException;
+
+    }
+
+    /**
+     * Void modification of {@link ReflectionAction}.
+     */
+    @FunctionalInterface
+    public interface VoidReflectionAction extends ReflectionAction<Object> {
+
+        @Override
+        default Object get() throws ReflectiveOperationException {
+            run();
+            return null;
+        }
+
+        /**
+         * Actual work.
+         *
+         * @throws ReflectiveOperationException in case of reflection error
+         */
+        void run() throws ReflectiveOperationException;
+
+    }
+
+    /**
+     * Executes call to Reflection API and replaces {@link ReflectiveOperationException} with {@link ClonerException}.
+     *
+     * @param <T> object type
+     * @param action code to execute
+     * @return execution result
+     */
+    public static <T> T execute(ReflectionAction<T> action) {
+        try {
+            return action.get();
+        }
+        catch (ReflectiveOperationException e) {
+            throw new ClonerException(e);
+        }
+    }
 
     /**
      * Checks the availability of the class in current class loader.
@@ -36,7 +90,7 @@ public class ReflectionUtils {
      * @return {@link Class} instance
      */
     public static Class<?> classForName(String className) {
-        return unchecked(() -> Class.forName(className));
+        return execute(() -> Class.forName(className));
     }
 
     /**
@@ -48,7 +102,7 @@ public class ReflectionUtils {
      * @return field
      */
     public static Field getField(Class<?> type, String name) {
-        return unchecked(() -> makeAccessible(type.getDeclaredField(name)));
+        return execute(() -> makeAccessible(type.getDeclaredField(name)));
     }
 
     /**
@@ -61,7 +115,20 @@ public class ReflectionUtils {
      * @return method
      */
     public static Method getMethod(Class<?> type, String name, Class<?>... parameterTypes) {
-        return unchecked(() -> makeAccessible(type.getDeclaredMethod(name, parameterTypes)));
+        return execute(() -> makeAccessible(type.getDeclaredMethod(name, parameterTypes)));
+    }
+
+    /**
+     * Returns accessible constructor.
+     * Same as {@link Class#getDeclaredConstructor(Class[])}.
+     *
+     * @param type {@link Class} instance
+     * @param parameterTypes parameter types
+     * @param <T> type
+     * @return method
+     */
+    public static <T> Constructor<T> getConstructor(Class<T> type, Class<?>... parameterTypes) {
+        return execute(() -> makeAccessible(type.getDeclaredConstructor(parameterTypes)));
     }
 
     /**
@@ -74,6 +141,17 @@ public class ReflectionUtils {
     public static <T extends AccessibleObject> T makeAccessible(T object) {
         object.setAccessible(true);
         return object;
+    }
+
+    /**
+     * Returns {@code true} if the member of class is non-static.
+     *
+     * @param member field or method or constructor
+     *
+     * @return {@code true} if the member is non-static
+     */
+    public static boolean isNonStatic(Member member) {
+        return !Modifier.isStatic(member.getModifiers());
     }
 
     /**

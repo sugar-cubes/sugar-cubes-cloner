@@ -1,20 +1,16 @@
 package org.sugarcubes.cloner;
 
 /**
- * Base class for trivial copoiers.
+ * Base class for trivial copiers. "Trivial" means that repeated calling of the copy method is cheaper than saving
+ * and requesting previous result from cache.
  *
  * @author Maxim Butov
  */
 public abstract class TrivialCopier<T> implements ObjectCopier<T> {
 
     @Override
-    public final boolean isTrivial() {
-        return true;
-    }
-
-    @Override
-    public final T copy(T original, CopyContext context) {
-        return trivialCopy(original);
+    public CopyResult<T> copy(T original, CopyContext context) {
+        return new CopyResult<>(trivialCopy(original));
     }
 
     /**

@@ -8,15 +8,14 @@ package org.sugarcubes.cloner;
 public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
 
     @Override
-    public final boolean isTrivial() {
-        return false;
-    }
-
-    @Override
-    public final T copy(T original, CopyContext context) {
-        T clone = context.register(original, () -> allocate(original));
-        context.fork(Executable.Void.of(() -> deepCopy(original, clone, context)));
-        return clone;
+    public CopyResult<T> copy(T original, CopyContext context) throws Exception {
+        Logger.log("allocate %s", Logger.toString(original));
+        T clone = allocate(original);
+        return new CopyResult<>(clone, () -> {
+            Logger.log("deepCopy %s", Logger.toString(original));
+            deepCopy(original, clone, context);
+            return null;
+        });
     }
 
     /**
@@ -24,8 +23,9 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
      *
      * @param original original object
      * @return clone
+     * @throws Exception if something went wrong
      */
-    public abstract T allocate(T original);
+    public abstract T allocate(T original) throws Exception;
 
     /**
      * The second phase of copying, copies the inner state from the original object into the clone.
@@ -33,7 +33,8 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
      * @param original original object
      * @param clone clone
      * @param context copying context
+     * @throws Exception if something went wrong
      */
-    public abstract void deepCopy(T original, T clone, CopyContext context);
+    public abstract void deepCopy(T original, T clone, CopyContext context) throws Exception;
 
 }

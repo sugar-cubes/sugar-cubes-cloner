@@ -36,4 +36,9 @@ public class ObjenesisAllocator implements ObjectAllocator {
         return objenesis.newInstance(type);
     }
 
+    @Override
+    public <T> ObjectFactory<T> getFactory(Class<T> type) {
+        return objenesis.getInstantiatorOf(type)::newInstance;
+    }
+
 }

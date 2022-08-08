@@ -1,5 +1,3 @@
-import me.champeau.jmh.JMHTask
-
 plugins {
     `java-library`
     id("me.champeau.jmh") version "0.6.6"
@@ -13,13 +11,19 @@ repositories {
 dependencies {
 
     api("org.objenesis:objenesis:3.2")
+    api("net.bytebuddy:byte-buddy:1.12.12")
 
     testImplementation("org.hamcrest:hamcrest:2.2")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
 
+    testImplementation("org.apache.commons:commons-collections4:4.4")
     testImplementation("org.apache.commons:commons-lang3:3.12.0")
     testImplementation("com.google.guava:guava:31.1-jre")
     testImplementation("org.springframework:spring-core:5.3.22")
+
+    api("com.esotericsoftware:kryo:5.3.0")
+    testImplementation("com.esotericsoftware:kryo:5.3.0")
+    testImplementation("io.github.kostaskougios:cloning:1.10.3")
 
 }
 

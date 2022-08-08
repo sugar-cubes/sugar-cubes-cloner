@@ -4,8 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import static org.sugarcubes.cloner.Executable.unchecked;
-
 /**
  * The implementation of {@link Cloner} which uses Java serialization for cloning.
  *
@@ -35,15 +33,20 @@ public class SerializationCloner implements Cloner {
 
     }
 
-    private static Object serializeDeserialize(Object object) throws Throwable {
+    private static <T> T serializeDeserialize(T object) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         new ObjectOutputStream(out).writeObject(object);
-        return new ObjectInputStream(new ByteArrayInputStream(out.buf(), 0, out.size())).readObject();
+        return (T) new ObjectInputStream(new ByteArrayInputStream(out.buf(), 0, out.size())).readObject();
     }
 
     @Override
     public <T> T clone(T object) {
-        return (T) unchecked(() -> serializeDeserialize(object));
+        try {
+            return serializeDeserialize(object);
+        }
+        catch (Exception e) {
+            throw new ClonerException(e);
+        }
     }
 
 }

@@ -2,63 +2,34 @@ package org.sugarcubes.cloner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
- * Simplified {@link java.util.Queue} implementation. May be FIFO or LIFO queue.
+ * Simplified {@link java.util.Queue} implementation based on {@link ArrayDeque}. May be FIFO or LIFO queue.
+ *
+ * @param <T> item type
  *
  * @author Maxim Butov
  */
-public final class SimpleQueue<T> {
+public abstract class SimpleQueue<T> {
 
     /**
-     * Creates FIFO queue based on {@link LinkedList}.
+     * Creates FIFO queue.
      *
-     * @param <T> object type
+     * @param <T> item type
      * @return FIFO queue
      */
     public static <T> SimpleQueue<T> fifo() {
-        return new SimpleQueue<>(new LinkedList<>(), Deque::offerLast, Deque::pollFirst);
+        return new FifoQueue<>();
     }
 
     /**
-     * Creates LIFO queue based on {@link ArrayDeque}.
+     * Creates LIFO queue.
      *
-     * @param <T> object type
+     * @param <T> item type
      * @return LIFO queue
      */
     public static <T> SimpleQueue<T> lifo() {
-        return new SimpleQueue<>(new ArrayDeque<>(), Deque::offerLast, Deque::pollLast);
-    }
-
-    /**
-     * Deque implementation.
-     */
-    private final Deque<T> queue;
-
-    /**
-     * Offer method reference.
-     */
-    private final BiConsumer<Deque<T>, T> offerMethod;
-
-    /**
-     * Poll method reference.
-     */
-    private final Function<Deque<T>, T> pollMethod;
-
-    /**
-     * Constructor.
-     *
-     * @param queue deque implementation
-     * @param offerMethod offer method reference
-     * @param pollMethod poll method reference
-     */
-    public SimpleQueue(Deque<T> queue, BiConsumer<Deque<T>, T> offerMethod, Function<Deque<T>, T> pollMethod) {
-        this.queue = queue;
-        this.offerMethod = offerMethod;
-        this.pollMethod = pollMethod;
+        return new LifoQueue<>();
     }
 
     /**
@@ -66,8 +37,15 @@ public final class SimpleQueue<T> {
      *
      * @param item item
      */
-    public void offer(T item) {
-        offerMethod.accept(queue, item);
+    public abstract void offer(T item);
+
+    /**
+     * Offers all items into queue.
+     *
+     * @param items items
+     */
+    public void offer(Iterable<T> items) {
+        items.forEach(this::offer);
     }
 
     /**
@@ -75,8 +53,76 @@ public final class SimpleQueue<T> {
      *
      * @return item or {@code null} if queue is empty
      */
-    public T poll() {
-        return pollMethod.apply(queue);
+    public abstract T poll();
+
+    public SimpleQueue<T> sync() {
+        return new SyncQueue<>(this);
+    }
+
+    private static abstract class AbstractSimpleQueue<T> extends SimpleQueue<T> {
+
+        /**
+         * Deque implementation.
+         */
+        protected final Deque<T> queue = new ArrayDeque<>();
+
+        public void offer(T item) {
+            queue.offerLast(item);
+        }
+
+    }
+
+    /**
+     * FIFO queue implementation.
+     *
+     * @param <T> item type
+     */
+    private static final class FifoQueue<T> extends AbstractSimpleQueue<T> {
+
+        @Override
+        public T poll() {
+            return queue.pollFirst();
+        }
+
+    }
+
+    /**
+     * LIFO queue implementation.
+     *
+     * @param <T> item type
+     */
+    private static final class LifoQueue<T> extends AbstractSimpleQueue<T> {
+
+        @Override
+        public T poll() {
+            return queue.pollLast();
+        }
+
+    }
+
+    private static final class SyncQueue<T> extends SimpleQueue<T> {
+
+        private final SimpleQueue<T> target;
+
+        public SyncQueue(SimpleQueue<T> target) {
+            this.target = target;
+        }
+
+        @Override
+        public synchronized void offer(T item) {
+            target.offer(item);
+        }
+
+        @Override
+        public synchronized void offer(Iterable<T> items) {
+            target.offer(items);
+        }
+
+        @Override
+        public synchronized T poll() {
+            return target.poll();
+        }
+
     }
 
 }

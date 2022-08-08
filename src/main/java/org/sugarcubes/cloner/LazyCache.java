@@ -1,7 +1,7 @@
 package org.sugarcubes.cloner;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -28,7 +28,7 @@ public final class LazyCache<K, V> {
      */
     public LazyCache(Function<K, V> mappingFunction) {
         this.mappingFunction = mappingFunction;
-        this.cache = new HashMap<>();
+        this.cache = new ConcurrentHashMap<>();
     }
 
     /**
@@ -38,7 +38,9 @@ public final class LazyCache<K, V> {
      * @return value
      */
     public V get(K key) {
-        return cache.computeIfAbsent(key, mappingFunction);
+        // get is faster than computeIfAbsent, try it first
+        V value = cache.get(key);
+        return value != null ? value : cache.computeIfAbsent(key, mappingFunction);
     }
 
     /**

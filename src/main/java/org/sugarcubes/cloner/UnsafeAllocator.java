@@ -1,7 +1,5 @@
 package org.sugarcubes.cloner;
 
-import static org.sugarcubes.cloner.Executable.unchecked;
-
 import sun.misc.Unsafe;
 
 /**
@@ -12,8 +10,8 @@ import sun.misc.Unsafe;
 public class UnsafeAllocator implements ObjectAllocator {
 
     @Override
-    public <T> T newInstance(Class<T> type) {
-        return (T) unchecked(() -> UnsafeUtils.getUnsafe().allocateInstance(type));
+    public <T> T newInstance(Class<T> type) throws Exception {
+        return (T) UnsafeUtils.getUnsafe().allocateInstance(type);
     }
 
 }

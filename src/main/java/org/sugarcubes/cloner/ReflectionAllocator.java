@@ -1,7 +1,5 @@
 package org.sugarcubes.cloner;
 
-import static org.sugarcubes.cloner.Executable.unchecked;
-
 /**
  * Allocator which uses no-arg constructor to create object.
  *
@@ -12,8 +10,13 @@ import static org.sugarcubes.cloner.Executable.unchecked;
 public class ReflectionAllocator implements ObjectAllocator {
 
     @Override
-    public <T> T newInstance(Class<T> type) {
-        return unchecked(() -> ReflectionUtils.makeAccessible(type.getDeclaredConstructor()).newInstance());
+    public <T> T newInstance(Class<T> type) throws Exception {
+        return getFactory(type).newInstance();
+    }
+
+    @Override
+    public <T> ObjectFactory<T> getFactory(Class<T> type) {
+        return ReflectionUtils.getConstructor(type)::newInstance;
     }
 
 }

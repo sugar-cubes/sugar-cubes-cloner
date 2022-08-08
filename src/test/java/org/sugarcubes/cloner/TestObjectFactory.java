@@ -4,6 +4,9 @@ import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +51,8 @@ public class TestObjectFactory {
                 TestObjectFactory::randomString,
                 TestObjectFactory::randomDate,
                 TestObjectFactory::randomCalendar,
-                () -> Instant.ofEpochMilli(random.nextLong()),
+                TestObjectFactory::randomInstant,
+                TestObjectFactory::randomLocalDateTime,
                 () -> randomPrimitiveArray(random(boolean.class, byte.class, char.class, short.class, int.class, long.class, float.class, double.class), 1 + random.nextInt(width))
             );
         }
@@ -75,7 +79,7 @@ public class TestObjectFactory {
     }
 
     private static Date randomDate() {
-        return new Date(System.currentTimeMillis());
+        return new Date(System.currentTimeMillis() + random.nextInt());
     }
 
     private static GregorianCalendar randomCalendar() {
@@ -84,9 +88,21 @@ public class TestObjectFactory {
         return calendar;
     }
 
+    private static Instant randomInstant() {
+        return randomDate().toInstant();
+    }
+
+    private static LocalDateTime randomLocalDateTime() {
+        return LocalDateTime.ofInstant(randomInstant(), ZoneId.of(random(ZoneOffset.getAvailableZoneIds())));
+    }
+
     @SafeVarargs
     private static <T> T random(T... array) {
         return array[random.nextInt(array.length)];
+    }
+
+    private static <T> T random(Collection<T> collection) {
+        return (T) random(collection.toArray());
     }
 
     private static <T> T randomSupply(Supplier<T>... suppliers) {

@@ -54,9 +54,9 @@ Faster than java.io serialization but still almost non-customizable.
 | [Cloners](src/main/java/org/sugarcubes/cloner/Cloners.java) | Factory for standard cloners. |
 | [CloningPolicy](src/main/java/org/sugarcubes/cloner/CloningPolicy.java) | Set of class/field rules for cloning. |
 | [CopyAction](src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (null/original/clone). |
-| [GraphTraversalAlgorithm](src/main/java/org/sugarcubes/cloner/GraphTraversalAlgorithm.java) | DFS (default) or BFS. |
 | [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)| Allocator (instantiator) interface. |
-| [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier. |
+| [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier interface. |
+| [TraversalAlgorithm](src/main/java/org/sugarcubes/cloner/TraversalAlgorithm.java) | DFS (default) or BFS. |
             
 ### Usage
 
@@ -71,13 +71,16 @@ Cloner cloner = new ReflectionCloner(new ObjenesisAllocator())  // new cloner in
     .copier(MyObject.class, new MyObjectCopier())               // custom copier for MyObject type
     .type(ThreadLocal.class, CopyAction.ORIGINAL)               // copy thread locals by reference 
     .field(MyObject.class, "cachedValue", CopyAction.NULL);     // skip MyObject.cachedValue field
+    .parallel();                                                // parallel mode
 
     MyObject myObjectClone = cloner.clone(myObject);            // perform cloning
 ```
           
 ### Implementation
                   
-Does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
+In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
+
+In parallel mode order is chosen by ForkJoinPool.
 
 ### Known limitations
 

@@ -1,15 +1,12 @@
 package org.sugarcubes.cloner;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 
 import static org.sugarcubes.cloner.Check.argNotNull;
-import static org.sugarcubes.cloner.Check.isNull;
 import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable;
-import static org.sugarcubes.cloner.Executable.unchecked;
 
 /**
  * The implementation of {@link Cloner} which uses Java reflection API for cloning.
@@ -22,35 +19,39 @@ public class ReflectionCloner implements Cloner {
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
 
     static {
-        HashMap<Class<?>, ObjectCopier<?>> defaultCopiers = new HashMap<>();
+        Map<Class<?>, ObjectCopier<?>> defaultCopiers = new HashMap<>();
 
         defaultCopiers.put(java.util.Date.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(java.util.GregorianCalendar.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(java.util.BitSet.class, ObjectCopier.SHALLOW);
+
+        defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
+        defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
+        defaultCopiers.put(java.util.LinkedList.class, new SimpleCollectionCopier<>(size -> new java.util.LinkedList<>()));
+        defaultCopiers.put(java.util.Stack.class, new SimpleCollectionCopier<>(size -> new java.util.Stack<>()));
+        defaultCopiers.put(java.util.Vector.class, new SimpleCollectionCopier<>(java.util.Vector::new));
+
+        defaultCopiers.put(java.util.IdentityHashMap.class, new IdentityHashMapCopier());
+
         defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
         defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
 
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }
 
-    private final ObjectAllocator allocator;
-    private final CloningPolicy policy;
+    protected final ObjectAllocator allocator;
+    protected final CloningPolicy policy;
 
-    private GraphTraversalAlgorithm traversalAlgorithm = GraphTraversalAlgorithm.DEPTH_FIRST;
+    private TraversalAlgorithm traversalAlgorithm = TraversalAlgorithm.DEPTH_FIRST;
     private ForkJoinPool pool;
 
     private final LazyCache<Class<?>, ObjectCopier<?>> copiers;
-
-    private final ClassFieldCache fieldCache = new ClassFieldCache();
-
-    private final LazyCache<Class<?>, CopyAction> typeActions;
-    private final LazyCache<Field, CopyAction> fieldActions;
 
     /**
      * Constructor.
      */
     public ReflectionCloner() {
-        this(ObjectAllocator.defaultAllocator(), CloningPolicy.DEFAULT);
+        this(ObjectAllocator.defaultAllocator(), new CustomCloningPolicy());
     }
 
     /**
@@ -59,7 +60,7 @@ public class ReflectionCloner implements Cloner {
      * @param allocator object allocator
      */
     public ReflectionCloner(ObjectAllocator allocator) {
-        this(allocator, CloningPolicy.DEFAULT);
+        this(allocator, new CustomCloningPolicy());
     }
 
     /**
@@ -80,9 +81,7 @@ public class ReflectionCloner implements Cloner {
     public ReflectionCloner(ObjectAllocator allocator, CloningPolicy policy) {
         this.allocator = argNotNull(allocator, "Allocator");
         this.policy = argNotNull(policy, "Policy");
-        this.typeActions = new LazyCache<>(policy::getTypeAction);
-        this.fieldActions = new LazyCache<>(policy::getFieldAction);
-        this.copiers = new LazyCache<>(this::getCopier);
+        this.copiers = new LazyCache<>(this::findCopier);
         this.copiers.putAll(DEFAULT_COPIERS);
     }
 
@@ -105,55 +104,12 @@ public class ReflectionCloner implements Cloner {
     }
 
     /**
-     * Registers custom action for type.
-     *
-     * @param type object type
-     * @param action custom action
-     * @return same cloner instance
-     */
-    public ReflectionCloner type(Class<?> type, CopyAction action) {
-        argNotNull(type, "Type");
-        argNotNull(action, "Action");
-        isNull(typeActions.put(type, action), "Action for %s already set.", type.getName());
-        return this;
-    }
-
-    /**
-     * Registers custom action for field.
-     *
-     * @param field field
-     * @param action custom action
-     * @return same cloner instance
-     */
-    public ReflectionCloner field(Field field, CopyAction action) {
-        argNotNull(field, "Field");
-        argNotNull(action, "Action");
-        isNull(fieldActions.put(field, action), "Action for %s already set.", field);
-        return this;
-    }
-
-    /**
-     * Registers custom action for field.
-     *
-     * @param type object type
-     * @param field declared field name
-     * @param action custom action
-     * @return same cloner instance
-     */
-    public ReflectionCloner field(Class<?> type, String field, CopyAction action) {
-        argNotNull(type, "Type");
-        argNotNull(field, "Field");
-        argNotNull(action, "Action");
-        return field(unchecked(() -> type.getDeclaredField(field)), action);
-    }
-
-    /**
      * Sets traversal algorithm for objects graph.
      *
      * @param traversalAlgorithm traversal algorithm
      * @return same cloner instance
      */
-    public ReflectionCloner traversal(GraphTraversalAlgorithm traversalAlgorithm) {
+    public ReflectionCloner traversal(TraversalAlgorithm traversalAlgorithm) {
         this.traversalAlgorithm = argNotNull(traversalAlgorithm, "Traversal algorithm");
         return this;
     }
@@ -184,26 +140,30 @@ public class ReflectionCloner implements Cloner {
 
     @Override
     public <T> T clone(T object) {
-        if (pool == null) {
-            SimpleQueue<Executable<?>> queue;
-            switch (traversalAlgorithm) {
-                case DEPTH_FIRST:
-                    queue = SimpleQueue.lifo();
-                    break;
-                case BREADTH_FIRST:
-                    queue = SimpleQueue.fifo();
-                    break;
-                default:
-                    throw new IllegalStateException();
+        try {
+            if (pool == null) {
+                SequentialCopyContext context = new SequentialCopyContext(this::getCopier, traversalAlgorithm);
+                T clone = context.copy(object);
+                context.complete();
+                return clone;
             }
-            CopyContextImpl context = new CopyContextImpl(copiers::get, queue);
-            T clone = context.copy(object);
-            context.join();
-            return clone;
+            else {
+                ParallelCopyContext<T> context = new ParallelCopyContext<>(this::getCopier, object);
+                T clone = pool.invoke(context);
+                context.complete();
+                return clone;
+            }
         }
-        else {
-            throw new UnsupportedOperationException();
+        catch (ClonerException e) {
+            throw e;
         }
+        catch (Exception e) {
+            throw new ClonerException(e);
+        }
+    }
+
+    protected <T> ObjectCopier<T> getCopier(Class<T> type) {
+        return (ObjectCopier) copiers.get(type);
     }
 
     /**
@@ -212,74 +172,43 @@ public class ReflectionCloner implements Cloner {
      * @param type type
      * @return copier
      */
-    protected ObjectCopier<?> getCopier(Class<?> type) {
-        CopyAction action = typeActions.get(type);
+    protected <T> ObjectCopier<T> findCopier(Class<T> type) {
+        CopyAction action = policy.getTypeAction(type);
+        ObjectCopier<?> copier;
         switch (action) {
             case NULL:
-                return ObjectCopier.NULL;
+                copier = ObjectCopier.NULL;
+                break;
             case ORIGINAL:
-                return ObjectCopier.NOOP;
+                copier = ObjectCopier.NOOP;
+                break;
             case DEFAULT:
                 if (type.isArray()) {
-                    return isComponentTypeImmutable(policy, type.getComponentType()) ?
+                    copier = isComponentTypeImmutable(policy, type.getComponentType()) ?
                         ObjectCopier.SHALLOW : ObjectCopier.OBJECT_ARRAY;
                 }
                 else {
-                    return reflectionCopier;
+                    copier = reflectionCopiers.get(type);
                 }
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-    /**
-     * Default copier for objects.
-     */
-    private final ReflectionCopier<?> reflectionCopier = new ReflectionCopier<>();
-
-    /**
-     * Copier which creates object with {@link ReflectionCloner#allocator}, when copying, enumerates fields,
-     * filters by policy and copies via reflection.
-     */
-    private class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
-
-        @Override
-        public T allocate(T original) {
-            return (T) allocator.newInstance(original.getClass());
-        }
-
-        @Override
-        public void deepCopy(T original, T clone, CopyContext context) {
-            for (Field field : fieldCache.get(original.getClass())) {
-                copyField(original, clone, field, fieldActions.get(field), context);
-            }
-        }
-
-    }
-
-    /**
-     * Copies field value from original object into clone.
-     *
-     * @param original original object
-     * @param clone clone
-     * @param field field to copy
-     * @param action action
-     * @param context copying context
-     */
-    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context) {
-        switch (action) {
-            case NULL:
-                Executable.Void.unchecked(() -> field.set(clone, null));
-                break;
-            case ORIGINAL:
-                Executable.Void.unchecked(() -> field.set(clone, field.get(original)));
-                break;
-            case DEFAULT:
-                Executable.Void.unchecked(() -> field.set(clone, context.copy(field.get(original))));
                 break;
             default:
                 throw new IllegalStateException();
         }
+        return (ObjectCopier<T>) copier;
+    }
+
+    private final LazyCache<Class<?>, ReflectionCopier<?>> reflectionCopiers = new LazyCache<>(this::findReflectionCopier);
+
+    protected <T> ReflectionCopier<T> findReflectionCopier(Class<T> type) {
+        if (type == null) {
+            return null;
+        }
+        ReflectionCopier<? super T> superCopier = findReflectionCopier(type.getSuperclass());
+        return newReflectionCopier(type, superCopier);
+    }
+
+    protected <T> ReflectionCopier<T> newReflectionCopier(Class<T> type, ReflectionCopier<? super T> superCopier) {
+        return new ReflectionCopier<>(allocator, policy, type, superCopier);
     }
 
 }

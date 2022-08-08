@@ -8,34 +8,20 @@ package org.sugarcubes.cloner;
 public interface CopyContext {
 
     /**
-     * Puts the runnable into queue for the subsequent invocation.
-     *
-     * @param runnable runnable
-     */
-    void fork(Executable<?> runnable);
-
-    /**
      * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy.
      *
      * @param <T> object type
      * @param original original
      * @return clone
+     * @throws Exception if something went wrong
      */
-    <T> T copy(T original);
-
-    /**
-     * Registers object as cloned.
-     *
-     * @param <T> object type
-     * @param original original
-     * @param clone clone
-     * @return clone
-     */
-    <T> T register(T original, Executable<T> clone);
+    <T> T copy(T original) throws Exception;
 
     /**
      * Completes all the delayed tasks.
+     *
+     * @throws Exception if something went wrong
      */
-    void join();
+    void complete() throws Exception;
 
 }

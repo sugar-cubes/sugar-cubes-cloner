@@ -23,7 +23,19 @@ public interface ObjectAllocator {
      * @param <T> object type
      * @param type type to instantiate
      * @return new instance of the type
+     * @throws Exception if something went wrong
      */
-    <T> T newInstance(Class<T> type);
+    <T> T newInstance(Class<T> type) throws Exception;
+
+    /**
+     * Creates an object factory for the type.
+     *
+     * @param <T> object type
+     * @param type type
+     * @return object factory
+     */
+    default <T> ObjectFactory<T> getFactory(Class<T> type) {
+        return () -> ObjectAllocator.this.newInstance(type);
+    }
 
 }

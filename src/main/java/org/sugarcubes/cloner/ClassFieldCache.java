@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Cache (type, list of non-static fields).
@@ -26,7 +25,6 @@ public final class ClassFieldCache {
      * Constructor.
      */
     public ClassFieldCache() {
-        this.cache.put(null, Collections.emptyList());
     }
 
     /**
@@ -37,18 +35,23 @@ public final class ClassFieldCache {
      */
     public List<Field> get(Class<?> type) {
         List<Field> fields = cache.get(type);
-        if (fields == null) {
-            fields = Collections.unmodifiableList(
-                Stream.concat(
-                        get(type.getSuperclass()).stream(),
-                        Arrays.stream(type.getDeclaredFields())
-                            .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                            .peek(ReflectionUtils::makeAccessible)
-                    )
-                    .collect(Collectors.toList())
-            );
-            cache.put(type, fields);
+        if (fields != null) {
+            return fields;
         }
+        Class<?> superType = type.getSuperclass();
+        List<Field> superFields = superType != null ? get(superType) : Collections.emptyList();
+        return cache.computeIfAbsent(type, t -> findFields(type, superFields));
+    }
+
+    private List<Field> findFields(Class<?> type, List<Field> superFields) {
+        List<Field> fields = Arrays.stream(type.getDeclaredFields())
+            .filter(field -> !Modifier.isStatic(field.getModifiers()))
+            .peek(ReflectionUtils::makeAccessible)
+            .collect(Collectors.toList());
+        if (fields.isEmpty()) {
+            return superFields;
+        }
+        fields.addAll(superFields);
         return fields;
     }
 

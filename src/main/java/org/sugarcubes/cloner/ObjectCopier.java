@@ -28,22 +28,13 @@ public interface ObjectCopier<T> {
     ObjectCopier<?> OBJECT_ARRAY = new ObjectArrayCopier();
 
     /**
-     * The "trivial" means that repeated calling {@link #copy(Object, CopyContext)} is cheaper than saving
-     * and requesting cloning result from {@link java.util.IdentityHashMap}.
-     *
-     * @return {@code true} if the copier is trivial
-     */
-    default boolean isTrivial() {
-        return false;
-    }
-
-    /**
      * Creates a copy of the original object.
      *
      * @param original original object
-     * @param context copying context or {@code null} if the copier is trivial
+     * @param context  copying context or {@code null} if the copier is trivial
      * @return object copy
+     * @throws Exception if something went wrong
      */
-    T copy(T original, CopyContext context);
+    CopyResult<T> copy(T original, CopyContext context) throws Exception;
 
 }
