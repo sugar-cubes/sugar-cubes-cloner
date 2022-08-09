@@ -1,6 +1,8 @@
 package org.sugarcubes.cloner;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,7 +17,7 @@ public class ProfilingTest {
     private List<Object> objects;
 
     private Cloner serialization = new SerializationCloner();
-    private Cloner reflection = new ReflectionCloner().parallel();
+    private Cloner reflection = new ReflectionCloner().parallel(ForkJoinPool.commonPool());
     private Cloner unsafe = new UnsafeCloner();
 
     private Kryo kryo = new Kryo();
@@ -43,15 +45,22 @@ public class ProfilingTest {
     }
 
     private void reflection() {
-        objects.forEach(reflection::clone);
+        measure("reflection", () -> objects.forEach(reflection::clone));
     }
 
     private void kryo() {
-        objects.forEach(kryo::copy);
+        measure("kryo", () -> objects.forEach(kryo::copy));
     }
 
     private void kk() {
-        objects.forEach(kk::deepClone);
+        measure("kk", () -> objects.forEach(kk::deepClone));
+    }
+
+    private static void measure(String label, Runnable action) {
+        long start = System.nanoTime();
+        action.run();
+        long end = System.nanoTime();
+        System.out.println(label + " - " + Duration.ofNanos(end - start).toMillis() + " ms");
     }
 
 }

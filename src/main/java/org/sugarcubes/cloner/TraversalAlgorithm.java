@@ -1,6 +1,7 @@
 package org.sugarcubes.cloner;
 
-import java.util.function.Supplier;
+import java.util.Deque;
+import java.util.concurrent.BlockingDeque;
 
 /**
  * Object graph traversal algorithm.
@@ -12,21 +13,49 @@ public enum TraversalAlgorithm {
     /**
      * Depth first.
      */
-    DEPTH_FIRST(SimpleQueue::lifo),
+    DEPTH_FIRST {
+        @Override
+        public <T> T poll(Deque<T> queue) {
+            return queue.pollLast();
+        }
+
+        @Override
+        public <T> T take(BlockingDeque<T> queue) throws InterruptedException {
+            return queue.takeLast();
+        }
+    },
 
     /**
      * Breadth first.
      */
-    BREADTH_FIRST(SimpleQueue::fifo);
+    BREADTH_FIRST {
+        @Override
+        public <T> T poll(Deque<T> queue) {
+            return queue.pollFirst();
+        }
 
-    private final Supplier<SimpleQueue<?>> queueSupplier;
+        @Override
+        public <T> T take(BlockingDeque<T> queue) throws InterruptedException {
+            return queue.takeFirst();
+        }
+    };
 
-    TraversalAlgorithm(Supplier<SimpleQueue<?>> queueSupplier) {
-        this.queueSupplier = queueSupplier;
-    }
+    /**
+     * Polls item from deque depending on algorithm.
+     *
+     * @param queue double-ended queue
+     * @param <T> item type
+     * @return item or {@code null}
+     */
+    public abstract <T> T poll(Deque<T> queue);
 
-    public <T> SimpleQueue<T> createQueue() {
-        return (SimpleQueue) queueSupplier.get();
-    }
+    /**
+     * Takes item from blocking deque depending on algorithm.
+     *
+     * @param queue double-ended blocking queue
+     * @param <T> item type
+     * @return item or {@code null}
+     */
+    public abstract <T> T take(BlockingDeque<T> queue) throws InterruptedException;
 
 }

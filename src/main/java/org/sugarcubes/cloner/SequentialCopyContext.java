@@ -1,5 +1,7 @@
 package org.sugarcubes.cloner;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -8,13 +10,15 @@ import java.util.concurrent.Callable;
  */
 public final class SequentialCopyContext implements CopyContext {
 
+    private final TraversalAlgorithm traversalAlgorithm;
     private final CopierRegistry registry;
-    private final SimpleQueue<Callable<?>> queue;
+
+    private final Deque<Callable<?>> queue = new ArrayDeque<>();
     private final Map<Object, Object> clones = new FasterIdentityHashMap<>();
 
-    public SequentialCopyContext(CopierRegistry registry, TraversalAlgorithm traversalAlgorithm) {
+    public SequentialCopyContext(TraversalAlgorithm traversalAlgorithm, CopierRegistry registry) {
+        this.traversalAlgorithm = traversalAlgorithm;
         this.registry = registry;
-        this.queue = traversalAlgorithm.createQueue();
     }
 
     @Override
@@ -33,13 +37,13 @@ public final class SequentialCopyContext implements CopyContext {
         CopyResult<U> result = typeCloner.copy(original, this);
         clone = result.getObject();
         clones.put(original, clone);
-        queue.offer(result.getNext());
+        result.getNext().forEach(queue::offer);
         return clone;
     }
 
     @Override
     public void complete() throws Exception {
-        for (Callable<?> next; (next = queue.poll()) != null; ) {
+        for (Callable<?> next; (next = traversalAlgorithm.poll(queue)) != null; ) {
             next.call();
         }
     }

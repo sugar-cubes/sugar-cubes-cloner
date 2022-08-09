@@ -3,6 +3,7 @@ package org.sugarcubes.cloner;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
 import static org.sugarcubes.cloner.Check.argNotNull;
@@ -14,7 +15,7 @@ import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable
  * @author Maxim Butov
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
-public class ReflectionCloner implements Cloner {
+public class ReflectionCloner implements Cloner, CopierRegistry {
 
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
 
@@ -43,7 +44,8 @@ public class ReflectionCloner implements Cloner {
     protected final CloningPolicy policy;
 
     private TraversalAlgorithm traversalAlgorithm = TraversalAlgorithm.DEPTH_FIRST;
-    private ForkJoinPool pool;
+    private ExecutorService executor;
+    private int parallelism;
 
     private final LazyCache<Class<?>, ObjectCopier<?>> copiers;
 
@@ -115,22 +117,33 @@ public class ReflectionCloner implements Cloner {
     }
 
     /**
-     * Enable parallel mode with given fork-join pool.
+     * Enable parallel mode with given executor service.
      *
-     * @param pool fork-join pool
+     * @param executor executor service
      * @return same cloner instance
      */
-    public ReflectionCloner parallel(ForkJoinPool pool) {
-        if (this.pool != null) {
+    public ReflectionCloner parallel(ExecutorService executor, int parallelism) {
+        if (this.executor != null) {
             throw new IllegalStateException("Already parallel.");
         }
-        argNotNull(pool, "Pool");
-        this.pool = pool;
+        argNotNull(executor, "Executor");
+        this.executor = executor;
+        this.parallelism = parallelism;
         return this;
     }
 
     /**
-     * Enable parallel mode with common fork-join pool.
+     * Enable parallel mode with given executor service.
+     *
+     * @param executor executor service
+     * @return same cloner instance
+     */
+    public ReflectionCloner parallel(ExecutorService executor) {
+        return parallel(executor, 0);
+    }
+
+    /**
+     * Enable parallel mode.
      *
      * @return same cloner instance
      */
@@ -141,18 +154,17 @@ public class ReflectionCloner implements Cloner {
     @Override
     public <T> T clone(T object) {
         try {
-            if (pool == null) {
-                SequentialCopyContext context = new SequentialCopyContext(this::getCopier, traversalAlgorithm);
-                T clone = context.copy(object);
-                context.complete();
-                return clone;
+            CopyContext context;
+
+            if (executor != null) {
+                context = new ParallelCopyContext(traversalAlgorithm, this, executor, parallelism);
             }
             else {
-                ParallelCopyContext<T> context = new ParallelCopyContext<>(this::getCopier, object);
-                T clone = pool.invoke(context);
-                context.complete();
-                return clone;
+                context = new SequentialCopyContext(traversalAlgorithm, this);
             }
+            T clone = context.copy(object);
+            context.complete();
+            return clone;
         }
         catch (ClonerException e) {
             throw e;
@@ -162,7 +174,8 @@ public class ReflectionCloner implements Cloner {
         }
     }
 
-    protected <T> ObjectCopier<T> getCopier(Class<T> type) {
+    @Override
+    public <T> ObjectCopier<T> getCopier(Class<T> type) {
         return (ObjectCopier) copiers.get(type);
     }
 

@@ -9,10 +9,8 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
 
     @Override
     public CopyResult<T> copy(T original, CopyContext context) throws Exception {
-        Logger.log("allocate %s", Logger.toString(original));
         T clone = allocate(original);
         return new CopyResult<>(clone, () -> {
-            Logger.log("deepCopy %s", Logger.toString(original));
             deepCopy(original, clone, context);
             return null;
         });

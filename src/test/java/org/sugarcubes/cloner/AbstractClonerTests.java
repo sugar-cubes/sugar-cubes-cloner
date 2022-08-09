@@ -126,7 +126,7 @@ abstract class AbstractClonerTests {
 
     @Test
     void testRandomObjects() {
-        List<Object> objects = Stream.generate(() -> TestObjectFactory.randomObject(10, 10))
+        List<Object> objects = Stream.generate(() -> TestObjectFactory.randomObject(5, 5))
             .limit(10)
             .parallel()
             .collect(Collectors.toList());

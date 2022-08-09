@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * Result of copy process. Contains copy instance (which may be not fully copies) and list of actions to complete copying.
+ * Result of copy process. Contains copy instance (which may be not fully copied) and list of actions to complete copying.
  *
  * @param <T> object type
  *

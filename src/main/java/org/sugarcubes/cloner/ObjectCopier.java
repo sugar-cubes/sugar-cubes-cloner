@@ -32,7 +32,7 @@ public interface ObjectCopier<T> {
      *
      * @param original original object
      * @param context  copying context or {@code null} if the copier is trivial
-     * @return object copy
+     * @return copy result
      * @throws Exception if something went wrong
      */
     CopyResult<T> copy(T original, CopyContext context) throws Exception;
