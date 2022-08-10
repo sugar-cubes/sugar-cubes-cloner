@@ -1,8 +1,5 @@
 package org.sugarcubes.cloner;
 
-/**
- * @author Maxim Butov
- */
 public class ReadmeDemo {
 
     public static void main(String[] args) {
@@ -26,7 +23,8 @@ public class ReadmeDemo {
                 // parallel mode
                 .parallel();
 
-        SomeObject myObjectClone = cloner.clone(myObject);                    // perform cloning
+        // perform cloning
+        SomeObject myObjectClone = cloner.clone(myObject);
 
     }
 
