@@ -15,11 +15,11 @@ public class ReadmeDemo {
                 new CustomCloningPolicy()
                     // copy thread locals by reference
                     .type(ThreadLocal.class, CopyAction.ORIGINAL)
-                    // skip MyObject.cachedValue field
-                    .field(SomeOtherObject.class, "cachedValue", CopyAction.NULL)
+                    // skip SomeObject.cachedValue field
+                    .field(SomeObject.class, "cachedValue", CopyAction.NULL)
             )
                 // custom copier for MyObject type
-                .copier(SomeObject.class, new MyObjectCopier())
+                .copier(SomeOtherObject.class, new SomeOtherObjectCopier())
                 // parallel mode
                 .parallel();
 
@@ -36,10 +36,10 @@ public class ReadmeDemo {
 
     }
 
-    private static class MyObjectCopier implements ObjectCopier<SomeObject> {
+    private static class SomeOtherObjectCopier implements ObjectCopier<SomeOtherObject> {
 
         @Override
-        public CopyResult<SomeObject> copy(SomeObject original, CopyContext context) throws Exception {
+        public CopyResult<SomeOtherObject> copy(SomeOtherObject original, CopyContext context) throws Exception {
             throw new UnsupportedOperationException();
         }
     }

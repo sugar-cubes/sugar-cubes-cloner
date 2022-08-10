@@ -38,7 +38,7 @@ Still serialization, but with non-standard libraries, such as:
       
 Faster than java.io serialization but still almost non-customizable.
 
-### Other cloning libraries
+### Cloning libraries
 
 - [kryo](https://github.com/EsotericSoftware/kryo#deep-and-shallow-copies)
 - [kostaskougios/cloning](https://github.com/kostaskougios/cloning)
@@ -82,16 +82,13 @@ Cloner cloner =
         new CustomCloningPolicy()
             // copy thread locals by reference
             .type(ThreadLocal.class, CopyAction.ORIGINAL)
-            // skip MyObject.cachedValue field
-            .field(SomeOtherObject.class, "cachedValue", CopyAction.NULL)
+            // skip SomeObject.cachedValue field
+            .field(SomeObject.class, "cachedValue", CopyAction.NULL)
     )
-    // custom copier for MyObject type
-    .copier(SomeObject.class, new MyObjectCopier())
-    // parallel mode
-    .parallel();
-
-// perform cloning
-SomeObject myObjectClone = cloner.clone(myObject);
+        // custom copier for MyObject type
+        .copier(SomeOtherObject.class, new SomeOtherObjectCopier())
+        // parallel mode
+        .parallel();
 ```
           
 ### Implementation
