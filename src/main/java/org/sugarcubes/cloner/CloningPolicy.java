@@ -1,33 +1,10 @@
 package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.URI;
-import java.net.URL;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.MonthDay;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Pattern;
 
 import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable;
 
@@ -48,20 +25,21 @@ public interface CloningPolicy {
      * JDK immutable types.
      */
     Set<Class<?>> IMMUTABLE_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        BigDecimal.class, BigInteger.class, Boolean.class, Byte.class,
+        java.math.BigDecimal.class, java.math.BigInteger.class, Boolean.class, Byte.class,
         Character.class, Class.class,
-        Double.class, Duration.class,
+        Double.class, java.time.Duration.class,
         Float.class,
-        Inet4Address.class, Inet6Address.class, InetSocketAddress.class, Instant.class, Integer.class,
-        LocalDate.class, LocalDateTime.class, LocalTime.class, Long.class,
-        MonthDay.class,
-        NetworkInterface.class,
-        OffsetDateTime.class, OffsetTime.class,
-        Pattern.class, Period.class,
+        java.net.Inet4Address.class, java.net.Inet6Address.class, java.net.InetSocketAddress.class, java.time.Instant.class,
+        Integer.class,
+        java.time.LocalDate.class, java.time.LocalDateTime.class, java.time.LocalTime.class, Long.class,
+        java.time.MonthDay.class,
+        java.net.NetworkInterface.class,
+        java.time.OffsetDateTime.class, java.time.OffsetTime.class,
+        java.util.regex.Pattern.class, java.time.Period.class,
         Short.class, String.class,
-        URI.class, URL.class, UUID.class,
-        Year.class, YearMonth.class,
-        ZonedDateTime.class, ZoneOffset.class
+        java.net.URI.class, java.net.URL.class, java.util.UUID.class,
+        java.time.Year.class, java.time.YearMonth.class,
+        java.time.ZonedDateTime.class, java.time.ZoneOffset.class
     )));
 
     /**

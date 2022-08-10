@@ -25,6 +25,8 @@ public class ReflectionCloner implements Cloner {
         defaultCopiers.put(java.util.Date.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(java.util.GregorianCalendar.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(java.util.BitSet.class, ObjectCopier.SHALLOW);
+        defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
+        defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
 
         defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
         defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
@@ -33,9 +35,6 @@ public class ReflectionCloner implements Cloner {
         defaultCopiers.put(java.util.Vector.class, new SimpleCollectionCopier<>(java.util.Vector::new));
 
         defaultCopiers.put(java.util.IdentityHashMap.class, new IdentityHashMapCopier());
-
-        defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
-        defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
 
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }
@@ -63,7 +62,7 @@ public class ReflectionCloner implements Cloner {
     /**
      * Cache of copiers.
      */
-    private final LazyCache<Class<?>, ObjectCopier<?>> copiers = new LazyCache<>(DEFAULT_COPIERS, this::findCopier);
+    private final LazyCache<Class<?>, ObjectCopier<?>> copiers = new LazyCache<>(DEFAULT_COPIERS, this::getCopier);
 
     /**
      * Cache of reflection copiers.
@@ -74,7 +73,7 @@ public class ReflectionCloner implements Cloner {
      * Constructor.
      */
     public ReflectionCloner() {
-        this(ObjectAllocator.defaultAllocator(), new CustomCloningPolicy());
+        this(ObjectAllocator.defaultAllocator(), CloningPolicy.DEFAULT);
     }
 
     /**
@@ -83,7 +82,7 @@ public class ReflectionCloner implements Cloner {
      * @param allocator object allocator
      */
     public ReflectionCloner(ObjectAllocator allocator) {
-        this(allocator, new CustomCloningPolicy());
+        this(allocator, CloningPolicy.DEFAULT);
     }
 
     /**
@@ -136,7 +135,7 @@ public class ReflectionCloner implements Cloner {
     }
 
     /**
-     * Enable parallel mode with given executor service.
+     * Enables parallel mode with given executor service.
      *
      * @param executor executor service
      * @return same cloner instance
@@ -145,13 +144,12 @@ public class ReflectionCloner implements Cloner {
         if (this.executor != null) {
             throw new IllegalStateException("Already parallel.");
         }
-        argNotNull(executor, "Executor");
-        this.executor = executor;
+        this.executor = argNotNull(executor, "Executor");
         return this;
     }
 
     /**
-     * Enable parallel mode.
+     * Enables parallel mode.
      *
      * @return same cloner instance
      */
@@ -183,34 +181,29 @@ public class ReflectionCloner implements Cloner {
     }
 
     /**
-     * Creates copier for the type.
+     * Chooses or creates copier for the type.
      *
      * @param type type
      * @return copier
      */
-    protected <T> ObjectCopier<T> findCopier(Class<T> type) {
+    protected ObjectCopier<?> getCopier(Class<?> type) {
         CopyAction action = policy.getTypeAction(type);
-        ObjectCopier<?> copier;
         switch (action) {
             case NULL:
-                copier = ObjectCopier.NULL;
-                break;
+                return ObjectCopier.NULL;
             case ORIGINAL:
-                copier = ObjectCopier.NOOP;
-                break;
+                return ObjectCopier.NOOP;
             case DEFAULT:
                 if (type.isArray()) {
-                    copier = isComponentTypeImmutable(policy, type.getComponentType()) ?
+                    return isComponentTypeImmutable(policy, type.getComponentType()) ?
                         ObjectCopier.SHALLOW : ObjectCopier.OBJECT_ARRAY;
                 }
                 else {
-                    copier = reflectionCopiers.get(type);
+                    return reflectionCopiers.get(type);
                 }
-                break;
             default:
                 throw new IllegalStateException();
         }
-        return (ObjectCopier<T>) copier;
     }
 
     /**
