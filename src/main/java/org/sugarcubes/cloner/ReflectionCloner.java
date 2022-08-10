@@ -15,7 +15,7 @@ import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable
  * @author Maxim Butov
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
-public class ReflectionCloner implements Cloner, CopierRegistry {
+public class ReflectionCloner implements Cloner {
 
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
 
@@ -40,14 +40,35 @@ public class ReflectionCloner implements Cloner, CopierRegistry {
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }
 
+    /**
+     * Object allocator.
+     */
     protected final ObjectAllocator allocator;
+
+    /**
+     * Cloning policy.
+     */
     protected final CloningPolicy policy;
 
+    /**
+     * Object graph traversal algorithm.
+     */
     private TraversalAlgorithm traversalAlgorithm = TraversalAlgorithm.DEPTH_FIRST;
-    private ExecutorService executor;
-    private int parallelism;
 
-    private final LazyCache<Class<?>, ObjectCopier<?>> copiers;
+    /**
+     * Executor service.
+     */
+    private ExecutorService executor;
+
+    /**
+     * Cache of copiers.
+     */
+    private final LazyCache<Class<?>, ObjectCopier<?>> copiers = new LazyCache<>(DEFAULT_COPIERS, this::findCopier);
+
+    /**
+     * Cache of reflection copiers.
+     */
+    private final LazyCache<Class<?>, ReflectionCopier<?>> reflectionCopiers = new LazyCache<>(this::newReflectionCopier);
 
     /**
      * Constructor.
@@ -83,8 +104,6 @@ public class ReflectionCloner implements Cloner, CopierRegistry {
     public ReflectionCloner(ObjectAllocator allocator, CloningPolicy policy) {
         this.allocator = argNotNull(allocator, "Allocator");
         this.policy = argNotNull(policy, "Policy");
-        this.copiers = new LazyCache<>(this::findCopier);
-        this.copiers.putAll(DEFAULT_COPIERS);
     }
 
     /**
@@ -98,7 +117,7 @@ public class ReflectionCloner implements Cloner, CopierRegistry {
     public <T> ReflectionCloner copier(Class<T> type, ObjectCopier<T> copier) {
         argNotNull(type, "Type");
         argNotNull(copier, "Copier");
-        // one can replace default copiers
+        // one can replace default copiers only
         if (copiers.put(type, copier) != DEFAULT_COPIERS.get(type)) {
             throw new IllegalArgumentException(String.format("Copier for %s already set.", type.getName()));
         }
@@ -122,24 +141,13 @@ public class ReflectionCloner implements Cloner, CopierRegistry {
      * @param executor executor service
      * @return same cloner instance
      */
-    public ReflectionCloner parallel(ExecutorService executor, int parallelism) {
+    public ReflectionCloner parallel(ExecutorService executor) {
         if (this.executor != null) {
             throw new IllegalStateException("Already parallel.");
         }
         argNotNull(executor, "Executor");
         this.executor = executor;
-        this.parallelism = parallelism;
         return this;
-    }
-
-    /**
-     * Enable parallel mode with given executor service.
-     *
-     * @param executor executor service
-     * @return same cloner instance
-     */
-    public ReflectionCloner parallel(ExecutorService executor) {
-        return parallel(executor, 0);
     }
 
     /**
@@ -154,13 +162,12 @@ public class ReflectionCloner implements Cloner, CopierRegistry {
     @Override
     public <T> T clone(T object) {
         try {
-            CopyContext context;
-
+            CompletableCopyContext context;
             if (executor != null) {
-                context = new ParallelCopyContext(traversalAlgorithm, this, executor, parallelism);
+                context = new ParallelCopyContext(copiers::get, executor);
             }
             else {
-                context = new SequentialCopyContext(traversalAlgorithm, this);
+                context = new SequentialCopyContext(copiers::get, traversalAlgorithm);
             }
             T clone = context.copy(object);
             context.complete();
@@ -172,11 +179,6 @@ public class ReflectionCloner implements Cloner, CopierRegistry {
         catch (Exception e) {
             throw new ClonerException(e);
         }
-    }
-
-    @Override
-    public <T> ObjectCopier<T> getCopier(Class<T> type) {
-        return (ObjectCopier) copiers.get(type);
     }
 
     /**
@@ -210,16 +212,29 @@ public class ReflectionCloner implements Cloner, CopierRegistry {
         return (ObjectCopier<T>) copier;
     }
 
-    private final LazyCache<Class<?>, ReflectionCopier<?>> reflectionCopiers = new LazyCache<>(this::findReflectionCopier);
-
-    protected <T> ReflectionCopier<T> findReflectionCopier(Class<T> type) {
+    /**
+     * Creates {@link ReflectionCopier} instance for the type.
+     *
+     * @param <T> object type
+     * @param type object type
+     * @return copier instance
+     */
+    protected <T> ReflectionCopier<T> newReflectionCopier(Class<T> type) {
         if (type == null) {
             return null;
         }
-        ReflectionCopier<? super T> superCopier = findReflectionCopier(type.getSuperclass());
+        ReflectionCopier<? super T> superCopier = newReflectionCopier(type.getSuperclass());
         return newReflectionCopier(type, superCopier);
     }
 
+    /**
+     * Creates {@link ReflectionCopier} instance for the type.
+     *
+     * @param <T> object type
+     * @param type object type
+     * @param superCopier copier for super type
+     * @return copier instance
+     */
     protected <T> ReflectionCopier<T> newReflectionCopier(Class<T> type, ReflectionCopier<? super T> superCopier) {
         return new ReflectionCopier<>(allocator, policy, type, superCopier);
     }

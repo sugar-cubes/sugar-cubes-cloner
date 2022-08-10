@@ -9,13 +9,23 @@ package org.sugarcubes.cloner;
 public interface CopierRegistry {
 
     /**
-     * Returns copier by type.
+     * Returns untyped copier by type.
      *
      * @param type type
      * @return copier
-     * @param <T> object type
      */
-    <T> ObjectCopier<T> getCopier(Class<T> type);
+    ObjectCopier<?> getCopier(Class<?> type);
+
+    /**
+     * Returns typed copier by type.
+     *
+     * @param type type
+     * @param <T> object type
+     * @return copier
+     */
+    default <T> ObjectCopier<T> getTypedCopier(Class<T> type) {
+        return (ObjectCopier<T>) getCopier(type);
+    }
 
     /**
      * Returns copier by original object.
@@ -25,7 +35,7 @@ public interface CopierRegistry {
      * @param <T> object type
      */
     default <T> ObjectCopier<T> getCopier(T original) {
-        return getCopier((Class<T>) original.getClass());
+        return getTypedCopier((Class<T>) original.getClass());
     }
 
 }

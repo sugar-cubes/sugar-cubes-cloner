@@ -8,6 +8,12 @@ import java.util.Set;
 import static org.sugarcubes.cloner.Check.argNotNull;
 import static org.sugarcubes.cloner.Check.isNull;
 
+/**
+ * Mutable cloning policy.
+ *
+ * @author Maxim Butov
+ */
+@SuppressWarnings("checkstyle:MultipleStringLiterals")
 public final class CustomCloningPolicy implements CloningPolicy {
 
     private final Set<Class<?>> immutableTypes = new HashSet<>(IMMUTABLE_TYPES);
@@ -18,7 +24,7 @@ public final class CustomCloningPolicy implements CloningPolicy {
      * Registers types as immutable.
      *
      * @param type immutable type
-     * @param types immutable types
+     * @param types extra immutable types
      * @return same policy instance
      */
     public CustomCloningPolicy immutable(Class<?> type, Class<?>... types) {

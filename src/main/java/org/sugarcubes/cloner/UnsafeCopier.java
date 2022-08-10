@@ -7,6 +7,13 @@ import java.util.function.BiFunction;
 
 import sun.misc.Unsafe;
 
+/**
+ * A customization of the {@link ReflectionCopier} which uses {@link Unsafe} to instantiate objects, get and set field values.
+ *
+ * @param <T> object type
+ *
+ * @author Maxim Butov
+ */
 public class UnsafeCopier<T> extends ReflectionCopier<T> {
 
     /**
@@ -44,12 +51,21 @@ public class UnsafeCopier<T> extends ReflectionCopier<T> {
         COPY_OPERATIONS.put(double.class, getCopyOperation(UNSAFE::putDouble, UNSAFE::getDouble));
     }
 
+    /**
+     * Creates unsafe reflection copier.
+     *
+     * @param allocator object allocator
+     * @param policy cloning policy
+     * @param type object type
+     * @param superCopier copier for the super type
+     */
     public UnsafeCopier(ObjectAllocator allocator, CloningPolicy policy, Class<T> type, ReflectionCopier<? super T> superCopier) {
         super(allocator, policy, type, superCopier);
     }
 
     @Override
-    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context) throws Exception {
+    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context)
+        throws Exception {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (action) {
             case NULL:

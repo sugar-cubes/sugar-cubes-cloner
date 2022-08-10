@@ -6,8 +6,10 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Copier which creates object with {@link #allocator}, when copying, enumerates fields,
+ * Copier which creates object with {@link #factory}, when copying, enumerates fields,
  * filters by policy and copies via reflection.
+ *
+ * @author Maxim Butov
  */
 public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
 
@@ -15,6 +17,14 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
     private final ReflectionCopier<? super T> superCopier;
     private final Map.Entry<Field, CopyAction>[] fields;
 
+    /**
+     * Creates reflection copier.
+     *
+     * @param allocator object allocator
+     * @param policy cloning policy
+     * @param type object type
+     * @param superCopier copier for the super type
+     */
     @SuppressWarnings("unchecked")
     public ReflectionCopier(ObjectAllocator allocator, CloningPolicy policy,
         Class<T> type, ReflectionCopier<? super T> superCopier) {
@@ -52,7 +62,8 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param context copying context
      * @throws Exception if something went wrong
      */
-    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context) throws Exception {
+    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context)
+        throws Exception {
         switch (action) {
             case NULL:
                 field.set(clone, null);

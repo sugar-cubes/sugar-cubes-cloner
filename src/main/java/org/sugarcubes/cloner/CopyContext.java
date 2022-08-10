@@ -17,11 +17,4 @@ public interface CopyContext {
      */
     <T> T copy(T original) throws Exception;
 
-    /**
-     * Completes all the delayed tasks.
-     *
-     * @throws Exception if something went wrong
-     */
-    void complete() throws Exception;
-
 }

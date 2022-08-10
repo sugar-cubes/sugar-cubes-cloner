@@ -64,23 +64,40 @@ Faster than java.io serialization but still almost non-customizable.
 Object clone = Cloners.reflection().clone(original);
 ```
 
+For the cloning with serialization one can use:
+
+```java
+Object clone = Cloners.serialization().clone(original);
+```
+
 ### Customization
 
 ```java
-Cloner cloner = new ReflectionCloner(new ObjenesisAllocator())  // new cloner instance with custom allocator
-    .copier(MyObject.class, new MyObjectCopier())               // custom copier for MyObject type
-    .type(ThreadLocal.class, CopyAction.ORIGINAL)               // copy thread locals by reference 
-    .field(MyObject.class, "cachedValue", CopyAction.NULL);     // skip MyObject.cachedValue field
-    .parallel();                                                // parallel mode
+Cloner cloner =
+    // new cloner instance
+    new ReflectionCloner(
+    // custom allocator
+    new ObjenesisAllocator(),
+    // custom policy
+    new CustomCloningPolicy()
+    // copy thread locals by reference
+    .type(ThreadLocal.class, CopyAction.ORIGINAL)
+    // skip MyObject.cachedValue field
+    .field(SomeOtherObject.class, "cachedValue", CopyAction.NULL)
+    )
+    // custom copier for MyObject type
+    .copier(SomeObject.class, new MyObjectCopier())
+    // parallel mode
+    .parallel();
 
-    MyObject myObjectClone = cloner.clone(myObject);            // perform cloning
+    SomeObject myObjectClone = cloner.clone(myObject);                    // perform cloning
 ```
           
 ### Implementation
                   
 In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
 
-In parallel mode order is chosen by ForkJoinPool.
+In parallel mode order is unpredictable.
 
 ### Known limitations
 

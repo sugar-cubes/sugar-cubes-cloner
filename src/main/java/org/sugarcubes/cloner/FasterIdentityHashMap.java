@@ -36,20 +36,33 @@ import java.util.Set;
  */
 public final class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
 
+    /**
+     * Default capacity.
+     */
+    private static final int DEFAULT_CAPACITY = 32;
+
     private Object[] table;
     private int size;
 
+    /**
+     * Creates map with default capacity.
+     */
     public FasterIdentityHashMap() {
-        this(32);
+        this(DEFAULT_CAPACITY);
     }
 
+    /**
+     * Creates map with specified capacity.
+     *
+     * @param expectedMaxSize expected maximum size
+     */
     public FasterIdentityHashMap(int expectedMaxSize) {
         table = new Object[capacity(expectedMaxSize) << 1];
     }
 
     private static int capacity(int expectedMaxSize) {
-        int hob = Integer.highestOneBit(expectedMaxSize);
-        return hob == expectedMaxSize ? hob : hob << 1;
+        int twoPow = Integer.highestOneBit(expectedMaxSize);
+        return twoPow == expectedMaxSize ? twoPow : twoPow << 1;
     }
 
     @Override
@@ -62,6 +75,7 @@ public final class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
         return size == 0;
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private static int hash(int h, int length) {
         return ((h << 1) - (h << 8)) & (length - 1);
     }

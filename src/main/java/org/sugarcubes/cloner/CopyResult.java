@@ -1,9 +1,7 @@
 package org.sugarcubes.cloner;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 /**
  * Result of copy process. Contains copy instance (which may be not fully copied) and list of actions to complete copying.
@@ -18,29 +16,50 @@ public class CopyResult<T> {
      * Copy of the original object.
      */
     private final T object;
-    private final List<Callable<?>> next;
 
+    /**
+     * Next action to complete copying.
+     */
+    private final Callable<?> next;
+
+    /**
+     * Creates an instant copy result.
+     *
+     * @param object resulting object
+     */
     public CopyResult(T object) {
-        this.object = object;
-        this.next = Collections.emptyList();
+        this(object, null);
     }
 
+    /**
+     * Creates a copy result with next action.
+     *
+     * @param object resulting object
+     * @param next action to complete copying
+     */
     public CopyResult(T object, Callable<?> next) {
         this.object = object;
-        this.next = Collections.singletonList(next);
+        this.next = next;
     }
 
-    public CopyResult(T object, Callable<?>... next) {
-        this.object = object;
-        this.next = Collections.unmodifiableList(Arrays.asList(next));
-    }
-
+    /**
+     * Returns resulting object.
+     *
+     * @return resulting object
+     */
     public T getObject() {
         return object;
     }
 
-    public List<Callable<?>> getNext() {
-        return next;
+    /**
+     * Applies action to the {@link #next} if it is present.
+     *
+     * @param action action to apply
+     */
+    public void ifHasNext(Consumer<Callable<?>> action) {
+        if (next != null) {
+            action.accept(next);
+        }
     }
 
 }

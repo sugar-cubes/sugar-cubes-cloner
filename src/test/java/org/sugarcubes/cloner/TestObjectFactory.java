@@ -49,8 +49,6 @@ public class TestObjectFactory {
                 random::nextLong,
                 random::nextDouble,
                 TestObjectFactory::randomString,
-                TestObjectFactory::randomDate,
-                TestObjectFactory::randomCalendar,
                 TestObjectFactory::randomInstant,
                 TestObjectFactory::randomLocalDateTime,
                 () -> randomPrimitiveArray(random(boolean.class, byte.class, char.class, short.class, int.class, long.class, float.class, double.class), 1 + random.nextInt(width))

@@ -5,12 +5,23 @@ import java.util.Collection;
 import java.util.function.Function;
 
 /**
+ * Copier for simple collections (that do not call items {@link Object#hashCode()} method), because item hash code can differ in
+ * the beginning and in the end of cloning.
+ *
  * @author Maxim Butov
  */
 public class SimpleCollectionCopier<T extends Collection<Object>> extends TwoPhaseObjectCopier<T> {
 
+    /**
+     * Collection constructor with size argument.
+     */
     private final Function<Integer, T> constructor;
 
+    /**
+     * Creates copier.
+     *
+     * @param constructor collection constructor
+     */
     public SimpleCollectionCopier(Function<Integer, T> constructor) {
         this.constructor = constructor;
     }

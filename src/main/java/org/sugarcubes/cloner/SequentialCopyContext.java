@@ -2,48 +2,65 @@ package org.sugarcubes.cloner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
+ * Copy context for sequential copying.
+ *
  * @author Maxim Butov
  */
-public final class SequentialCopyContext implements CopyContext {
+public final class SequentialCopyContext extends AbstractCopyContext {
 
-    private final TraversalAlgorithm traversalAlgorithm;
-    private final CopierRegistry registry;
+    /**
+     * Poll method for {@link #queue}.
+     * Depending on traversal algorithm can be {@link Deque#pollLast()} or {@link Deque#pollFirst()}.
+     */
+    private final Supplier<Callable<?>> poll;
 
+    /**
+     * Queue of actions to complete copying.
+     */
     private final Deque<Callable<?>> queue = new ArrayDeque<>();
-    private final Map<Object, Object> clones = new FasterIdentityHashMap<>();
 
-    public SequentialCopyContext(TraversalAlgorithm traversalAlgorithm, CopierRegistry registry) {
-        this.traversalAlgorithm = traversalAlgorithm;
-        this.registry = registry;
+    /**
+     * Creates an object instance.
+     *
+     * @param registry copier registry
+     * @param traversalAlgorithm traversal algorithm
+     */
+    public SequentialCopyContext(CopierRegistry registry, TraversalAlgorithm traversalAlgorithm) {
+        super(registry);
+        this.poll = getPollMethod(traversalAlgorithm);
+    }
+
+    private Supplier<Callable<?>> getPollMethod(TraversalAlgorithm traversalAlgorithm) {
+        switch (traversalAlgorithm) {
+            case DEPTH_FIRST:
+                return queue::pollLast;
+            case BREADTH_FIRST:
+                return queue::pollFirst;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Override
-    public <U> U copy(U original) throws Exception {
-        if (original == null) {
-            return null;
-        }
-        ObjectCopier<U> typeCloner = registry.getCopier(original);
-        if (typeCloner instanceof TrivialCopier) {
-            return ((TrivialCopier<U>) typeCloner).trivialCopy(original);
-        }
-        U clone = (U) clones.get(original);
+    protected <T> T nonTrivialCopy(T original, ObjectCopier<T> copier) throws Exception {
+        T clone = (T) clones.get(original);
         if (clone != null) {
             return clone;
         }
-        CopyResult<U> result = typeCloner.copy(original, this);
+        CopyResult<T> result = copier.copy(original, this);
         clone = result.getObject();
         clones.put(original, clone);
-        result.getNext().forEach(queue::offer);
+        result.ifHasNext(queue::offer);
         return clone;
     }
 
     @Override
     public void complete() throws Exception {
-        for (Callable<?> next; (next = traversalAlgorithm.poll(queue)) != null; ) {
+        for (Callable<?> next; (next = poll.get()) != null; ) {
             next.call();
         }
     }
