@@ -89,6 +89,9 @@ Cloner cloner =
         .copier(SomeOtherObject.class, new SomeOtherObjectCopier())
         // parallel mode
         .parallel();
+
+// perform cloning
+SomeObject myObjectClone = cloner.clone(myObject);
 ```
           
 ### Implementation
