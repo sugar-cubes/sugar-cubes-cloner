@@ -2,7 +2,6 @@ package org.sugarcubes.cloner;
 
 import java.lang.reflect.Array;
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -40,7 +39,7 @@ public class TestObjectFactory {
 
     }
 
-    private static final Random random = new SecureRandom();
+    private static final Random random = new Random();
 
     public static Object randomObject(int width, int depth) {
         if (depth == 0) {
@@ -90,8 +89,10 @@ public class TestObjectFactory {
         return randomDate().toInstant();
     }
 
+    private static final ZoneId[] ZONE_IDS = ZoneOffset.getAvailableZoneIds().stream().map(ZoneId::of).toArray(ZoneId[]::new);
+
     private static LocalDateTime randomLocalDateTime() {
-        return LocalDateTime.ofInstant(randomInstant(), ZoneId.of(random(ZoneOffset.getAvailableZoneIds())));
+        return LocalDateTime.ofInstant(randomInstant(), random(ZONE_IDS));
     }
 
     @SafeVarargs

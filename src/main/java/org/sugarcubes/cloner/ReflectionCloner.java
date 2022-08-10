@@ -163,11 +163,12 @@ public class ReflectionCloner implements Cloner {
     public <T> T clone(T object) {
         try {
             CompletableCopyContext context;
+            CopierRegistry registry = copiers::get;
             if (executor != null) {
-                context = new ParallelCopyContext(copiers::get, executor);
+                context = new ParallelCopyContext(registry, executor);
             }
             else {
-                context = new SequentialCopyContext(copiers::get, traversalAlgorithm);
+                context = new SequentialCopyContext(registry, traversalAlgorithm);
             }
             T clone = context.copy(object);
             context.complete();

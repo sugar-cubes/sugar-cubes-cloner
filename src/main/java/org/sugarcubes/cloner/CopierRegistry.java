@@ -14,7 +14,7 @@ public interface CopierRegistry {
      * @param type type
      * @return copier
      */
-    ObjectCopier<?> getCopier(Class<?> type);
+    ObjectCopier<?> getUntypedCopier(Class<?> type);
 
     /**
      * Returns typed copier by type.
@@ -23,19 +23,19 @@ public interface CopierRegistry {
      * @param <T> object type
      * @return copier
      */
-    default <T> ObjectCopier<T> getTypedCopier(Class<T> type) {
-        return (ObjectCopier<T>) getCopier(type);
+    default <T> ObjectCopier<T> getCopier(Class<T> type) {
+        return (ObjectCopier<T>) getUntypedCopier(type);
     }
 
     /**
-     * Returns copier by original object.
+     * Returns typed copier by original object.
      *
      * @param original original object
      * @return copier
      * @param <T> object type
      */
     default <T> ObjectCopier<T> getCopier(T original) {
-        return getTypedCopier((Class<T>) original.getClass());
+        return getCopier((Class<T>) original.getClass());
     }
 
 }

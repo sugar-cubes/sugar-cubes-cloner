@@ -17,6 +17,7 @@ dependencies {
 
     testImplementation("org.apache.commons:commons-collections4:4.4")
     testImplementation("org.apache.commons:commons-lang3:3.12.0")
+    testImplementation("org.apache.commons:commons-math3:3.6.1")
     testImplementation("com.google.guava:guava:31.1-jre")
     testImplementation("org.springframework:spring-core:5.3.22")
     testImplementation("com.esotericsoftware:kryo:5.3.0")

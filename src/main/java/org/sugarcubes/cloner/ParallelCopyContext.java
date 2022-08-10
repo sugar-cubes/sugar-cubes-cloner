@@ -27,7 +27,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
     /**
      * Running flag.
      */
-    private volatile boolean running;
+    private volatile boolean running = true;
 
     /**
      * Creates an instance.
@@ -42,28 +42,30 @@ public class ParallelCopyContext extends AbstractCopyContext {
 
     @Override
     protected <T> T nonTrivialCopy(T original, ObjectCopier<T> copier) throws Exception {
+        T clone;
         CopyResult<T> result;
         synchronized (original) {
-            T clone = (T) clones.get(original);
+            clone = (T) clones.get(original);
             if (clone != null) {
                 return clone;
             }
             result = copier.copy(original, this);
+            clone = result.getObject();
             synchronized (clones) {
-                clones.put(original, result.getObject());
+                clones.put(original, clone);
             }
         }
         if (running) {
             result.ifHasNext(next -> futures.offer(executor.submit(next)));
         }
-        return result.getObject();
+        return clone;
     }
 
     @Override
     public void complete() throws Exception {
-        for (Future<?> task; (task = futures.poll()) != null; ) {
+        for (Future<?> future; (future = futures.poll()) != null; ) {
             try {
-                task.get();
+                future.get();
             }
             catch (ExecutionException e) {
                 running = false;
@@ -71,7 +73,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
                     throw e.getCause();
                 }
                 catch (Error | Exception ex) {
-                    throw new RuntimeException(ex);
+                    throw ex;
                 }
                 catch (Throwable ex) {
                     throw new UndeclaredThrowableException(ex);
