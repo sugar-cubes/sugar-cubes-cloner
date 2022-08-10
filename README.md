@@ -90,7 +90,8 @@ Cloner cloner =
     // parallel mode
     .parallel();
 
-    SomeObject myObjectClone = cloner.clone(myObject);                    // perform cloning
+// perform cloning
+SomeObject myObjectClone = cloner.clone(myObject);
 ```
           
 ### Implementation
