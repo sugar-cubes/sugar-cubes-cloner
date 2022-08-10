@@ -82,10 +82,10 @@ Cloner cloner =
         new CustomCloningPolicy()
             // copy thread locals by reference
             .type(ThreadLocal.class, CopyAction.ORIGINAL)
-            // skip SomeObject.cachedValue field
+            // set SomeObject.cachedValue field to null when cloning
             .field(SomeObject.class, "cachedValue", CopyAction.NULL)
     )
-        // custom copier for MyObject type
+        // custom copier for SomeOtherObject type
         .copier(SomeOtherObject.class, new SomeOtherObjectCopier())
         // parallel mode
         .parallel();
