@@ -76,14 +76,14 @@ Object clone = Cloners.serialization().clone(original);
 Cloner cloner =
     // new cloner instance
     new ReflectionCloner(
-    // custom allocator
-    new ObjenesisAllocator(),
-    // custom policy
-    new CustomCloningPolicy()
-    // copy thread locals by reference
-    .type(ThreadLocal.class, CopyAction.ORIGINAL)
-    // skip MyObject.cachedValue field
-    .field(SomeOtherObject.class, "cachedValue", CopyAction.NULL)
+        // custom allocator
+        new ObjenesisAllocator(),
+        // custom policy
+        new CustomCloningPolicy()
+            // copy thread locals by reference
+            .type(ThreadLocal.class, CopyAction.ORIGINAL)
+            // skip MyObject.cachedValue field
+            .field(SomeOtherObject.class, "cachedValue", CopyAction.NULL)
     )
     // custom copier for MyObject type
     .copier(SomeObject.class, new MyObjectCopier())
