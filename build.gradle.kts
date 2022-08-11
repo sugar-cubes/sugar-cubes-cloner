@@ -4,6 +4,10 @@ plugins {
     id("checkstyle")
 }
 
+group = "org.sugarcubes"
+version = "1.0.0"
+description = "Java cloning library"
+
 repositories {
     mavenCentral()
 }
@@ -11,6 +15,8 @@ repositories {
 dependencies {
 
     api("org.objenesis:objenesis:3.2")
+    api("net.bytebuddy:byte-buddy:1.12.13")
+    api("org.javassist:javassist:3.29.0-GA")
 
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")

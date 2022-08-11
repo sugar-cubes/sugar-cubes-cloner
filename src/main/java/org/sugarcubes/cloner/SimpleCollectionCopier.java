@@ -10,7 +10,7 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-public class SimpleCollectionCopier<T extends Collection<Object>> extends TwoPhaseObjectCopier<T> {
+public class SimpleCollectionCopier<T extends Collection<Object>> implements TwoPhaseObjectCopier<T> {
 
     /**
      * Collection constructor with size argument.

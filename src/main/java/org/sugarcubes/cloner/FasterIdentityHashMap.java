@@ -8,7 +8,7 @@ import java.util.Set;
  *
  * @author Doug Lea and Josh Bloch
  */
-public final class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
+public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
 
     /**
      * Default capacity.

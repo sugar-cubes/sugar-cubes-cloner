@@ -42,23 +42,21 @@ public class ParallelCopyContext extends AbstractCopyContext {
 
     @Override
     protected <T> T nonTrivialCopy(T original, ObjectCopier<T> copier) throws Exception {
-        T clone;
         CopyResult<T> result;
         synchronized (original) {
-            clone = (T) clones.get(original);
+            Object clone = clones.get(original);
             if (clone != null) {
-                return clone;
+                return (T) clone;
             }
             result = copier.copy(original, this);
-            clone = result.getObject();
             synchronized (clones) {
-                clones.put(original, clone);
+                clones.put(original, result.getObject());
             }
         }
         if (running) {
             result.ifHasNext(next -> futures.offer(executor.submit(next)));
         }
-        return clone;
+        return result.getObject();
     }
 
     @Override

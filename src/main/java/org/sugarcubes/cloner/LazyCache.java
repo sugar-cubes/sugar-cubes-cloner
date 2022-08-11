@@ -10,7 +10,7 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-public final class LazyCache<K, V> {
+public class LazyCache<K, V> {
 
     /**
      * Key-value mapping function.

@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
  *
  * @author Maxim Butov
  */
-public final class ShallowCopier<T extends Cloneable> implements ObjectCopier<T> {
+public class ShallowCopier<T extends Cloneable> implements ObjectCopier<T> {
 
     /**
      * {@link Object#clone()} method.

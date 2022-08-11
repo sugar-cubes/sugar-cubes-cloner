@@ -68,7 +68,7 @@ public class ReflectionCloner implements Cloner {
     /**
      * Cache of reflection copiers.
      */
-    private final LazyCache<Class<?>, ReflectionCopier<?>> reflectionCopiers = new LazyCache<>(this::newReflectionCopier);
+    private final LazyCache<Class<?>, ObjectCopier<?>> reflectionCopiers = new LazyCache<>(this::newReflectionCopier);
 
     /**
      * Constructor.
@@ -210,28 +210,26 @@ public class ReflectionCloner implements Cloner {
     /**
      * Creates {@link ReflectionCopier} instance for the type.
      *
-     * @param <T> object type
      * @param type object type
      * @return copier instance
      */
-    protected <T> ReflectionCopier<T> newReflectionCopier(Class<T> type) {
+    protected ObjectCopier<?> newReflectionCopier(Class<?> type) {
         if (type == null) {
             return null;
         }
-        ReflectionCopier<? super T> superCopier = newReflectionCopier(type.getSuperclass());
+        ObjectCopier<?> superCopier = newReflectionCopier(type.getSuperclass());
         return newReflectionCopier(type, superCopier);
     }
 
     /**
      * Creates {@link ReflectionCopier} instance for the type.
      *
-     * @param <T> object type
      * @param type object type
      * @param superCopier copier for super type
      * @return copier instance
      */
-    protected <T> ReflectionCopier<T> newReflectionCopier(Class<T> type, ReflectionCopier<? super T> superCopier) {
-        return new ReflectionCopier<>(allocator, policy, type, superCopier);
+    protected ObjectCopier<?> newReflectionCopier(Class<?> type, ObjectCopier<?> superCopier) {
+        return new ReflectionCopier<>(allocator, policy, type, (ReflectionCopier) superCopier);
     }
 
 }

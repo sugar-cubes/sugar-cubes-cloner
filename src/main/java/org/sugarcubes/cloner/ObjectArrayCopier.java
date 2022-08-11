@@ -7,7 +7,7 @@ import java.lang.reflect.Array;
  *
  * @author Maxim Butov
  */
-public final class ObjectArrayCopier extends TwoPhaseObjectCopier<Object[]> {
+public class ObjectArrayCopier implements TwoPhaseObjectCopier<Object[]> {
 
     @Override
     public Object[] allocate(Object[] original) {

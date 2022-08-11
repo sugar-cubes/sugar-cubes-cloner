@@ -6,10 +6,10 @@ package org.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-public abstract class TrivialCopier<T> implements ObjectCopier<T> {
+public interface TrivialCopier<T> extends ObjectCopier<T> {
 
     @Override
-    public CopyResult<T> copy(T original, CopyContext context) {
+    default CopyResult<T> copy(T original, CopyContext context) {
         return new CopyResult<>(trivialCopy(original));
     }
 
@@ -19,6 +19,6 @@ public abstract class TrivialCopier<T> implements ObjectCopier<T> {
      * @param original original object
      * @return copy
      */
-    public abstract T trivialCopy(T original);
+    T trivialCopy(T original);
 
 }

@@ -26,8 +26,8 @@ public class UnsafeCloner extends ReflectionCloner {
     }
 
     @Override
-    protected <T> ReflectionCopier<T> newReflectionCopier(Class<T> type, ReflectionCopier<? super T> superCopier) {
-        return new UnsafeCopier<>(allocator, policy, type, superCopier);
+    protected ObjectCopier<?> newReflectionCopier(Class<?> type, ObjectCopier<?> superCopier) {
+        return new UnsafeCopier<>(allocator, policy, type, (UnsafeCopier) superCopier);
     }
 
 }

@@ -14,7 +14,7 @@ import static org.sugarcubes.cloner.Check.isNull;
  * @author Maxim Butov
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
-public final class CustomCloningPolicy implements CloningPolicy {
+public class CustomCloningPolicy implements CloningPolicy {
 
     private final Set<Class<?>> immutableTypes = new HashSet<>(IMMUTABLE_TYPES);
     private final LazyCache<Class<?>, CopyAction> typeActions = new LazyCache<>(CloningPolicy.super::getTypeAction);

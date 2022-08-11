@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  *
  * @author Maxim Butov
  */
-public final class SequentialCopyContext extends AbstractCopyContext {
+public class SequentialCopyContext extends AbstractCopyContext {
 
     /**
      * Queue of actions to complete copying.

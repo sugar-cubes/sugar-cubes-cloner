@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author Maxim Butov
  */
-public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
+public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
 
     private final ObjectFactory<T> factory;
     private final ReflectionCopier<? super T> superCopier;

@@ -59,7 +59,7 @@ public class UnsafeCopier<T> extends ReflectionCopier<T> {
      * @param type object type
      * @param superCopier copier for the super type
      */
-    public UnsafeCopier(ObjectAllocator allocator, CloningPolicy policy, Class<T> type, ReflectionCopier<? super T> superCopier) {
+    public UnsafeCopier(ObjectAllocator allocator, CloningPolicy policy, Class<T> type, UnsafeCopier<? super T> superCopier) {
         super(allocator, policy, type, superCopier);
     }
 

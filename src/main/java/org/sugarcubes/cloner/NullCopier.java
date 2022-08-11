@@ -5,7 +5,7 @@ package org.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-public final class NullCopier<T> extends TrivialCopier<T> {
+public final class NullCopier<T> implements TrivialCopier<T> {
 
     @Override
     public T trivialCopy(T original) {
