@@ -35,7 +35,7 @@ public interface ObjectAllocator {
      * @return object factory
      */
     default <T> ObjectFactory<T> getFactory(Class<T> type) {
-        return () -> ObjectAllocator.this.newInstance(type);
+        return () -> newInstance(type);
     }
 
 }

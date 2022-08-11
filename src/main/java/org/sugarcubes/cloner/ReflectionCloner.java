@@ -35,6 +35,7 @@ public class ReflectionCloner implements Cloner {
         defaultCopiers.put(java.util.Vector.class, new SimpleCollectionCopier<>(java.util.Vector::new));
 
         defaultCopiers.put(java.util.IdentityHashMap.class, new IdentityHashMapCopier());
+        defaultCopiers.put(java.util.EnumMap.class, new EnumMapCopier<>());
 
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }

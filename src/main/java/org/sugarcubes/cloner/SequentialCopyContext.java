@@ -13,15 +13,15 @@ import java.util.function.Supplier;
 public final class SequentialCopyContext extends AbstractCopyContext {
 
     /**
+     * Queue of actions to complete copying.
+     */
+    private final Deque<Callable<?>> queue = new ArrayDeque<>();
+
+    /**
      * Poll method for {@link #queue}.
      * Depending on traversal algorithm can be {@link Deque#pollLast()} or {@link Deque#pollFirst()}.
      */
     private final Supplier<Callable<?>> poll;
-
-    /**
-     * Queue of actions to complete copying.
-     */
-    private final Deque<Callable<?>> queue = new ArrayDeque<>();
 
     /**
      * Creates an object instance.
