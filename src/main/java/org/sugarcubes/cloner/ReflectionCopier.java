@@ -32,7 +32,7 @@ public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
         this.fieldCopiers = Arrays.stream(type.getDeclaredFields())
             .filter(ReflectionUtils::isNonStatic)
             .peek(ReflectionUtils::makeAccessible)
-            .map(field -> fieldCopierFactory.getFieldCopier(field, policy.getFieldAction(field)))
+            .map(field -> fieldCopierFactory.getFieldCopier(field, policy))
             .toArray(FieldCopier[]::new);
     }
 

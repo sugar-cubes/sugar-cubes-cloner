@@ -13,9 +13,9 @@ public interface FieldCopierFactory {
      * Returns specific field copier for the field and the action.
      *
      * @param field field
-     * @param action copy action
+     * @param policy cloning policy
      * @return field copier
      */
-    FieldCopier getFieldCopier(Field field, CopyAction action);
+    FieldCopier getFieldCopier(Field field, CloningPolicy policy);
 
 }

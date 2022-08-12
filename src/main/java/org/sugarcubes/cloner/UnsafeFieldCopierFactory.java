@@ -19,7 +19,7 @@ public class UnsafeFieldCopierFactory implements FieldCopierFactory {
 
     @Override
     @SuppressWarnings("checkstyle:CyclomaticComplexity")
-    public FieldCopier getFieldCopier(Field field, CopyAction action) {
+    public FieldCopier getFieldCopier(Field field, CloningPolicy policy) {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (field.getType().getName()) {
             case "boolean":
@@ -39,7 +39,7 @@ public class UnsafeFieldCopierFactory implements FieldCopierFactory {
             case "double":
                 return (original, clone, context) -> UNSAFE.putDouble(clone, offset, UNSAFE.getDouble(original, offset));
             default:
-                switch (action) {
+                switch (policy.getFieldAction(field)) {
                     case NULL:
                         return (original, clone, context) -> UNSAFE.putObject(clone, offset, null);
                     case ORIGINAL:

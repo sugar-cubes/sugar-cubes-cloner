@@ -11,7 +11,7 @@ public class ReflectionFieldCopierFactory implements FieldCopierFactory {
 
     @Override
     @SuppressWarnings("checkstyle:CyclomaticComplexity")
-    public FieldCopier getFieldCopier(Field field, CopyAction action) {
+    public FieldCopier getFieldCopier(Field field, CloningPolicy policy) {
         switch (field.getType().getName()) {
             case "boolean":
                 return (original, clone, context) -> field.setBoolean(clone, field.getBoolean(original));
@@ -30,7 +30,7 @@ public class ReflectionFieldCopierFactory implements FieldCopierFactory {
             case "double":
                 return (original, clone, context) -> field.setDouble(clone, field.getDouble(original));
             default:
-                switch (action) {
+                switch (policy.getFieldAction(field)) {
                     case NULL:
                         return (original, clone, context) -> field.set(clone, null);
                     case ORIGINAL:
