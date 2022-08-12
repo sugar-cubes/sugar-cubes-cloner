@@ -2,12 +2,12 @@ package org.sugarcubes.cloner;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Supplier;
 
 /**
- * Builder for the {@link  SequentialReflectionCloner}.
+ * Builder for reflection cloners.
  *
  * @author Maxim Butov
  */
@@ -121,21 +121,32 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
+     * Returns value if it is not null or creates with factory.
+     *
+     * @param <T> value type
+     * @param value value
+     * @param factory default value factory
+     * @return value if it is not null or factory call result
+     */
+    private static <T> T createIfNull(T value, Supplier<T> factory) {
+        return value != null ? value : factory.get();
+    }
+
+    /**
      * Creates an instance of the cloner on the basis of the configuration.
      *
      * @return cloner
      */
     public Cloner build() {
-        ObjectAllocator allocator = Optional.ofNullable(this.allocator).orElseGet(ObjectAllocator::defaultAllocator);
-        CloningPolicy policy = Optional.ofNullable(this.policy).orElseGet(CustomCloningPolicy::new);
-        FieldCopierFactory fieldCopierFactory = Optional.ofNullable(this.fieldCopierFactory)
-            .orElseGet(ReflectionFieldCopierFactory::new);
+        ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
+        CloningPolicy policy = createIfNull(this.policy, CustomCloningPolicy::new);
+        FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         if (executor != null) {
             return new ParallelReflectionCloner(allocator, policy, copiers, fieldCopierFactory, executor);
         }
         else {
             return new SequentialReflectionCloner(allocator, policy, copiers, fieldCopierFactory,
-                traversalAlgorithm != null ? traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST);
+                createIfNull(traversalAlgorithm, () -> TraversalAlgorithm.DEPTH_FIRST));
         }
     }
 
