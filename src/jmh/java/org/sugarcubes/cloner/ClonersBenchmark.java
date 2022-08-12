@@ -31,8 +31,8 @@ public class ClonersBenchmark {
     public void setup() {
 
         serialization = new SerializationCloner();
-        reflection = new ReflectionCloner();
-        unsafe = new UnsafeCloner();
+        reflection = new ReflectionClonerBuilder().build();
+        unsafe = new ReflectionClonerBuilder().setUnsafeEnabled().build();
 
         sample = TestObjectFactory.randomObject(10, 10);
     }

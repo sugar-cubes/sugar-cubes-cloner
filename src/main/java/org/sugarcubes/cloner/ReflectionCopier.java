@@ -1,9 +1,6 @@
 package org.sugarcubes.cloner;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Copier which creates object with {@link #factory}, when copying, enumerates fields,
@@ -15,7 +12,7 @@ public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
 
     private final ObjectFactory<T> factory;
     private final ReflectionCopier<? super T> superCopier;
-    private final Map.Entry<Field, CopyAction>[] fields;
+    private final FieldCopier[] fieldCopiers;
 
     /**
      * Creates reflection copier.
@@ -23,18 +20,20 @@ public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
      * @param allocator object allocator
      * @param policy cloning policy
      * @param type object type
+     * @param fieldCopierFactory field copier factory
      * @param superCopier copier for the super type
      */
     @SuppressWarnings("unchecked")
     public ReflectionCopier(ObjectAllocator allocator, CloningPolicy policy,
-        Class<T> type, ReflectionCopier<? super T> superCopier) {
+        Class<T> type, FieldCopierFactory fieldCopierFactory, ReflectionCopier<?> superCopier) {
         this.factory = allocator.getFactory(type);
-        this.superCopier = superCopier != null && superCopier.fields.length == 0 ? superCopier.superCopier : superCopier;
-        this.fields = Arrays.stream(type.getDeclaredFields())
+        this.superCopier = (ReflectionCopier<? super T>) (superCopier != null && superCopier.fieldCopiers.length == 0 ?
+            superCopier.superCopier : superCopier);
+        this.fieldCopiers = Arrays.stream(type.getDeclaredFields())
             .filter(ReflectionUtils::isNonStatic)
             .peek(ReflectionUtils::makeAccessible)
-            .flatMap(field -> Collections.singletonMap(field, policy.getFieldAction(field)).entrySet().stream())
-            .toArray(Map.Entry[]::new);
+            .map(field -> fieldCopierFactory.getFieldCopier(field, policy.getFieldAction(field)))
+            .toArray(FieldCopier[]::new);
     }
 
     @Override
@@ -47,35 +46,8 @@ public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
         if (superCopier != null) {
             superCopier.deepCopy(original, clone, context);
         }
-        for (Map.Entry<Field, CopyAction> entry : fields) {
-            copyField(original, clone, entry.getKey(), entry.getValue(), context);
-        }
-    }
-
-    /**
-     * Copies field value from original object into clone.
-     *
-     * @param original original object
-     * @param clone clone
-     * @param field field to copy
-     * @param action action
-     * @param context copying context
-     * @throws Exception if something went wrong
-     */
-    protected void copyField(Object original, Object clone, Field field, CopyAction action, CopyContext context)
-        throws Exception {
-        switch (action) {
-            case NULL:
-                field.set(clone, null);
-                break;
-            case ORIGINAL:
-                field.set(clone, field.get(original));
-                break;
-            case DEFAULT:
-                field.set(clone, context.copy(field.get(original)));
-                break;
-            default:
-                throw new IllegalStateException();
+        for (FieldCopier field : fieldCopiers) {
+            field.copy(original, clone, context);
         }
     }
 

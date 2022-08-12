@@ -43,6 +43,16 @@ public class LazyCache<K, V> {
     }
 
     /**
+     * Returns value by key, does not create if absent.
+     *
+     * @param key key
+     * @return value or {@code null}
+     */
+    public V getIfPresent(K key) {
+        return cache.get(key);
+    }
+
+    /**
      * Returns value by key, creates if necessary.
      *
      * @param key key

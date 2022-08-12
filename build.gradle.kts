@@ -17,6 +17,7 @@ dependencies {
     api("org.objenesis:objenesis:3.2")
     api("net.bytebuddy:byte-buddy:1.12.13")
     api("org.javassist:javassist:3.29.0-GA")
+    api("org.ow2.asm:asm:9.3")
 
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")

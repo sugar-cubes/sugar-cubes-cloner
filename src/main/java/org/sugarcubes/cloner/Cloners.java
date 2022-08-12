@@ -3,20 +3,26 @@ package org.sugarcubes.cloner;
 /**
  * Factory for creating different {@link Cloner}s.
  *
- * {@link ReflectionCloner} is ~100 times faster than {@link SerializationCloner} and can deal with non-serializable objects.
- *
  * @author Maxim Butov
  */
 public class Cloners {
 
     /**
-     * Returns an instance of {@link ReflectionCloner} with default policy and allocator.
+     * Returns a new instance of {@link ReflectionClonerBuilder}.
      *
-     * @return {@link ReflectionCloner} instance
-     * @see ReflectionCloner#ReflectionCloner()
+     * @return reflection cloner builder
      */
-    public static ReflectionCloner reflection() {
-        return new ReflectionCloner();
+    public static ReflectionClonerBuilder builder() {
+        return new ReflectionClonerBuilder();
+    }
+
+    /**
+     * Returns an instance of {@link Cloner} with default settings.
+     *
+     * @return reflection sequential cloner
+     */
+    public static Cloner reflection() {
+        return builder().build();
     }
 
     /**

@@ -31,7 +31,7 @@ public interface ObjectCopier<T> {
      * Creates a copy of the original object.
      *
      * @param original original object
-     * @param context  copying context or {@code null} if the copier is trivial
+     * @param context copying context or {@code null} if the copier is trivial
      * @return copy result
      * @throws Exception if something went wrong
      */

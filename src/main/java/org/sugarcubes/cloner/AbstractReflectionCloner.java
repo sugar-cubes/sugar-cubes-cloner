@@ -3,19 +3,18 @@ package org.sugarcubes.cloner;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.sugarcubes.cloner.Check.argNotNull;
 import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable;
 
 /**
- * The implementation of {@link Cloner} which uses Java reflection API for cloning.
+ * Abstract base implementation of {@link Cloner} which uses Java reflection API for cloning.
  *
  * @author Maxim Butov
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
-public class ReflectionCloner implements Cloner {
+public abstract class AbstractReflectionCloner implements Cloner {
 
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
 
@@ -51,14 +50,9 @@ public class ReflectionCloner implements Cloner {
     protected final CloningPolicy policy;
 
     /**
-     * Object graph traversal algorithm.
+     * Field copier factory.
      */
-    private TraversalAlgorithm traversalAlgorithm = TraversalAlgorithm.DEPTH_FIRST;
-
-    /**
-     * Executor service.
-     */
-    private ExecutorService executor;
+    private final FieldCopierFactory fieldCopierFactory;
 
     /**
      * Cache of copiers.
@@ -68,42 +62,21 @@ public class ReflectionCloner implements Cloner {
     /**
      * Cache of reflection copiers.
      */
-    private final LazyCache<Class<?>, ObjectCopier<?>> reflectionCopiers = new LazyCache<>(this::newReflectionCopier);
-
-    /**
-     * Constructor.
-     */
-    public ReflectionCloner() {
-        this(ObjectAllocator.defaultAllocator(), CloningPolicy.DEFAULT);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param allocator object allocator
-     */
-    public ReflectionCloner(ObjectAllocator allocator) {
-        this(allocator, CloningPolicy.DEFAULT);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param policy cloning policy
-     */
-    public ReflectionCloner(CloningPolicy policy) {
-        this(ObjectAllocator.defaultAllocator(), policy);
-    }
+    private final Map<Class<?>, ReflectionCopier<?>> reflectionCopiers = new ConcurrentHashMap<>();
 
     /**
      * Constructor.
      *
      * @param allocator object allocator
      * @param policy cloning policy
+     * @param fieldCopierFactory field copier factory
      */
-    public ReflectionCloner(ObjectAllocator allocator, CloningPolicy policy) {
+    public AbstractReflectionCloner(ObjectAllocator allocator, CloningPolicy policy, Map<Class<?>, ObjectCopier<?>> copiers,
+        FieldCopierFactory fieldCopierFactory) {
         this.allocator = argNotNull(allocator, "Allocator");
         this.policy = argNotNull(policy, "Policy");
+        this.fieldCopierFactory = argNotNull(fieldCopierFactory, "Field copier factory");
+        this.copiers.putAll(copiers);
     }
 
     /**
@@ -114,7 +87,7 @@ public class ReflectionCloner implements Cloner {
      * @param copier custom copier
      * @return same cloner instance
      */
-    public <T> ReflectionCloner copier(Class<T> type, ObjectCopier<T> copier) {
+    public <T> AbstractReflectionCloner copier(Class<T> type, ObjectCopier<T> copier) {
         argNotNull(type, "Type");
         argNotNull(copier, "Copier");
         // one can replace default copiers only
@@ -124,51 +97,10 @@ public class ReflectionCloner implements Cloner {
         return this;
     }
 
-    /**
-     * Sets traversal algorithm for objects graph.
-     *
-     * @param traversalAlgorithm traversal algorithm
-     * @return same cloner instance
-     */
-    public ReflectionCloner traversal(TraversalAlgorithm traversalAlgorithm) {
-        this.traversalAlgorithm = argNotNull(traversalAlgorithm, "Traversal algorithm");
-        return this;
-    }
-
-    /**
-     * Enables parallel mode with given executor service.
-     *
-     * @param executor executor service
-     * @return same cloner instance
-     */
-    public ReflectionCloner parallel(ExecutorService executor) {
-        if (this.executor != null) {
-            throw new IllegalStateException("Already parallel.");
-        }
-        this.executor = argNotNull(executor, "Executor");
-        return this;
-    }
-
-    /**
-     * Enables parallel mode.
-     *
-     * @return same cloner instance
-     */
-    public ReflectionCloner parallel() {
-        return parallel(ForkJoinPool.commonPool());
-    }
-
     @Override
     public <T> T clone(T object) {
         try {
-            CompletableCopyContext context;
-            CopierRegistry registry = copiers::get;
-            if (executor != null) {
-                context = new ParallelCopyContext(registry, executor);
-            }
-            else {
-                context = new SequentialCopyContext(registry, traversalAlgorithm);
-            }
+            CompletableCopyContext context = newCopyContext(copiers::get);
             T clone = context.copy(object);
             context.complete();
             return clone;
@@ -180,6 +112,14 @@ public class ReflectionCloner implements Cloner {
             throw new ClonerException(e);
         }
     }
+
+    /**
+     * Create custom copy context.
+     *
+     * @param registry copiers registry
+     * @return copy context
+     */
+    protected abstract CompletableCopyContext newCopyContext(CopierRegistry registry);
 
     /**
      * Chooses or creates copier for the type.
@@ -200,7 +140,7 @@ public class ReflectionCloner implements Cloner {
                         ObjectCopier.SHALLOW : ObjectCopier.OBJECT_ARRAY;
                 }
                 else {
-                    return reflectionCopiers.get(type);
+                    return getReflectionCopier(type);
                 }
             default:
                 throw new IllegalStateException();
@@ -208,17 +148,21 @@ public class ReflectionCloner implements Cloner {
     }
 
     /**
-     * Creates {@link ReflectionCopier} instance for the type.
+     * Returns {@link ReflectionCopier} instance for the type.
      *
      * @param type object type
      * @return copier instance
      */
-    protected ObjectCopier<?> newReflectionCopier(Class<?> type) {
-        if (type == null) {
-            return null;
+    protected ReflectionCopier<?> getReflectionCopier(Class<?> type) {
+        ReflectionCopier<?> copier = reflectionCopiers.get(type);
+        if (copier != null) {
+            return copier;
         }
-        ObjectCopier<?> superCopier = newReflectionCopier(type.getSuperclass());
-        return newReflectionCopier(type, superCopier);
+        Class<?> superType = type.getSuperclass();
+        ReflectionCopier<?> superCopier = superType != null ? getReflectionCopier(superType) : null;
+        copier = newReflectionCopier(type, superCopier);
+        reflectionCopiers.put(type, copier);
+        return copier;
     }
 
     /**
@@ -228,8 +172,8 @@ public class ReflectionCloner implements Cloner {
      * @param superCopier copier for super type
      * @return copier instance
      */
-    protected ObjectCopier<?> newReflectionCopier(Class<?> type, ObjectCopier<?> superCopier) {
-        return new ReflectionCopier<>(allocator, policy, type, (ReflectionCopier) superCopier);
+    protected ReflectionCopier<?> newReflectionCopier(Class<?> type, ReflectionCopier<?> superCopier) {
+        return new ReflectionCopier<>(allocator, policy, type, fieldCopierFactory, superCopier);
     }
 
 }
