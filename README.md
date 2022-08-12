@@ -5,6 +5,8 @@ Deep cloning of any objects.
 
 Java 8 compatible.
 
+Thread safe.
+
 ## Objectives
 
 - To get simple and convenient way of deep-cloning of objects of any types.
@@ -56,6 +58,7 @@ Faster than java.io serialization but still almost non-customizable.
 | [CopyAction](src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (null/original/clone). |
 | [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)| Allocator (instantiator) interface. |
 | [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier interface. |
+| [ReflectionClonerBuilder](src/main/java/org/sugarcubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
 | [TraversalAlgorithm](src/main/java/org/sugarcubes/cloner/TraversalAlgorithm.java) | DFS (default) or BFS. |
             
 ### Usage
@@ -63,11 +66,19 @@ Faster than java.io serialization but still almost non-customizable.
 ```java
 Object clone = Cloners.reflection().clone(original);
 ```
+or
+```java
+Object clone = Cloners.reflectionClone(original);
+```
 
 For the cloning with serialization one can use:
 
 ```java
 Object clone = Cloners.serialization().clone(original);
+```
+or
+```java
+Object clone = Cloners.serializationClone(original);
 ```
 
 ### Customization

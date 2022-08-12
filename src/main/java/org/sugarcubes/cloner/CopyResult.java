@@ -4,7 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 /**
- * Result of copy process. Contains copy instance (which may be not fully copied) and list of actions to complete copying.
+ * Result of copy process. Contains copy instance (which may be not fully copied) and optional action to complete copying.
  *
  * @param <T> object type
  *

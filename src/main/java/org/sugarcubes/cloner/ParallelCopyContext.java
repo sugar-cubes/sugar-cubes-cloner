@@ -1,6 +1,5 @@
 package org.sugarcubes.cloner;
 
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
@@ -74,7 +73,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
                     throw ex;
                 }
                 catch (Throwable ex) {
-                    throw new UndeclaredThrowableException(ex);
+                    throw new ClonerException(ex);
                 }
             }
         }
