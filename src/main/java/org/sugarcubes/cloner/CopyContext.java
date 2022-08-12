@@ -8,6 +8,16 @@ package org.sugarcubes.cloner;
 public interface CopyContext {
 
     /**
+     * No-op copy context for tests.
+     */
+    CopyContext NOOP = new CopyContext() {
+        @Override
+        public <T> T copy(T original) throws Exception {
+            return original;
+        }
+    };
+
+    /**
      * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy.
      *
      * @param <T> object type
