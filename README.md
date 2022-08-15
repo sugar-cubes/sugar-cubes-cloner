@@ -87,24 +87,21 @@ Object clone = Cloners.serializationClone(original);
 Cloner cloner =
     // new builder instance
     new ReflectionClonerBuilder()
-        // custom allocator
-        .setAllocator(new ObjenesisAllocator())
-        // custom policy
-        .setPolicy(new CustomCloningPolicy()
-            // copy thread locals by reference
-            .type(ThreadLocal.class, CopyAction.ORIGINAL)
-            // set SomeObject.cachedValue field to null when cloning
-            .field(SomeObject.class, "cachedValue", CopyAction.NULL)
-        )
-        // custom copier for SomeOtherObject type
-        .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
-        // parallel mode
-        .setDefaultExecutor()
-        // create cloner
-        .build();
+    // custom allocator
+    .setAllocator(new ObjenesisAllocator())
+    // copy thread locals by reference
+    .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
+    // set SomeObject.cachedValue field to null when cloning
+    .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.NULL)
+    // custom copier for SomeOtherObject type
+    .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+    // parallel mode
+    .setDefaultExecutor()
+    // create cloner
+    .build();
 
-// perform cloning
-SomeObject myObjectClone = cloner.clone(myObject);
+    // perform cloning
+    SomeObject myObjectClone = cloner.clone(myObject);
 ```
           
 ### Implementation
