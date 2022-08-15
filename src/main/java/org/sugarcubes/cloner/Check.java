@@ -8,19 +8,41 @@ package org.sugarcubes.cloner;
 public class Check {
 
     /**
+     * Throws {@link IllegalArgumentException}.
+     *
+     * @param format format for exception message
+     * @param args arguments for exception message
+     * @return nothing, always throws exception
+     */
+    public static Error illegalArg(String format, Object... args) throws IllegalArgumentException {
+        throw new IllegalArgumentException(args.length != 0 ? String.format(format, args) : format);
+    }
+
+    /**
+     * Throws {@link IllegalArgumentException} if condition is true.
+     *
+     * @param condition condition
+     * @param format format for exception message
+     * @param args arguments for exception message
+     */
+    public static void illegalArg(boolean condition, String format, Object... args) throws IllegalArgumentException {
+        if (condition) {
+            throw illegalArg(format, args);
+        }
+    }
+
+    /**
      * Checks the value is not null or throws exception.
      *
      * @param <T> object type
      * @param value value
-     * @param message format for exception message
+     * @param format format for exception message
      * @param args arguments for exception message
      * @return value
      * @throws IllegalArgumentException if {@code value == null}
      */
-    public static <T> T notNull(T value, String message, Object... args) throws IllegalArgumentException {
-        if (value == null) {
-            throw new IllegalArgumentException(String.format(message, args));
-        }
+    public static <T> T notNull(T value, String format, Object... args) throws IllegalArgumentException {
+        illegalArg(value == null, format, args);
         return value;
     }
 
@@ -41,14 +63,12 @@ public class Check {
      * Checks the value is null or throws exception.
      *
      * @param value value
-     * @param message format for exception message
+     * @param format format for exception message
      * @param args arguments for exception message
      * @throws IllegalArgumentException if {@code value != null}
      */
-    public static void isNull(Object value, String message, Object... args) throws IllegalArgumentException {
-        if (value != null) {
-            throw new IllegalStateException(String.format(message, args));
-        }
+    public static void isNull(Object value, String format, Object... args) throws IllegalArgumentException {
+        illegalArg(value != null, format, args);
     }
 
     /**

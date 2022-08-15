@@ -73,8 +73,7 @@ public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
             int len = tab.length;
             int i = hash(h, len);
 
-            for (Object item; (item = tab[i]) != null;
-                i = nextKeyIndex(i, len)) {
+            for (Object item; (item = tab[i]) != null; i = nextKeyIndex(i, len)) {
                 if (item == key) {
                     V oldValue = (V) tab[i + 1];
                     tab[i + 1] = value;
@@ -95,7 +94,7 @@ public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
     }
 
     private boolean resize(int newCapacity) {
-        int newLength = newCapacity * 2;
+        int newLength = newCapacity << 1;
 
         Object[] oldTable = table;
         int oldLength = oldTable.length;
@@ -119,6 +118,11 @@ public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
         }
         table = newTable;
         return true;
+    }
+
+    @Override
+    public int size() {
+        return size;
     }
 
     @Override

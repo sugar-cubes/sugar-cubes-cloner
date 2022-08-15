@@ -10,12 +10,31 @@ import java.lang.reflect.Field;
 public interface FieldCopierFactory {
 
     /**
-     * Returns specific field copier for the field and the action.
+     * Returns specific field copier for the primitive or object field and the action.
+     *
+     * @param field  field
+     * @param action copying action
+     * @return field copy action
+     */
+    default FieldCopier getFieldCopier(Field field, FieldCopyAction action) {
+        return field.getType().isPrimitive() ? getPrimitiveFieldCopier(field) : getObjectFieldCopier(field, action);
+    }
+
+    /**
+     * Returns field copier for the primitive field.
      *
      * @param field field
-     * @param policy cloning policy
      * @return field copier
      */
-    FieldCopier getFieldCopier(Field field, CloningPolicy policy);
+    FieldCopier getPrimitiveFieldCopier(Field field);
+
+    /**
+     * Returns specific field copier for the object field and the action.
+     *
+     * @param field  field
+     * @param action copying action
+     * @return field copy action
+     */
+    FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action);
 
 }

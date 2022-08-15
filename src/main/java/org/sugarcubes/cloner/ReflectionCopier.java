@@ -1,6 +1,7 @@
 package org.sugarcubes.cloner;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Copier which creates object with {@link #factory}, when copying, enumerates fields,
@@ -11,20 +12,20 @@ import java.util.Arrays;
 public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
 
     private final ObjectFactory<T> factory;
-    private final ReflectionCopier<? super T> superCopier;
+    private final TwoPhaseObjectCopier<? super T> superCopier;
     private final FieldCopier[] fieldCopiers;
 
     /**
      * Creates reflection copier.
      *
      * @param allocator object allocator
-     * @param policy cloning policy
+     * @param policy copy policy
      * @param type object type
      * @param fieldCopierFactory field copier factory
      * @param superCopier copier for the super type
      */
     @SuppressWarnings("unchecked")
-    public ReflectionCopier(ObjectAllocator allocator, CloningPolicy policy,
+    public ReflectionCopier(ObjectAllocator allocator, CopyPolicy policy,
         Class<T> type, FieldCopierFactory fieldCopierFactory, ReflectionCopier<?> superCopier) {
         this.factory = allocator.getFactory(type);
         this.superCopier = (ReflectionCopier<? super T>) (superCopier != null && superCopier.fieldCopiers.length == 0 ?
@@ -32,7 +33,9 @@ public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
         this.fieldCopiers = Arrays.stream(type.getDeclaredFields())
             .filter(ReflectionUtils::isNonStatic)
             .peek(ReflectionUtils::makeAccessible)
-            .map(field -> fieldCopierFactory.getFieldCopier(field, policy))
+            .flatMap(field -> Collections.singletonMap(field, policy.getFieldAction(field)).entrySet().stream())
+            .filter(entry -> entry.getValue() != FieldCopyAction.SKIP)
+            .map(entry -> fieldCopierFactory.getFieldCopier(entry.getKey(), entry.getValue()))
             .toArray(FieldCopier[]::new);
     }
 

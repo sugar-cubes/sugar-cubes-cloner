@@ -1,12 +1,10 @@
 package org.sugarcubes.cloner;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.sugarcubes.cloner.Check.argNotNull;
-import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable;
 
 /**
  * Abstract base implementation of {@link Cloner} which uses Java reflection API for cloning.
@@ -14,30 +12,7 @@ import static org.sugarcubes.cloner.CloningPolicyHelper.isComponentTypeImmutable
  * @author Maxim Butov
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
-public abstract class AbstractReflectionCloner implements Cloner {
-
-    private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
-
-    static {
-        Map<Class<?>, ObjectCopier<?>> defaultCopiers = new HashMap<>();
-
-        defaultCopiers.put(java.util.Date.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(java.util.GregorianCalendar.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(java.util.BitSet.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
-        defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
-
-        defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
-        defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
-        defaultCopiers.put(java.util.LinkedList.class, new SimpleCollectionCopier<>(size -> new java.util.LinkedList<>()));
-        defaultCopiers.put(java.util.Stack.class, new SimpleCollectionCopier<>(size -> new java.util.Stack<>()));
-        defaultCopiers.put(java.util.Vector.class, new SimpleCollectionCopier<>(java.util.Vector::new));
-
-        defaultCopiers.put(java.util.IdentityHashMap.class, new IdentityHashMapCopier());
-        defaultCopiers.put(java.util.EnumMap.class, new EnumMapCopier<>());
-
-        DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
-    }
+public class ReflectionCloner implements Cloner {
 
     /**
      * Object allocator.
@@ -45,9 +20,9 @@ public abstract class AbstractReflectionCloner implements Cloner {
     protected final ObjectAllocator allocator;
 
     /**
-     * Cloning policy.
+     * Copy policy.
      */
-    protected final CloningPolicy policy;
+    protected final CopyPolicy policy;
 
     /**
      * Field copier factory.
@@ -57,7 +32,7 @@ public abstract class AbstractReflectionCloner implements Cloner {
     /**
      * Cache of copiers.
      */
-    private final LazyCache<Class<?>, ObjectCopier<?>> copiers = new LazyCache<>(DEFAULT_COPIERS, this::getCopier);
+    private final LazyCache<Class<?>, ObjectCopier<?>> copiers = new LazyCache<>(this::getCopier);
 
     /**
      * Cache of reflection copiers.
@@ -65,42 +40,31 @@ public abstract class AbstractReflectionCloner implements Cloner {
     private final Map<Class<?>, ReflectionCopier<?>> reflectionCopiers = new ConcurrentHashMap<>();
 
     /**
+     * Copy context factory.
+     */
+    private final CopyContextFactory contextFactory;
+
+    /**
      * Constructor.
      *
      * @param allocator object allocator
-     * @param policy cloning policy
+     * @param policy copy policy
      * @param fieldCopierFactory field copier factory
+     * @param contextFactory context factory
      */
-    public AbstractReflectionCloner(ObjectAllocator allocator, CloningPolicy policy, Map<Class<?>, ObjectCopier<?>> copiers,
-        FieldCopierFactory fieldCopierFactory) {
+    public ReflectionCloner(ObjectAllocator allocator, CopyPolicy policy, Map<Class<?>, ObjectCopier<?>> copiers,
+        FieldCopierFactory fieldCopierFactory, CopyContextFactory contextFactory) {
         this.allocator = argNotNull(allocator, "Allocator");
         this.policy = argNotNull(policy, "Policy");
         this.fieldCopierFactory = argNotNull(fieldCopierFactory, "Field copier factory");
+        this.contextFactory = contextFactory;
         this.copiers.putAll(copiers);
-    }
-
-    /**
-     * Registers custom copier for type.
-     *
-     * @param <T> object type
-     * @param type object type
-     * @param copier custom copier
-     * @return same cloner instance
-     */
-    public <T> AbstractReflectionCloner copier(Class<T> type, ObjectCopier<T> copier) {
-        argNotNull(type, "Type");
-        argNotNull(copier, "Copier");
-        // one can replace default copiers only
-        if (copiers.put(type, copier) != DEFAULT_COPIERS.get(type)) {
-            throw new IllegalArgumentException(String.format("Copier for %s already set.", type.getName()));
-        }
-        return this;
     }
 
     @Override
     public <T> T clone(T object) {
         try {
-            CompletableCopyContext context = newCopyContext(copiers::get);
+            CompletableCopyContext context = contextFactory.newContext(copiers::get);
             T clone = context.copy(object);
             context.complete();
             return clone;
@@ -112,14 +76,6 @@ public abstract class AbstractReflectionCloner implements Cloner {
             throw new ClonerException(e);
         }
     }
-
-    /**
-     * Create custom copy context.
-     *
-     * @param registry copiers registry
-     * @return copy context
-     */
-    protected abstract CompletableCopyContext newCopyContext(CopierRegistry registry);
 
     /**
      * Chooses or creates copier for the type.
@@ -136,8 +92,15 @@ public abstract class AbstractReflectionCloner implements Cloner {
                 return ObjectCopier.NOOP;
             case DEFAULT:
                 if (type.isArray()) {
-                    return isComponentTypeImmutable(policy, type.getComponentType()) ?
-                        ObjectCopier.SHALLOW : ObjectCopier.OBJECT_ARRAY;
+                    Class<?> componentType = type.getComponentType();
+                    if (componentType.isPrimitive() || componentType.isEnum()) {
+                        return ObjectCopier.SHALLOW;
+                    }
+                    if (Modifier.isFinal(componentType.getModifiers()) &&
+                        policy.getTypeAction(componentType) == CopyAction.ORIGINAL) {
+                        return ObjectCopier.SHALLOW;
+                    }
+                    return ObjectCopier.OBJECT_ARRAY;
                 }
                 else {
                     return getReflectionCopier(type);

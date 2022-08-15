@@ -1,26 +1,30 @@
 package org.sugarcubes.cloner;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Annotation for applying {@link CopyAction} to fields.
+ * Actions which applied to fields.
  *
  * @author Maxim Butov
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface FieldCopyAction {
+public enum FieldCopyAction {
 
     /**
-     * Copy action for the field.
-     *
-     * @return copy action
+     * Skip field.
      */
-    CopyAction value();
+    SKIP,
+
+    /**
+     * Return {@code null} instead of original object. This action cannot be applied to primitive fields.
+     */
+    NULL,
+
+    /**
+     * Return the original object.
+     */
+    ORIGINAL,
+
+    /**
+     * Clone the object, if it is not immutable.
+     */
+    DEFAULT,
 
 }

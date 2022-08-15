@@ -18,8 +18,7 @@ public class UnsafeFieldCopierFactory implements FieldCopierFactory {
     private static final Unsafe UNSAFE = UnsafeUtils.getUnsafe();
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
-    public FieldCopier getFieldCopier(Field field, CloningPolicy policy) {
+    public FieldCopier getPrimitiveFieldCopier(Field field) {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (field.getType().getName()) {
             case "boolean":
@@ -39,17 +38,26 @@ public class UnsafeFieldCopierFactory implements FieldCopierFactory {
             case "double":
                 return (original, clone, context) -> UNSAFE.putDouble(clone, offset, UNSAFE.getDouble(original, offset));
             default:
-                switch (policy.getFieldAction(field)) {
-                    case NULL:
-                        return (original, clone, context) -> UNSAFE.putObject(clone, offset, null);
-                    case ORIGINAL:
-                        return (original, clone, context) -> UNSAFE.putObject(clone, offset, UNSAFE.getObject(original, offset));
-                    case DEFAULT:
-                        return (original, clone, context) ->
-                            UNSAFE.putObject(clone, offset, context.copy(UNSAFE.getObject(original, offset)));
-                    default:
-                        throw new IllegalStateException();
-                }
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("checkstyle:CyclomaticComplexity")
+    public FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
+        long offset = UNSAFE.objectFieldOffset(field);
+        switch (action) {
+            case SKIP:
+                throw new IllegalStateException("Must be filtered before");
+            case NULL:
+                return (original, clone, context) -> UNSAFE.putObject(clone, offset, null);
+            case ORIGINAL:
+                return (original, clone, context) -> UNSAFE.putObject(clone, offset, UNSAFE.getObject(original, offset));
+            case DEFAULT:
+                return (original, clone, context) ->
+                    UNSAFE.putObject(clone, offset, context.copy(UNSAFE.getObject(original, offset)));
+            default:
+                throw new IllegalStateException();
         }
     }
 

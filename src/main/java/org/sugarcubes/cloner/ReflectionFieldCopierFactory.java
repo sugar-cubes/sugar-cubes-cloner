@@ -10,8 +10,7 @@ import java.lang.reflect.Field;
 public class ReflectionFieldCopierFactory implements FieldCopierFactory {
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
-    public FieldCopier getFieldCopier(Field field, CloningPolicy policy) {
+    public FieldCopier getPrimitiveFieldCopier(Field field) {
         switch (field.getType().getName()) {
             case "boolean":
                 return (original, clone, context) -> field.setBoolean(clone, field.getBoolean(original));
@@ -30,16 +29,24 @@ public class ReflectionFieldCopierFactory implements FieldCopierFactory {
             case "double":
                 return (original, clone, context) -> field.setDouble(clone, field.getDouble(original));
             default:
-                switch (policy.getFieldAction(field)) {
-                    case NULL:
-                        return (original, clone, context) -> field.set(clone, null);
-                    case ORIGINAL:
-                        return (original, clone, context) -> field.set(clone, field.get(original));
-                    case DEFAULT:
-                        return (original, clone, context) -> field.set(clone, context.copy(field.get(original)));
-                    default:
-                        throw new IllegalStateException();
-                }
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("checkstyle:CyclomaticComplexity")
+    public FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
+        switch (action) {
+            case SKIP:
+                throw new IllegalStateException("Must be filtered before");
+            case NULL:
+                return (original, clone, context) -> field.set(clone, null);
+            case ORIGINAL:
+                return (original, clone, context) -> field.set(clone, field.get(original));
+            case DEFAULT:
+                return (original, clone, context) -> field.set(clone, context.copy(field.get(original)));
+            default:
+                throw new IllegalStateException();
         }
     }
 

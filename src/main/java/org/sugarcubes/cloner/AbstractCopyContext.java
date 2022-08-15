@@ -34,8 +34,11 @@ public abstract class AbstractCopyContext implements CompletableCopyContext {
             return null;
         }
         ObjectCopier<T> copier = (ObjectCopier<T>) registry.getCopier(original.getClass());
-        if (copier instanceof TrivialCopier) {
-            return ((TrivialCopier<T>) copier).trivialCopy(original);
+        if (copier == ObjectCopier.NULL) {
+            return null;
+        }
+        if (copier == ObjectCopier.NOOP) {
+            return original;
         }
         return nonTrivialCopy(original, copier);
     }
