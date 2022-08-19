@@ -25,8 +25,8 @@ public class AnnotatedCopierRegistry extends ReflectionCopierRegistry {
      * @param copiers predefined copiers
      * @param fieldCopierFactory field copier factory
      */
-    public AnnotatedCopierRegistry(CopyPolicy policy, ObjectAllocator allocator, FieldCopierFactory fieldCopierFactory,
-        Map<Class<?>, ObjectCopier<?>> copiers) {
+    public AnnotatedCopierRegistry(CopyPolicy policy, ObjectAllocator allocator, Map<Class<?>, ObjectCopier<?>> copiers,
+        FieldCopierFactory fieldCopierFactory) {
         super(policy, allocator, copiers, fieldCopierFactory);
     }
 
@@ -34,7 +34,8 @@ public class AnnotatedCopierRegistry extends ReflectionCopierRegistry {
     protected ObjectCopier<?> findCopier(Class<?> type) {
         TypeCopier annotation = type.getDeclaredAnnotation(TypeCopier.class);
         if (annotation != null) {
-            Constructor<ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(annotation.value());
+            Class<ObjectCopier<?>> copierClass = annotation.value();
+            Constructor<ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);
             return ReflectionUtils.execute(constructor::newInstance);
         }
         return super.findCopier(type);

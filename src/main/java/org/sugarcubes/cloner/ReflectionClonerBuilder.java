@@ -275,7 +275,7 @@ public final class ReflectionClonerBuilder {
             new DefaultCopyPolicy(fieldActions);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierRegistry registry = annotated ?
-            new AnnotatedCopierRegistry(policy, allocator, fieldCopierFactory, copiers) :
+            new AnnotatedCopierRegistry(policy, allocator, copiers, fieldCopierFactory) :
             new ReflectionCopierRegistry(policy, allocator, copiers, fieldCopierFactory);
         Supplier<CompletableCopyContext> contextFactory;
         if (executor != null) {

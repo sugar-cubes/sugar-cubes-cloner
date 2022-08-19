@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 public interface CopyPolicy {
 
     /**
-     * Returns action to apply to a field value. This action is not applied to primitive fields, they are always copied by value.
+     * Returns action to apply to a field value.
      *
      * @param field field
      * @return action

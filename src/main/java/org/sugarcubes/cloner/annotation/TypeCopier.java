@@ -19,7 +19,7 @@ import org.sugarcubes.cloner.ObjectCopier;
 public @interface TypeCopier {
 
     /**
-     * Copier for the type.
+     * Copier class for the type. Class must have no-arg constructor.
      *
      * @return copier class
      */
