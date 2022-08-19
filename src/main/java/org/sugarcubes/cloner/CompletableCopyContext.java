@@ -1,7 +1,7 @@
 package org.sugarcubes.cloner;
 
 /**
- * Context of the single cloning process.
+ * Completable context of the single cloning process.
  *
  * @author Maxim Butov
  */

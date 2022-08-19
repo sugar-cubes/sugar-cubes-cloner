@@ -66,6 +66,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
             }
             catch (ExecutionException e) {
                 running = false;
+                futures.forEach(f -> f.cancel(false));
                 try {
                     throw e.getCause();
                 }

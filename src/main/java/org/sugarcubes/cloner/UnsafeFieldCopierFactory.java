@@ -10,7 +10,7 @@ import sun.misc.Unsafe;
  *
  * @author Maxim Butov
  */
-public class UnsafeFieldCopierFactory implements FieldCopierFactory {
+public final class UnsafeFieldCopierFactory implements FieldCopierFactory {
 
     /**
      * {@link Unsafe} instance.
@@ -43,7 +43,6 @@ public class UnsafeFieldCopierFactory implements FieldCopierFactory {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (action) {

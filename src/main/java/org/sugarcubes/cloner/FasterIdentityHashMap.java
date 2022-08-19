@@ -26,7 +26,7 @@ public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
     }
 
     /**
-     * Creates map with specified capacity.
+     * Creates map with specified expected maximum size.
      *
      * @param expectedMaxSize expected maximum size
      */
@@ -40,20 +40,16 @@ public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private static int hash(int h, int length) {
-        return ((h << 1) - (h << 8)) & (length - 1);
-    }
-
-    private static int nextKeyIndex(int i, int len) {
-        return (i + 2 < len ? i + 2 : 0);
+    private static int hash(Object obj) {
+        int h = System.identityHashCode(obj);
+        return (h << 1) - (h << 8);
     }
 
     @Override
     public V get(Object key) {
         Object[] tab = table;
-        int len = tab.length;
-        int i = hash(System.identityHashCode(key), len);
-        while (true) {
+        int mask = tab.length - 1;
+        for (int i = hash(key) & mask; ; i = (i + 2) & mask) {
             Object item = tab[i];
             if (item == key) {
                 return (V) tab[i + 1];
@@ -61,19 +57,19 @@ public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
             if (item == null) {
                 return null;
             }
-            i = nextKeyIndex(i, len);
         }
     }
 
     @Override
     public V put(K key, V value) {
-        int h = System.identityHashCode(key);
+        int h = hash(key);
         while (true) {
             Object[] tab = table;
             int len = tab.length;
-            int i = hash(h, len);
+            int mask = len - 1;
+            int i = h & mask;
 
-            for (Object item; (item = tab[i]) != null; i = nextKeyIndex(i, len)) {
+            for (Object item; (item = tab[i]) != null; i = (i + 2) & mask) {
                 if (item == key) {
                     V oldValue = (V) tab[i + 1];
                     tab[i + 1] = value;
@@ -103,17 +99,17 @@ public class FasterIdentityHashMap<K, V> extends AbstractMap<K, V> {
         }
 
         Object[] newTable = new Object[newLength];
+        int mask = newLength - 1;
 
         for (int j = 0; j < oldLength; j += 2) {
             Object key = oldTable[j];
             if (key != null) {
-                Object value = oldTable[j + 1];
-                int i = hash(System.identityHashCode(key), newLength);
+                int i = hash(key) & mask;
                 while (newTable[i] != null) {
-                    i = nextKeyIndex(i, newLength);
+                    i = (i + 2) & mask;
                 }
                 newTable[i] = key;
-                newTable[i + 1] = value;
+                newTable[i + 1] = oldTable[j + 1];
             }
         }
         table = newTable;

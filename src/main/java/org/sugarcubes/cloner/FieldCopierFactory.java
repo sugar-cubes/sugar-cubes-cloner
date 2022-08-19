@@ -12,7 +12,7 @@ public interface FieldCopierFactory {
     /**
      * Returns specific field copier for the primitive or object field and the action.
      *
-     * @param field  field
+     * @param field field
      * @param action copying action
      * @return field copy action
      */
@@ -31,7 +31,7 @@ public interface FieldCopierFactory {
     /**
      * Returns specific field copier for the object field and the action.
      *
-     * @param field  field
+     * @param field field
      * @param action copying action
      * @return field copy action
      */

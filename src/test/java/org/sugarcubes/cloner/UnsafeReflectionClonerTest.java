@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 class UnsafeReflectionClonerTest extends AbstractClonerTests {
 
     public UnsafeReflectionClonerTest() {
-        super(new ReflectionClonerBuilder().setUnsafeEnabled().build());
+        super(new ReflectionClonerBuilder().setUnsafe().build());
     }
 
     @Test

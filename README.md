@@ -9,8 +9,8 @@ Thread safe.
 
 ## Objectives
 
-- To get simple and convenient way of deep-cloning of objects of any types.
-- Make clean, configurable and extensible classes structure.
+- To get simple, convenient and configurable way of deep-cloning of objects of any types.
+- Make clean and extensible classes structure.
 
 ## Existing solutions
                     

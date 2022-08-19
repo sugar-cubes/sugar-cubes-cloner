@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.sugarcubes.cloner.CopyAction;
+import org.sugarcubes.cloner.FieldCopyAction;
 
 /**
  * Annotation for applying {@link CopyAction} to fields.
@@ -23,6 +24,6 @@ public @interface FieldPolicy {
      *
      * @return copy action
      */
-    CopyAction value();
+    FieldCopyAction value();
 
 }

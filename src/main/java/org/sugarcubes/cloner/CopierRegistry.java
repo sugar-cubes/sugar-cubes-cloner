@@ -5,7 +5,6 @@ package org.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-@FunctionalInterface
 public interface CopierRegistry {
 
     /**

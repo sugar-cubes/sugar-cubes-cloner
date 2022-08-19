@@ -102,7 +102,7 @@ public class ReflectionUtils {
      * @return field
      */
     public static Field getField(Class<?> type, String name) {
-        return execute(() -> makeAccessible(type.getDeclaredField(name)));
+        return makeAccessible(execute(() -> type.getDeclaredField(name)));
     }
 
     /**
@@ -115,7 +115,7 @@ public class ReflectionUtils {
      * @return method
      */
     public static Method getMethod(Class<?> type, String name, Class<?>... parameterTypes) {
-        return execute(() -> makeAccessible(type.getDeclaredMethod(name, parameterTypes)));
+        return makeAccessible(execute(() -> type.getDeclaredMethod(name, parameterTypes)));
     }
 
     /**
@@ -128,7 +128,7 @@ public class ReflectionUtils {
      * @return method
      */
     public static <T> Constructor<T> getConstructor(Class<T> type, Class<?>... parameterTypes) {
-        return execute(() -> makeAccessible(type.getDeclaredConstructor(parameterTypes)));
+        return makeAccessible(execute(() -> type.getDeclaredConstructor(parameterTypes)));
     }
 
     /**

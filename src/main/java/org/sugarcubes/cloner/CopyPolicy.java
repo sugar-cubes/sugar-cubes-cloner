@@ -23,6 +23,8 @@ public interface CopyPolicy {
      * @param type type
      * @return action
      */
-    CopyAction getTypeAction(Class<?> type);
+    default CopyAction getTypeAction(Class<?> type) {
+        return type.isEnum() ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
+    }
 
 }

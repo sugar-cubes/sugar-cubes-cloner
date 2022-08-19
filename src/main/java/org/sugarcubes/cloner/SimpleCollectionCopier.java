@@ -2,7 +2,7 @@ package org.sugarcubes.cloner;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
  * Copier for simple collections (that do not call items {@link Object#hashCode()} method), because item hash code can differ in
@@ -15,14 +15,14 @@ public class SimpleCollectionCopier<T extends Collection<Object>> implements Two
     /**
      * Collection constructor with size argument.
      */
-    private final Function<Integer, T> constructor;
+    private final IntFunction<T> constructor;
 
     /**
      * Creates copier.
      *
      * @param constructor collection constructor
      */
-    public SimpleCollectionCopier(Function<Integer, T> constructor) {
+    public SimpleCollectionCopier(IntFunction<T> constructor) {
         this.constructor = constructor;
     }
 

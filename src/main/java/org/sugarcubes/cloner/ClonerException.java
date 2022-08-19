@@ -1,7 +1,7 @@
 package org.sugarcubes.cloner;
 
 /**
- * Generic cloner exception. Wraps some happened checked exception.
+ * Generic cloner exception. Wraps all exception during cloning process.
  *
  * @author Maxim Butov
  */

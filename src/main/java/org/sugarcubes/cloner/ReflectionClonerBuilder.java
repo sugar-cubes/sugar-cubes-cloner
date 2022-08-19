@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
+import org.sugarcubes.cloner.annotation.AnnotatedCopierRegistry;
+import org.sugarcubes.cloner.annotation.AnnotatedCopyPolicy;
 import static org.sugarcubes.cloner.Check.argNotNull;
 import static org.sugarcubes.cloner.Check.illegalArg;
 import static org.sugarcubes.cloner.Check.isNull;
@@ -75,7 +77,9 @@ public final class ReflectionClonerBuilder {
     private ExecutorService executor;
 
     private final Map<Field, FieldCopyAction> fieldActions = new HashMap<>();
-    private final Map<Class<?>, ObjectCopier<?>> objectCopiers = new HashMap<>(DEFAULT_COPIERS);
+    private final Map<Class<?>, ObjectCopier<?>> copiers = new HashMap<>(DEFAULT_COPIERS);
+
+    private boolean annotated;
 
     /**
      * Creates a builder.
@@ -112,7 +116,7 @@ public final class ReflectionClonerBuilder {
      *
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setUnsafeEnabled() {
+    public ReflectionClonerBuilder setUnsafe() {
         return setAllocator(new UnsafeAllocator()).setFieldCopierFactory(new UnsafeFieldCopierFactory());
     }
 
@@ -131,11 +135,11 @@ public final class ReflectionClonerBuilder {
     /**
      * Registers set of custom copiers.
      *
-     * @param objectCopiers custom copiers
+     * @param copiers custom copiers
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setObjectCopiers(Map<Class<?>, ObjectCopier<?>> objectCopiers) {
-        objectCopiers.forEach(this::setObjectCopier);
+    public ReflectionClonerBuilder setCopiers(Map<Class<?>, ObjectCopier<?>> copiers) {
+        copiers.forEach(this::setObjectCopier);
         return this;
     }
 
@@ -147,7 +151,7 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setObjectCopier(Class<?> type, ObjectCopier<?> copier) {
-        illegalArg(objectCopiers.put(type, copier) != DEFAULT_COPIERS.get(type), "Copier for %s already set", type);
+        illegalArg(copiers.put(type, copier) != DEFAULT_COPIERS.get(type), "Copier for %s already set", type);
         return this;
     }
 
@@ -237,6 +241,17 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
+     * Enables annotations processing.
+     *
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setAnnotated() {
+        illegalArg(annotated, "Already annotated");
+        annotated = true;
+        return this;
+    }
+
+    /**
      * Returns value if it is not null or creates with factory.
      *
      * @param <T> value type
@@ -255,17 +270,23 @@ public final class ReflectionClonerBuilder {
      */
     public Cloner build() {
         ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
-        CopyPolicy policy = new DefaultCopyPolicy(Collections.emptyMap(), fieldActions);
+        CopyPolicy policy = annotated ?
+            new AnnotatedCopyPolicy(fieldActions) :
+            new DefaultCopyPolicy(fieldActions);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
-        CopyContextFactory contextFactory;
+        ReflectionCopierRegistry registry = annotated ?
+            new AnnotatedCopierRegistry(policy, allocator, fieldCopierFactory, copiers) :
+            new ReflectionCopierRegistry(policy, allocator, copiers, fieldCopierFactory);
+        Supplier<CompletableCopyContext> contextFactory;
         if (executor != null) {
-            contextFactory = registry -> new ParallelCopyContext(registry, executor);
+            contextFactory = () -> new ParallelCopyContext(registry, executor);
         }
         else {
-            contextFactory = registry -> new SequentialCopyContext(registry,
+            contextFactory = () -> new SequentialCopyContext(registry,
                 traversalAlgorithm != null ? traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST);
         }
-        return new ReflectionCloner(allocator, policy, objectCopiers, fieldCopierFactory, contextFactory);
+
+        return new ReflectionCloner(contextFactory);
     }
 
 }

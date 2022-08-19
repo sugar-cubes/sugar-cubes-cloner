@@ -7,7 +7,12 @@ import java.lang.reflect.Field;
  *
  * @author Maxim Butov
  */
-public class ReflectionFieldCopierFactory implements FieldCopierFactory {
+public final class ReflectionFieldCopierFactory implements FieldCopierFactory {
+
+    @Override
+    public FieldCopier getFieldCopier(Field field, FieldCopyAction action) {
+        return FieldCopierFactory.super.getFieldCopier(ReflectionUtils.makeAccessible(field), action);
+    }
 
     @Override
     public FieldCopier getPrimitiveFieldCopier(Field field) {
@@ -34,7 +39,6 @@ public class ReflectionFieldCopierFactory implements FieldCopierFactory {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
         switch (action) {
             case SKIP:
