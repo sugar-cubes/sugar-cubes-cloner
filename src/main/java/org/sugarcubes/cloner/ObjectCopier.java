@@ -35,6 +35,6 @@ public interface ObjectCopier<T> {
      * @return copy result
      * @throws Exception if something went wrong
      */
-    CopyResult<T> copy(T original, CopyContext context) throws Exception;
+    T copy(T original, CopyContext context) throws Exception;
 
 }

@@ -1,5 +1,6 @@
 package org.sugarcubes.cloner;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
@@ -7,17 +8,17 @@ import java.util.Map;
  *
  * @author Maxim Butov
  */
-public abstract class AbstractCopyContext implements CompletableCopyContext {
+public abstract class AbstractCopyContext implements CopyContext {
 
     /**
      * Copiers registry.
      */
-    protected final CopierRegistry registry;
+    private final CopierRegistry registry;
 
     /**
      * Cache of previously copied objects.
      */
-    protected final Map<Object, Object> clones = new FasterIdentityHashMap<>();
+    private final Map<Object, Object> clones = new IdentityHashMap<>();
 
     /**
      * Creates context with specified copier registry.
@@ -40,7 +41,12 @@ public abstract class AbstractCopyContext implements CompletableCopyContext {
         if (copier == ObjectCopier.NOOP) {
             return original;
         }
-        return nonTrivialCopy(original, copier);
+        return doClone(original, copier);
+    }
+
+    @Override
+    public <T> void register(T original, T clone) {
+        clones.put(original, clone);
     }
 
     /**
@@ -52,6 +58,9 @@ public abstract class AbstractCopyContext implements CompletableCopyContext {
      * @return copy of the original object
      * @throws Exception if something went wrong
      */
-    protected abstract <T> T nonTrivialCopy(T original, ObjectCopier<T> copier) throws Exception;
+    protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
+        T clone = (T) clones.get(original);
+        return clone != null ? clone : copier.copy(original, this);
+    }
 
 }

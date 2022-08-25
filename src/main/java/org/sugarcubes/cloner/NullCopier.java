@@ -8,7 +8,7 @@ package org.sugarcubes.cloner;
 public final class NullCopier<T> implements TrivialCopier<T> {
 
     @Override
-    public T trivialCopy(T original) {
+    public T copy(T original, CopyContext context) throws Exception {
         return null;
     }
 

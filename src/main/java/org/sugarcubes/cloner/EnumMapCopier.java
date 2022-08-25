@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * @author Maxim Butov
  */
-public class EnumMapCopier<K extends Enum<K>, V> implements TwoPhaseObjectCopier<EnumMap<K, V>> {
+public class EnumMapCopier<K extends Enum<K>, V> extends TwoPhaseObjectCopier<EnumMap<K, V>> {
 
     @Override
     public EnumMap<K, V> allocate(EnumMap<K, V> original) throws Exception {

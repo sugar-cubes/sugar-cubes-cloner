@@ -15,7 +15,9 @@ public interface CopyPolicy {
      * @param field field
      * @return action
      */
-    FieldCopyAction getFieldAction(Field field);
+    default FieldCopyAction getFieldAction(Field field) {
+        return FieldCopyAction.DEFAULT;
+    }
 
     /**
      * Returns action to apply to an instance of the type.
@@ -24,7 +26,7 @@ public interface CopyPolicy {
      * @return action
      */
     default CopyAction getTypeAction(Class<?> type) {
-        return type.isEnum() ? CopyAction.ORIGINAL : CopyAction.DEFAULT;
+        return CopyAction.DEFAULT;
     }
 
 }

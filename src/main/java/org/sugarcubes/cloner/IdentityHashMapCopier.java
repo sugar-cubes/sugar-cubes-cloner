@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * @author Maxim Butov
  */
-public class IdentityHashMapCopier implements TwoPhaseObjectCopier<IdentityHashMap<Object, Object>> {
+public class IdentityHashMapCopier extends TwoPhaseObjectCopier<IdentityHashMap<Object, Object>> {
 
     @Override
     public IdentityHashMap<Object, Object> allocate(IdentityHashMap<Object, Object> original) throws Exception {

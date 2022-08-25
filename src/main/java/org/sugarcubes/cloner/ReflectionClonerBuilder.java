@@ -53,11 +53,11 @@ public final class ReflectionClonerBuilder {
 
         IMMUTABLE_TYPES.forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
 
+        defaultCopiers.put(java.util.BitSet.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(java.util.Date.class, ObjectCopier.SHALLOW);
         defaultCopiers.put(java.util.GregorianCalendar.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(java.util.BitSet.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
         defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
+        defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
 
         defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
         defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
@@ -65,8 +65,8 @@ public final class ReflectionClonerBuilder {
         defaultCopiers.put(java.util.Stack.class, new SimpleCollectionCopier<>(size -> new java.util.Stack<>()));
         defaultCopiers.put(java.util.Vector.class, new SimpleCollectionCopier<>(java.util.Vector::new));
 
-        defaultCopiers.put(java.util.IdentityHashMap.class, new IdentityHashMapCopier());
         defaultCopiers.put(java.util.EnumMap.class, new EnumMapCopier<>());
+        defaultCopiers.put(java.util.IdentityHashMap.class, new IdentityHashMapCopier());
 
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }
@@ -76,6 +76,7 @@ public final class ReflectionClonerBuilder {
     private TraversalAlgorithm traversalAlgorithm;
     private ExecutorService executor;
 
+    private final Map<Class<?>, CopyAction> typeActions = new HashMap<>();
     private final Map<Field, FieldCopyAction> fieldActions = new HashMap<>();
     private final Map<Class<?>, ObjectCopier<?>> copiers = new HashMap<>(DEFAULT_COPIERS);
 
@@ -185,16 +186,8 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder setTypeAction(Class<?> type, CopyAction action) {
         argNotNull(type, "Type");
         argNotNull(action, "Action");
-        switch (action) {
-            case NULL:
-                return setObjectCopier(type, ObjectCopier.NULL);
-            case ORIGINAL:
-                return setObjectCopier(type, ObjectCopier.NOOP);
-            case DEFAULT:
-                return this;
-            default:
-                throw new IllegalArgumentException();
-        }
+        isNull(typeActions.put(type, action), "Action for %s already set.", type);
+        return this;
     }
 
     /**
@@ -271,22 +264,21 @@ public final class ReflectionClonerBuilder {
     public Cloner build() {
         ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
         CopyPolicy policy = annotated ?
-            new AnnotatedCopyPolicy(fieldActions) :
-            new DefaultCopyPolicy(fieldActions);
+            new AnnotatedCopyPolicy(typeActions, fieldActions) :
+            new DefaultCopyPolicy(typeActions, fieldActions);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierRegistry registry = annotated ?
             new AnnotatedCopierRegistry(policy, allocator, copiers, fieldCopierFactory) :
             new ReflectionCopierRegistry(policy, allocator, copiers, fieldCopierFactory);
-        Supplier<CompletableCopyContext> contextFactory;
         if (executor != null) {
-            contextFactory = () -> new ParallelCopyContext(registry, executor);
+            return new ParallelReflectionCloner(registry, executor);
         }
         else {
-            contextFactory = () -> new SequentialCopyContext(registry,
-                traversalAlgorithm != null ? traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST);
+            TraversalAlgorithm traversalAlgorithm =
+                this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
+            return new SequentialReflectionCloner(registry, traversalAlgorithm);
         }
 
-        return new ReflectionCloner(contextFactory);
     }
 
 }

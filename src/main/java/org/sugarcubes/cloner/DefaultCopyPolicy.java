@@ -11,15 +11,22 @@ import java.util.Map;
  */
 public class DefaultCopyPolicy implements CopyPolicy {
 
-    private final Map<Field, FieldCopyAction> fieldActions = new HashMap<>();
+    private final Map<Class<?>, CopyAction> typeActions;
+    private final Map<Field, FieldCopyAction> fieldActions;
 
     /**
      * Creates copy policy.
      *
      * @param fieldActions field actions
      */
-    public DefaultCopyPolicy(Map<Field, FieldCopyAction> fieldActions) {
-        this.fieldActions.putAll(fieldActions);
+    public DefaultCopyPolicy(Map<Class<?>, CopyAction> typeActions, Map<Field, FieldCopyAction> fieldActions) {
+        this.typeActions = new HashMap<>(typeActions);
+        this.fieldActions = new HashMap<>(fieldActions);
+    }
+
+    @Override
+    public CopyAction getTypeAction(Class<?> type) {
+        return typeActions.getOrDefault(type, CopyAction.DEFAULT);
     }
 
     @Override

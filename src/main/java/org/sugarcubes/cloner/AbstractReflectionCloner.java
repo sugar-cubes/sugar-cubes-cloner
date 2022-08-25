@@ -1,33 +1,23 @@
 package org.sugarcubes.cloner;
 
-import java.util.function.Supplier;
-
 /**
  * Abstract base implementation of {@link Cloner} which uses Java reflection API for cloning.
  *
  * @author Maxim Butov
  */
-@SuppressWarnings("checkstyle:MultipleStringLiterals")
-public class ReflectionCloner implements Cloner {
+public abstract class AbstractReflectionCloner implements Cloner {
 
     /**
-     * Copy context factory.
-     */
-    private final Supplier<CompletableCopyContext> contextFactory;
-
-    /**
-     * Constructor.
+     * Creates context for the single copy process.
      *
-     * @param contextFactory context factory
+     * @return copy context
      */
-    public ReflectionCloner(Supplier<CompletableCopyContext> contextFactory) {
-        this.contextFactory = contextFactory;
-    }
+    protected abstract CopyContext newCopyContext();
 
     @Override
     public <T> T clone(T object) {
         try {
-            CompletableCopyContext context = contextFactory.get();
+            CopyContext context = newCopyContext();
             T clone = context.copy(object);
             context.complete();
             return clone;

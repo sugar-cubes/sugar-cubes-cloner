@@ -9,13 +9,14 @@ import java.util.Arrays;
  *
  * @author Maxim Butov
  */
-public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
+public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
 
     private final ObjectFactory<T> factory;
     private final ReflectionCopier<? super T> parent;
     private final FieldCopier[] fieldCopiers;
 
     static /* record */ class FieldAndAction {
+
         final Field field;
         final FieldCopyAction action;
 
@@ -35,8 +36,8 @@ public class ReflectionCopier<T> implements TwoPhaseObjectCopier<T> {
      * @param parent copier for the super type
      */
     @SuppressWarnings("unchecked")
-    public ReflectionCopier(CopyPolicy policy, ObjectAllocator allocator,
-        Class<T> type, FieldCopierFactory fieldCopierFactory, ReflectionCopier<?> parent) {
+    public ReflectionCopier(CopyPolicy policy, ObjectAllocator allocator, Class<T> type, FieldCopierFactory fieldCopierFactory,
+        ReflectionCopier<?> parent) {
         this.factory = allocator.getFactory(type);
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?
             parent.parent : parent);

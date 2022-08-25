@@ -83,7 +83,7 @@ public class ReflectionCopierRegistry implements CopierRegistry {
                     return ObjectCopier.OBJECT_ARRAY;
                 }
                 else {
-                    return findReflectionCopier(type);
+                    return type.isEnum() ? ObjectCopier.NOOP : findReflectionCopier(type);
                 }
             default:
                 throw new IllegalStateException();
@@ -100,7 +100,7 @@ public class ReflectionCopierRegistry implements CopierRegistry {
         ReflectionCopier<?> copier = reflectionCopiers.get(type);
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
-            ReflectionCopier<?> parent = superType != null ? reflectionCopiers.get(superType) : null;
+            ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType) : null;
             copier = new ReflectionCopier<>(policy, allocator, type, fieldCopierFactory, parent);
             reflectionCopiers.put(type, copier);
         }

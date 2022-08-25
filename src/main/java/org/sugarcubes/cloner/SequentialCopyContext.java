@@ -46,16 +46,8 @@ public class SequentialCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    protected <T> T nonTrivialCopy(T original, ObjectCopier<T> copier) throws Exception {
-        T clone = (T) clones.get(original);
-        if (clone != null) {
-            return clone;
-        }
-        CopyResult<T> result = copier.copy(original, this);
-        clone = result.getObject();
-        clones.put(original, clone);
-        result.ifHasNext(queue::offer);
-        return clone;
+    public void invokeLater(Callable<?> task) {
+        queue.offer(task);
     }
 
     @Override

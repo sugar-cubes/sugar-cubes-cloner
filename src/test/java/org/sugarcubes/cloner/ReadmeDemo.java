@@ -38,7 +38,7 @@ public class ReadmeDemo {
     private static class SomeOtherObjectCopier implements ObjectCopier<SomeOtherObject> {
 
         @Override
-        public CopyResult<SomeOtherObject> copy(SomeOtherObject original, CopyContext context) throws Exception {
+        public SomeOtherObject copy(SomeOtherObject original, CopyContext context) throws Exception {
             throw new UnsupportedOperationException();
         }
     }

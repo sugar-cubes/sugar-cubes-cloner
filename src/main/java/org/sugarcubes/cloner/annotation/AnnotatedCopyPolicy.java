@@ -19,8 +19,8 @@ public class AnnotatedCopyPolicy extends DefaultCopyPolicy {
      *
      * @param fieldActions field actions
      */
-    public AnnotatedCopyPolicy(Map<Field, FieldCopyAction> fieldActions) {
-        super(fieldActions);
+    public AnnotatedCopyPolicy(Map<Class<?>, CopyAction> typeActions, Map<Field, FieldCopyAction> fieldActions) {
+        super(typeActions, fieldActions);
     }
 
     @Override

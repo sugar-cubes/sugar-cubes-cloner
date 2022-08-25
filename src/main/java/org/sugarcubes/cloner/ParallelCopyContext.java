@@ -1,6 +1,7 @@
 package org.sugarcubes.cloner;
 
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -40,22 +41,22 @@ public class ParallelCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    protected <T> T nonTrivialCopy(T original, ObjectCopier<T> copier) throws Exception {
-        CopyResult<T> result;
-        synchronized (original) {
-            Object clone = clones.get(original);
-            if (clone != null) {
-                return (T) clone;
-            }
-            result = copier.copy(original, this);
-            synchronized (clones) {
-                clones.put(original, result.getObject());
-            }
-        }
+    public synchronized <T> void register(T original, T clone) {
+        super.register(original, clone);
+    }
+
+    @Override
+    public void invokeLater(Callable<?> task) {
         if (running) {
-            result.ifHasNext(next -> futures.offer(executor.submit(next)));
+            futures.offer(executor.submit(task));
         }
-        return result.getObject();
+    }
+
+    @Override
+    protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
+        synchronized (original) {
+            return super.doClone(original, copier);
+        }
     }
 
     @Override
@@ -64,19 +65,35 @@ public class ParallelCopyContext extends AbstractCopyContext {
             try {
                 future.get();
             }
+            catch (InterruptedException e) {
+                running = false;
+                cancel();
+                Thread.currentThread().interrupt();
+                return;
+            }
             catch (ExecutionException e) {
                 running = false;
-                futures.forEach(f -> f.cancel(false));
-                try {
-                    throw e.getCause();
-                }
-                catch (Error | Exception ex) {
-                    throw ex;
-                }
-                catch (Throwable ex) {
-                    throw new ClonerException(ex);
-                }
+                cancel();
+                rethrow(e.getCause());
             }
+        }
+    }
+
+    private void cancel() {
+        for (Future<?> future; (future = futures.poll()) != null; ) {
+            future.cancel(false);
+        }
+    }
+
+    private void rethrow(Throwable e) throws Exception {
+        try {
+            throw e;
+        }
+        catch (Error | Exception ex) {
+            throw ex;
+        }
+        catch (Throwable ex) {
+            throw new ClonerException(ex);
         }
     }
 
