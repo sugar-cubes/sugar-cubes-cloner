@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for applying {@link CopyAction} to fields.
+ * Annotation for applying {@link FieldCopyAction} to fields.
  *
  * @author Maxim Butov
  */

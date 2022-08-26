@@ -21,6 +21,6 @@ public @interface TypeCopier {
      *
      * @return copier class
      */
-    Class<ObjectCopier<?>> value();
+    Class<? extends ObjectCopier<?>> value();
 
 }

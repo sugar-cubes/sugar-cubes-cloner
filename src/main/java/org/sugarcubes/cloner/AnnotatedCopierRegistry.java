@@ -27,8 +27,8 @@ public class AnnotatedCopierRegistry extends ReflectionCopierRegistry {
     protected ObjectCopier<?> findCopier(Class<?> type) {
         TypeCopier annotation = type.getDeclaredAnnotation(TypeCopier.class);
         if (annotation != null) {
-            Class<ObjectCopier<?>> copierClass = annotation.value();
-            Constructor<ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);
+            Class<? extends ObjectCopier<?>> copierClass = annotation.value();
+            Constructor<? extends ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);
             return ReflectionUtils.execute(constructor::newInstance);
         }
         return super.findCopier(type);
