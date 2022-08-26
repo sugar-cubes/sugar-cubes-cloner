@@ -11,12 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
-import org.sugarcubes.cloner.annotation.AnnotatedCopierRegistry;
-import org.sugarcubes.cloner.annotation.AnnotatedCopyPolicy;
-import static org.sugarcubes.cloner.Check.argNotNull;
-import static org.sugarcubes.cloner.Check.illegalArg;
-import static org.sugarcubes.cloner.Check.isNull;
-
 /**
  * Builder for reflection cloners.
  *
@@ -46,6 +40,9 @@ public final class ReflectionClonerBuilder {
         java.time.ZonedDateTime.class, java.time.ZoneOffset.class
     )));
 
+    /**
+     * Default copiers for well-known JDK types.
+     */
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
 
     static {
@@ -71,15 +68,44 @@ public final class ReflectionClonerBuilder {
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }
 
+    /**
+     * Object allocator.
+     */
     private ObjectAllocator allocator;
+
+    /**
+     * Field copier factory.
+     */
     private FieldCopierFactory fieldCopierFactory;
+
+    /**
+     * Traversal algorithm for sequential mode.
+     */
     private TraversalAlgorithm traversalAlgorithm;
+
+    /**
+     * Executor service for parallel mode.
+     */
     private ExecutorService executor;
 
+    /**
+     * Custom actions for types.
+     */
     private final Map<Class<?>, CopyAction> typeActions = new HashMap<>();
+
+    /**
+     * Custom actions for fields.
+     */
     private final Map<Field, FieldCopyAction> fieldActions = new HashMap<>();
+
+    /**
+     * Custom copiers for types.
+     */
     private final Map<Class<?>, ObjectCopier<?>> copiers = new HashMap<>(DEFAULT_COPIERS);
 
+    /**
+     * Enable annotations processing.
+     */
     private boolean annotated;
 
     /**
@@ -95,6 +121,7 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setAllocator(ObjectAllocator allocator) {
+        Check.argNotNull(allocator, "Allocator");
         Check.isNull(this.allocator, "Allocator already set");
         this.allocator = allocator;
         return this;
@@ -107,6 +134,7 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setFieldCopierFactory(FieldCopierFactory fieldCopierFactory) {
+        Check.argNotNull(fieldCopierFactory, "Field copier factory");
         Check.isNull(this.fieldCopierFactory, "Field copier factory already set");
         this.fieldCopierFactory = fieldCopierFactory;
         return this;
@@ -128,7 +156,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTraversalAlgorithm(TraversalAlgorithm traversalAlgorithm) {
+        Check.argNotNull(traversalAlgorithm, "Traversal algorithm");
         Check.isNull(this.traversalAlgorithm, "Traversal algorithm already set");
+        Check.isNull(this.executor, "Cannot set traversal algorithm for parallel mode");
         this.traversalAlgorithm = traversalAlgorithm;
         return this;
     }
@@ -152,7 +182,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setObjectCopier(Class<?> type, ObjectCopier<?> copier) {
-        illegalArg(copiers.put(type, copier) != DEFAULT_COPIERS.get(type), "Copier for %s already set", type);
+        Check.argNotNull(type, "Type");
+        Check.argNotNull(copier, "Copier");
+        Check.illegalArg(copiers.put(type, copier) != DEFAULT_COPIERS.get(type), "Copier for %s already set", type);
         return this;
     }
 
@@ -163,6 +195,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setExecutor(ExecutorService executor) {
+        Check.argNotNull(executor, "Executor");
+        Check.isNull(this.executor, "Executor already set");
+        Check.isNull(this.traversalAlgorithm, "");
         this.executor = executor;
         return this;
     }
@@ -184,22 +219,22 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTypeAction(Class<?> type, CopyAction action) {
-        argNotNull(type, "Type");
-        argNotNull(action, "Action");
-        isNull(typeActions.put(type, action), "Action for %s already set.", type);
+        Check.argNotNull(type, "Type");
+        Check.argNotNull(action, "Action");
+        Check.isNull(typeActions.put(type, action), "Action for %s already set.", type);
         return this;
     }
 
     /**
      * Registers custom action for type.
      *
-     * @param type object type
+     * @param type object type name
      * @param action custom action
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTypeAction(String type, CopyAction action) {
-        argNotNull(type, "Type");
-        argNotNull(action, "Action");
+        Check.argNotNull(type, "Type");
+        Check.argNotNull(action, "Action");
         return setTypeAction(ReflectionUtils.classForName(type), action);
     }
 
@@ -211,11 +246,11 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setFieldAction(Field field, FieldCopyAction action) {
-        argNotNull(field, "Field");
-        argNotNull(action, "Action");
-        illegalArg(field.getType().isPrimitive() && action == FieldCopyAction.NULL,
+        Check.argNotNull(field, "Field");
+        Check.argNotNull(action, "Action");
+        Check.illegalArg(field.getType().isPrimitive() && action == FieldCopyAction.NULL,
             "Cannot set action NULL for primitive field");
-        isNull(fieldActions.put(field, action), "Action for %s already set.", field);
+        Check.isNull(fieldActions.put(field, action), "Action for %s already set.", field);
         return this;
     }
 
@@ -228,8 +263,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setFieldAction(Class<?> type, String field, FieldCopyAction action) {
-        argNotNull(type, "Type");
-        argNotNull(field, "Field");
+        Check.argNotNull(type, "Type");
+        Check.argNotNull(field, "Field");
+        Check.argNotNull(action, "Action");
         return setFieldAction(ReflectionUtils.getField(type, field), action);
     }
 
@@ -239,7 +275,7 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setAnnotated() {
-        illegalArg(annotated, "Already annotated");
+        Check.illegalArg(annotated, "Already annotated");
         annotated = true;
         return this;
     }
@@ -270,13 +306,12 @@ public final class ReflectionClonerBuilder {
         ReflectionCopierRegistry registry = annotated ?
             new AnnotatedCopierRegistry(policy, allocator, copiers, fieldCopierFactory) :
             new ReflectionCopierRegistry(policy, allocator, copiers, fieldCopierFactory);
-        if (executor != null) {
-            return new ParallelReflectionCloner(registry, executor);
+        if (executor == null) {
+            return new SequentialReflectionCloner(registry,
+                traversalAlgorithm != null ? traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST);
         }
         else {
-            TraversalAlgorithm traversalAlgorithm =
-                this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
-            return new SequentialReflectionCloner(registry, traversalAlgorithm);
+            return new ParallelReflectionCloner(registry, executor);
         }
 
     }

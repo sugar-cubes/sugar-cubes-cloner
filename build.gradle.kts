@@ -24,8 +24,9 @@ dependencies {
     testImplementation("org.apache.commons:commons-math3:3.6.1")
     testImplementation("com.google.guava:guava:31.1-jre")
     testImplementation("org.springframework:spring-core:5.3.22")
-    testImplementation("com.esotericsoftware:kryo:5.3.0")
-    testImplementation("io.github.kostaskougios:cloning:1.10.3")
+
+    jmh("com.esotericsoftware:kryo:5.3.0")
+    jmh("io.github.kostaskougios:cloning:1.10.3")
 
 }
 
@@ -44,17 +45,6 @@ tasks.named<Checkstyle>("checkstyleTest") {
 tasks.named<Test>("test") {
     useJUnitPlatform()
     ignoreFailures = true
-}
-
-jmh {
-    iterations.set(2)
-    batchSize.set(4)
-    fork.set(4)
-
-    warmup.set("1s")
-    warmupBatchSize.set(1)
-    warmupForks.set(0)
-    warmupIterations.set(1)
 }
 
 tasks.register<Copy>("exportJavadocs") {

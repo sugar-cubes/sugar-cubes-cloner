@@ -35,11 +35,9 @@ public abstract class AbstractCopyContext implements CopyContext {
             return null;
         }
         ObjectCopier<T> copier = (ObjectCopier<T>) registry.getCopier(original.getClass());
-        if (copier == ObjectCopier.NULL) {
-            return null;
-        }
-        if (copier == ObjectCopier.NOOP) {
-            return original;
+        // trivial case
+        if (copier == ObjectCopier.NULL || copier == ObjectCopier.NOOP) {
+            return copier.copy(original, this);
         }
         return doClone(original, copier);
     }

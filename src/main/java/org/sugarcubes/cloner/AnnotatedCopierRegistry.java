@@ -1,14 +1,7 @@
-package org.sugarcubes.cloner.annotation;
+package org.sugarcubes.cloner;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
-
-import org.sugarcubes.cloner.CopyPolicy;
-import org.sugarcubes.cloner.FieldCopierFactory;
-import org.sugarcubes.cloner.ObjectAllocator;
-import org.sugarcubes.cloner.ObjectCopier;
-import org.sugarcubes.cloner.ReflectionCopierRegistry;
-import org.sugarcubes.cloner.ReflectionUtils;
 
 /**
  * Copier registry implementation with annotations processing.

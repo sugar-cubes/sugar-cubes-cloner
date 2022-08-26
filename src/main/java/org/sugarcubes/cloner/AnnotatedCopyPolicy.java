@@ -1,11 +1,7 @@
-package org.sugarcubes.cloner.annotation;
+package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 import java.util.Map;
-
-import org.sugarcubes.cloner.CopyAction;
-import org.sugarcubes.cloner.DefaultCopyPolicy;
-import org.sugarcubes.cloner.FieldCopyAction;
 
 /**
  * Copy policy implementation with annotation processing.

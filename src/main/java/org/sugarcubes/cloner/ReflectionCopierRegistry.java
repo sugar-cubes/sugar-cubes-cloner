@@ -82,9 +82,10 @@ public class ReflectionCopierRegistry implements CopierRegistry {
                     }
                     return ObjectCopier.OBJECT_ARRAY;
                 }
-                else {
-                    return type.isEnum() ? ObjectCopier.NOOP : findReflectionCopier(type);
+                if (type.isEnum()) {
+                    return ObjectCopier.NOOP;
                 }
+                return findReflectionCopier(type);
             default:
                 throw new IllegalStateException();
         }

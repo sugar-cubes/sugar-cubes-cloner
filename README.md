@@ -7,6 +7,8 @@ Java 8 compatible.
 
 Thread safe.
 
+Parallel execution support.
+
 ## Objectives
 
 - To get simple, convenient and configurable way of deep-cloning of objects of any types.
@@ -37,8 +39,9 @@ Cons:
                                        
 Still serialization, but with non-standard libraries, such as:
 - [fast-serialization](https://github.com/RuedigerMoeller/fast-serialization)
+- [kryo](https://github.com/EsotericSoftware/kryo)
       
-Faster than java.io serialization but still almost non-customizable.
+Faster than java.io serialization.
 
 ### Cloning libraries
 
@@ -56,6 +59,7 @@ Faster than java.io serialization but still almost non-customizable.
 | [Cloners](src/main/java/org/sugarcubes/cloner/Cloners.java) | Factory for standard cloners. |
 | [CloningPolicy](src/main/java/org/sugarcubes/cloner/CloningPolicy.java) | Set of class/field rules for cloning. |
 | [CopyAction](src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (null/original/clone). |
+| [FieldCopyAction](src/main/java/org/sugarcubes/cloner/FieldCopyAction.java) | Field copy action (skip/null/original/clone). |
 | [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)| Allocator (instantiator) interface. |
 | [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier interface. |
 | [ReflectionClonerBuilder](src/main/java/org/sugarcubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
@@ -86,29 +90,43 @@ Object clone = Cloners.serializationClone(original);
 ```java
 Cloner cloner =
     // new builder instance
-    new ReflectionClonerBuilder()
-    // custom allocator
-    .setAllocator(new ObjenesisAllocator())
-    // copy thread locals by reference
-    .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
-    // set SomeObject.cachedValue field to null when cloning
-    .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.NULL)
-    // custom copier for SomeOtherObject type
-    .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
-    // parallel mode
-    .setDefaultExecutor()
-    // create cloner
-    .build();
+    Cloners.builder()
+        // custom allocator
+        .setAllocator(new ObjenesisAllocator())
+        // copy thread locals by reference
+        .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
+        // skip SomeObject.cachedValue field when cloning
+        .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
+        // custom copier for SomeOtherObject type
+        .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+        // use annotations
+        .setAnnotated()
+        // parallel mode
+        .setDefaultExecutor()
+        // create cloner
+        .build();
 
-    // perform cloning
-    SomeObject myObjectClone = cloner.clone(myObject);
+// perform cloning
+SomeObject myObjectClone = cloner.clone(myObject);
 ```
-          
+
+### Annotations
+                                  
+It's possible to use annotations to configure field/type actions and custom type copiers.
+
+| Annotation | Description |
+| --- | --- |
+| [FieldPolicy](src/main/java/org/sugarcubes/cloner/FieldPolicy.java) | Field copy policy. |
+| [TypeCopier](src/main/java/org/sugarcubes/cloner/TypeCopier.java) | Type copier. |
+| [TypePolicy](src/main/java/org/sugarcubes/cloner/TypePolicy.java) | Type copy policy. |
+
 ### Implementation
                   
 In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
 
 In parallel mode order is unpredictable.
+
+If the [Objenesis](https://github.com/easymock/objenesis) library is available, uses it to instantiate objects. Otherwise, uses reflection.
 
 ### Known limitations
 

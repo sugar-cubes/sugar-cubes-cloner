@@ -8,15 +8,17 @@ public class ReadmeDemo {
 
         Cloner cloner =
             // new builder instance
-            new ReflectionClonerBuilder()
+            Cloners.builder()
                 // custom allocator
                 .setAllocator(new ObjenesisAllocator())
                 // copy thread locals by reference
                 .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
-                // set SomeObject.cachedValue field to null when cloning
-                .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.NULL)
+                // skip SomeObject.cachedValue field when cloning
+                .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
                 // custom copier for SomeOtherObject type
                 .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+                // use annotations
+                .setAnnotated()
                 // parallel mode
                 .setDefaultExecutor()
                 // create cloner

@@ -13,12 +13,12 @@ public enum FieldCopyAction {
     SKIP,
 
     /**
-     * Return {@code null} instead of original object. This action cannot be applied to primitive fields.
+     * Set {@code null} into clone's field value. This action cannot be applied to primitive fields.
      */
     NULL,
 
     /**
-     * Return the original object.
+     * Set into clone's field value from original's field.
      */
     ORIGINAL,
 
