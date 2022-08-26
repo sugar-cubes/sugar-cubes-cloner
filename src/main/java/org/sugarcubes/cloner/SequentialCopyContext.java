@@ -34,7 +34,7 @@ public class SequentialCopyContext extends AbstractCopyContext {
         this.poll = getPollMethod(traversalAlgorithm);
     }
 
-    private Function<Deque<Callable<?>>, Callable<?>> getPollMethod(TraversalAlgorithm traversalAlgorithm) {
+    private <T> Function<Deque<T>, T> getPollMethod(TraversalAlgorithm traversalAlgorithm) {
         switch (traversalAlgorithm) {
             case DEPTH_FIRST:
                 return Deque::pollLast;

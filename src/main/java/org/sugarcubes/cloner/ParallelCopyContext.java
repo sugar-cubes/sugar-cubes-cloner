@@ -66,13 +66,11 @@ public class ParallelCopyContext extends AbstractCopyContext {
                 future.get();
             }
             catch (InterruptedException e) {
-                running = false;
                 cancel();
                 Thread.currentThread().interrupt();
                 return;
             }
             catch (ExecutionException e) {
-                running = false;
                 cancel();
                 rethrow(e.getCause());
             }
@@ -80,6 +78,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
     }
 
     private void cancel() {
+        running = false;
         for (Future<?> future; (future = futures.poll()) != null; ) {
             future.cancel(false);
         }

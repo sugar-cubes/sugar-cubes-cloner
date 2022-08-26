@@ -31,27 +31,6 @@ public class ReflectionUtils {
     }
 
     /**
-     * Void modification of {@link ReflectionAction}.
-     */
-    @FunctionalInterface
-    public interface VoidReflectionAction extends ReflectionAction<Object> {
-
-        @Override
-        default Object get() throws ReflectiveOperationException {
-            run();
-            return null;
-        }
-
-        /**
-         * Actual work.
-         *
-         * @throws ReflectiveOperationException in case of reflection error
-         */
-        void run() throws ReflectiveOperationException;
-
-    }
-
-    /**
      * Executes call to Reflection API and replaces {@link ReflectiveOperationException} with {@link ClonerException}.
      *
      * @param <T> object type
