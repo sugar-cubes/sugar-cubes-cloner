@@ -58,7 +58,11 @@ public abstract class AbstractCopyContext implements CopyContext {
      */
     protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
         T clone = (T) clones.get(original);
-        return clone != null ? clone : copier.copy(original, this);
+        if (clone != null) {
+            return clone;
+        }
+        clone = copier.copy(original, this);
+        return clone;
     }
 
     /**

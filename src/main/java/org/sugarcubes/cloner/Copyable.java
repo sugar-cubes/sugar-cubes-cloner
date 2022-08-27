@@ -9,6 +9,7 @@ public interface Copyable<T> {
 
     /**
      * Creates deep copy of this object.
+     * The implementation MUST call {@link CopyContext#register(Object, Object)} method.
      *
      * @param context copying context
      * @return clone of this object

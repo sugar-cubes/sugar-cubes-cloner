@@ -34,6 +34,7 @@ public interface ObjectCopier<T> {
 
     /**
      * Creates a copy of the original object.
+     * The implementation MUST call {@link CopyContext#register(Object, Object)} method.
      *
      * @param original original object
      * @param context copying context or {@code null} if the copier is trivial
