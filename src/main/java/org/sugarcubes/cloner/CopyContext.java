@@ -35,11 +35,4 @@ public interface CopyContext {
      */
     void invokeLater(Callable<?> task);
 
-    /**
-     * Completes all the delayed tasks.
-     *
-     * @throws Exception if something went wrong
-     */
-    void complete() throws Exception;
-
 }

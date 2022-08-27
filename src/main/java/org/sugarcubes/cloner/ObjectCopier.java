@@ -28,6 +28,11 @@ public interface ObjectCopier<T> {
     ObjectCopier<?> OBJECT_ARRAY = new ObjectArrayCopier();
 
     /**
+     * Singleton instance of {@link CopyableCopier}.
+     */
+    ObjectCopier<?> COPYABLE = new CopyableCopier<>();
+
+    /**
      * Creates a copy of the original object.
      *
      * @param original original object

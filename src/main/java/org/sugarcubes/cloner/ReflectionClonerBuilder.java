@@ -104,11 +104,6 @@ public final class ReflectionClonerBuilder {
     private final Map<Class<?>, ObjectCopier<?>> copiers = new HashMap<>(DEFAULT_COPIERS);
 
     /**
-     * Enable annotations processing.
-     */
-    private boolean annotated;
-
-    /**
      * Creates a builder.
      */
     public ReflectionClonerBuilder() {
@@ -270,17 +265,6 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Enables annotations processing.
-     *
-     * @return same builder instance
-     */
-    public ReflectionClonerBuilder setAnnotated() {
-        Check.illegalArg(annotated, "Already annotated");
-        annotated = true;
-        return this;
-    }
-
-    /**
      * Returns value if it is not null or creates with factory.
      *
      * @param <T> value type
@@ -299,13 +283,9 @@ public final class ReflectionClonerBuilder {
      */
     public Cloner build() {
         ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
-        CopyPolicy policy = annotated ?
-            new AnnotatedCopyPolicy(typeActions, fieldActions) :
-            new DefaultCopyPolicy(typeActions, fieldActions);
+        CopyPolicy policy = new DefaultCopyPolicy(typeActions, fieldActions);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
-        ReflectionCopierRegistry registry = annotated ?
-            new AnnotatedCopierRegistry(policy, allocator, copiers, fieldCopierFactory) :
-            new ReflectionCopierRegistry(policy, allocator, copiers, fieldCopierFactory);
+        ReflectionCopierRegistry registry = new ReflectionCopierRegistry(policy, allocator, copiers, fieldCopierFactory);
         if (executor == null) {
             return new SequentialReflectionCloner(registry,
                 traversalAlgorithm != null ? traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST);

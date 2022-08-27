@@ -1,5 +1,6 @@
 package org.sugarcubes.cloner;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,24 +72,41 @@ public class ReflectionCopierRegistry implements CopierRegistry {
             case ORIGINAL:
                 return ObjectCopier.NOOP;
             case DEFAULT:
-                if (type.isArray()) {
-                    Class<?> componentType = type.getComponentType();
-                    if (componentType.isPrimitive() || componentType.isEnum()) {
-                        return ObjectCopier.SHALLOW;
-                    }
-                    if (Modifier.isFinal(componentType.getModifiers()) &&
-                        policy.getTypeAction(componentType) == CopyAction.ORIGINAL) {
-                        return ObjectCopier.SHALLOW;
-                    }
-                    return ObjectCopier.OBJECT_ARRAY;
-                }
-                if (type.isEnum()) {
-                    return ObjectCopier.NOOP;
-                }
-                return findReflectionCopier(type);
+                return findCopierForType(type);
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    private ObjectCopier<?> findCopierForType(Class<?> type) {
+        if (type.isEnum()) {
+            return ObjectCopier.NOOP;
+        }
+        if (type.isArray()) {
+            Class<?> componentType = type.getComponentType();
+            if (componentType.isPrimitive() || componentType.isEnum()) {
+                return ObjectCopier.SHALLOW;
+            }
+            if (Modifier.isFinal(componentType.getModifiers()) &&
+                policy.getTypeAction(componentType) == CopyAction.ORIGINAL) {
+                return ObjectCopier.SHALLOW;
+            }
+            return ObjectCopier.OBJECT_ARRAY;
+        }
+        TypeCopier annotation = type.getDeclaredAnnotation(TypeCopier.class);
+        if (annotation != null) {
+            return createCopierFromAnnotation(annotation);
+        }
+        if (Copyable.class.isAssignableFrom(type)) {
+            return ObjectCopier.COPYABLE;
+        }
+        return findReflectionCopier(type);
+    }
+
+    private ObjectCopier<?> createCopierFromAnnotation(TypeCopier annotation) {
+        Class<? extends ObjectCopier<?>> copierClass = annotation.value();
+        Constructor<? extends ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);
+        return ReflectionUtils.execute(constructor::newInstance);
     }
 
     /**
@@ -97,7 +115,7 @@ public class ReflectionCopierRegistry implements CopierRegistry {
      * @param type object type
      * @return copier instance
      */
-    protected ReflectionCopier<?> findReflectionCopier(Class<?> type) {
+    private ReflectionCopier<?> findReflectionCopier(Class<?> type) {
         ReflectionCopier<?> copier = reflectionCopiers.get(type);
         if (copier == null) {
             Class<?> superType = type.getSuperclass();

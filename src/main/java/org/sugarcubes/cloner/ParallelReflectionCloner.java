@@ -24,7 +24,7 @@ public class ParallelReflectionCloner extends AbstractReflectionCloner {
     }
 
     @Override
-    protected CopyContext newCopyContext() {
+    protected AbstractCopyContext newCopyContext() {
         return new ParallelCopyContext(registry, executor);
     }
 

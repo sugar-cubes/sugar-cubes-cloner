@@ -61,4 +61,11 @@ public abstract class AbstractCopyContext implements CopyContext {
         return clone != null ? clone : copier.copy(original, this);
     }
 
+    /**
+     * Completes all the delayed tasks.
+     *
+     * @throws Exception if something went wrong
+     */
+    public abstract void complete() throws Exception;
+
 }

@@ -12,12 +12,12 @@ public abstract class AbstractReflectionCloner implements Cloner {
      *
      * @return copy context
      */
-    protected abstract CopyContext newCopyContext();
+    protected abstract AbstractCopyContext newCopyContext();
 
     @Override
     public <T> T clone(T object) {
         try {
-            CopyContext context = newCopyContext();
+            AbstractCopyContext context = newCopyContext();
             T clone = context.copy(object);
             context.complete();
             return clone;

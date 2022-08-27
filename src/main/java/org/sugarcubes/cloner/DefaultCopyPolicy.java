@@ -26,12 +26,34 @@ public class DefaultCopyPolicy implements CopyPolicy {
 
     @Override
     public CopyAction getTypeAction(Class<?> type) {
-        return typeActions.getOrDefault(type, CopyAction.DEFAULT);
+        CopyAction action = typeActions.get(type);
+        if (action != null) {
+            return action;
+        }
+        TypePolicy annotation = type.getDeclaredAnnotation(TypePolicy.class);
+        if (annotation != null) {
+            return annotation.value();
+        }
+        for (Class<?> t = type; (t = t.getSuperclass()) != null; ) {
+            annotation = t.getDeclaredAnnotation(TypePolicy.class);
+            if (annotation != null && annotation.includeSubclasses()) {
+                return annotation.value();
+            }
+        }
+        return CopyAction.DEFAULT;
     }
 
     @Override
     public FieldCopyAction getFieldAction(Field field) {
-        return fieldActions.getOrDefault(field, FieldCopyAction.DEFAULT);
+        FieldCopyAction action = fieldActions.get(field);
+        if (action != null) {
+            return action;
+        }
+        FieldPolicy annotation = field.getDeclaredAnnotation(FieldPolicy.class);
+        if (annotation != null) {
+            return annotation.value();
+        }
+        return FieldCopyAction.DEFAULT;
     }
 
 }

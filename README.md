@@ -99,8 +99,6 @@ Cloner cloner =
         .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
         // custom copier for SomeOtherObject type
         .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
-        // use annotations
-        .setAnnotated()
         // parallel mode
         .setDefaultExecutor()
         // create cloner

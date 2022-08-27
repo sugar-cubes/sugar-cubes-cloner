@@ -22,7 +22,7 @@ public class SequentialReflectionCloner extends AbstractReflectionCloner {
     }
 
     @Override
-    protected CopyContext newCopyContext() {
+    protected AbstractCopyContext newCopyContext() {
         return new SequentialCopyContext(registry, traversalAlgorithm);
     }
 
