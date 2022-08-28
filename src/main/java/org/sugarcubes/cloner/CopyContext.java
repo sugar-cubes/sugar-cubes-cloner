@@ -1,13 +1,35 @@
 package org.sugarcubes.cloner;
 
-import java.util.concurrent.Callable;
-
 /**
  * Context of the single cloning process.
  *
  * @author Maxim Butov
  */
 public interface CopyContext {
+
+    /**
+     * Action which is executed within copying context.
+     */
+    @FunctionalInterface
+    interface ContextAction {
+
+        /**
+         * Actual work.
+         *
+         * @throws Exception if something went wrong
+         */
+        void perform() throws Exception;
+
+    }
+
+    /**
+     * Registers clone in the context.
+     *
+     * @param <T> object type
+     * @param original original object
+     * @param clone clone
+     */
+    <T> void register(T original, T clone);
 
     /**
      * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy.
@@ -20,19 +42,10 @@ public interface CopyContext {
     <T> T copy(T original) throws Exception;
 
     /**
-     * Registers clone in the context.
-     *
-     * @param <T> object type
-     * @param original original object
-     * @param clone clone
-     */
-    <T> void register(T original, T clone);
-
-    /**
-     * Saves task to be invoked later.
+     * Invokes task. It can be invoked immediately or later depending on the context implementation.
      *
      * @param task task
      */
-    void invokeLater(Callable<?> task);
+    void thenInvoke(ContextAction task) throws Exception;
 
 }

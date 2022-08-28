@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Copier registry implementation.
+ * Copier provider implementation.
  *
  * @author Maxim Butov
  */
-public class ReflectionCopierRegistry implements CopierRegistry {
+public class ReflectionCopierProvider implements CopierProvider {
 
     /**
      * Object allocator.
@@ -45,7 +45,7 @@ public class ReflectionCopierRegistry implements CopierRegistry {
      * @param copiers predefined copiers
      * @param fieldCopierFactory field copier factory
      */
-    public ReflectionCopierRegistry(CopyPolicy policy, ObjectAllocator allocator, Map<Class<?>, ObjectCopier<?>> copiers,
+    public ReflectionCopierProvider(CopyPolicy policy, ObjectAllocator allocator, Map<Class<?>, ObjectCopier<?>> copiers,
         FieldCopierFactory fieldCopierFactory) {
         this.policy = policy;
         this.allocator = allocator;
@@ -64,7 +64,7 @@ public class ReflectionCopierRegistry implements CopierRegistry {
      * @param type object type
      * @return copier
      */
-    protected ObjectCopier<?> findCopier(Class<?> type) {
+    private ObjectCopier<?> findCopier(Class<?> type) {
         CopyAction action = policy.getTypeAction(type);
         switch (action) {
             case NULL:

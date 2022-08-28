@@ -11,12 +11,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
     public T copy(T original, CopyContext context) throws Exception {
         T clone = allocate(original);
         context.register(original, clone);
-        context.invokeLater(
-            () -> {
-                deepCopy(original, clone, context);
-                return null;
-            }
-        );
+        context.thenInvoke(() -> deepCopy(original, clone, context));
         return clone;
     }
 

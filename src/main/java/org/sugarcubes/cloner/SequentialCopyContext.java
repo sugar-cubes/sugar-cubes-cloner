@@ -2,7 +2,6 @@ package org.sugarcubes.cloner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 /**
@@ -15,22 +14,22 @@ public class SequentialCopyContext extends AbstractCopyContext {
     /**
      * Queue of actions to complete copying.
      */
-    private final Deque<Callable<?>> queue = new ArrayDeque<>();
+    private final Deque<ContextAction> queue = new ArrayDeque<>();
 
     /**
      * Poll method for {@link #queue}.
      * Depending on traversal algorithm can be {@link Deque#pollLast()} or {@link Deque#pollFirst()}.
      */
-    private final Function<Deque<Callable<?>>, Callable<?>> poll;
+    private final Function<Deque<ContextAction>, ContextAction> poll;
 
     /**
      * Creates an object instance.
      *
-     * @param registry copier registry
+     * @param copierProvider copier provider
      * @param traversalAlgorithm traversal algorithm
      */
-    public SequentialCopyContext(CopierRegistry registry, TraversalAlgorithm traversalAlgorithm) {
-        super(registry);
+    public SequentialCopyContext(CopierProvider copierProvider, TraversalAlgorithm traversalAlgorithm) {
+        super(copierProvider);
         this.poll = getPollMethod(traversalAlgorithm);
     }
 
@@ -46,14 +45,14 @@ public class SequentialCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    public void invokeLater(Callable<?> task) {
+    public void thenInvoke(ContextAction task) {
         queue.offer(task);
     }
 
     @Override
     public void complete() throws Exception {
-        for (Callable<?> next; (next = poll.apply(queue)) != null; ) {
-            next.call();
+        for (ContextAction next; (next = poll.apply(queue)) != null; ) {
+            next.perform();
         }
     }
 

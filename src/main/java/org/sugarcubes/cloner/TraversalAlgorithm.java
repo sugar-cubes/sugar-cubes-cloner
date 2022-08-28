@@ -15,6 +15,6 @@ public enum TraversalAlgorithm {
     /**
      * Breadth first.
      */
-    BREADTH_FIRST;
+    BREADTH_FIRST,
 
 }

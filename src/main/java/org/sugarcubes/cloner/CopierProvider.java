@@ -1,11 +1,11 @@
 package org.sugarcubes.cloner;
 
 /**
- * Copier registry interface.
+ * Copier provider interface.
  *
  * @author Maxim Butov
  */
-public interface CopierRegistry {
+public interface CopierProvider {
 
     /**
      * Returns copier by type.

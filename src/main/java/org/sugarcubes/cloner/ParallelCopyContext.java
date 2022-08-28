@@ -32,11 +32,11 @@ public class ParallelCopyContext extends AbstractCopyContext {
     /**
      * Creates an instance.
      *
-     * @param registry copier registry
+     * @param copierProvider copier provider
      * @param executor executor service
      */
-    public ParallelCopyContext(CopierRegistry registry, ExecutorService executor) {
-        super(registry);
+    public ParallelCopyContext(CopierProvider copierProvider, ExecutorService executor) {
+        super(copierProvider);
         this.executor = executor;
     }
 
@@ -46,9 +46,13 @@ public class ParallelCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    public void invokeLater(Callable<?> task) {
+    public void thenInvoke(ContextAction task) {
         if (running) {
-            futures.offer(executor.submit(task));
+            Callable<?> callable = () -> {
+                task.perform();
+                return null;
+            };
+            futures.offer(executor.submit(callable));
         }
     }
 

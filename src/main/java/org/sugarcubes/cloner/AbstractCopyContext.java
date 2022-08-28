@@ -11,9 +11,9 @@ import java.util.Map;
 public abstract class AbstractCopyContext implements CopyContext {
 
     /**
-     * Copiers registry.
+     * Copier provider.
      */
-    private final CopierRegistry registry;
+    private final CopierProvider copierProvider;
 
     /**
      * Cache of previously copied objects.
@@ -21,12 +21,12 @@ public abstract class AbstractCopyContext implements CopyContext {
     private final Map<Object, Object> clones = new IdentityHashMap<>();
 
     /**
-     * Creates context with specified copier registry.
+     * Creates context with specified copier provider.
      *
-     * @param registry copier registry
+     * @param copierProvider copier provider
      */
-    protected AbstractCopyContext(CopierRegistry registry) {
-        this.registry = registry;
+    protected AbstractCopyContext(CopierProvider copierProvider) {
+        this.copierProvider = copierProvider;
     }
 
     @Override
@@ -34,7 +34,7 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (original == null) {
             return null;
         }
-        ObjectCopier<T> copier = (ObjectCopier<T>) registry.getCopier(original.getClass());
+        ObjectCopier<T> copier = (ObjectCopier<T>) copierProvider.getCopier(original.getClass());
         // trivial case
         if (copier == ObjectCopier.NULL || copier == ObjectCopier.NOOP) {
             return copier.copy(original, this);

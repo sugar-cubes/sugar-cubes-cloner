@@ -119,7 +119,9 @@ It's possible to use annotations to configure field/type actions and custom type
 | [TypePolicy](src/main/java/org/sugarcubes/cloner/TypePolicy.java) | Type copy policy. |
 
 ### Implementation
-                  
+                       
+There is three modes of execution: recursive, sequential and parallel.
+
 In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
 
 In parallel mode order is unpredictable.
