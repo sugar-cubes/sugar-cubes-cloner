@@ -42,7 +42,7 @@ public final class ReflectionFieldCopierFactory implements FieldCopierFactory {
     public FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
         switch (action) {
             case SKIP:
-                throw new IllegalStateException("Must be filtered before");
+                return FieldCopier.NOOP;
             case NULL:
                 return (original, clone, context) -> field.set(clone, null);
             case ORIGINAL:

@@ -47,7 +47,7 @@ public final class UnsafeFieldCopierFactory implements FieldCopierFactory {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (action) {
             case SKIP:
-                throw new IllegalStateException("Must be filtered before");
+                return FieldCopier.NOOP;
             case NULL:
                 return (original, clone, context) -> UNSAFE.putObject(clone, offset, null);
             case ORIGINAL:

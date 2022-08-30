@@ -8,6 +8,12 @@ package org.sugarcubes.cloner;
 public interface FieldCopier {
 
     /**
+     * No-op field copier.
+     */
+    FieldCopier NOOP = (original, clone, context) -> {
+    };
+
+    /**
      * Copies the field value from the original object to the clone.
      *
      * @param original original object
