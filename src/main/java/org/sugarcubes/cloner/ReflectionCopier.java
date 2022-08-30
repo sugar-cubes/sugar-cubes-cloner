@@ -11,6 +11,7 @@ import java.util.Arrays;
  */
 public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
 
+    private final Class<T> type;
     private final ObjectFactory<T> factory;
     private final ReflectionCopier<? super T> parent;
     private final FieldCopier[] fieldCopiers;
@@ -38,6 +39,7 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
     @SuppressWarnings("unchecked")
     public ReflectionCopier(CopyPolicy policy, ObjectAllocator allocator, Class<T> type, FieldCopierFactory fieldCopierFactory,
         ReflectionCopier<?> parent) {
+        this.type = type;
         this.factory = allocator.getFactory(type);
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?
             parent.parent : parent);

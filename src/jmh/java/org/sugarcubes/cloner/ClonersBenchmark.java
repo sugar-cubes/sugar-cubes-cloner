@@ -1,6 +1,8 @@
 package org.sugarcubes.cloner;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -31,6 +33,7 @@ public class ClonersBenchmark {
 
     private Cloner serialization;
     private Cloner reflection;
+    private Cloner recursive;
     private Cloner unsafe;
     private Kryo kryo;
     private com.rits.cloning.Cloner kk;
@@ -42,12 +45,16 @@ public class ClonersBenchmark {
 
         serialization = new SerializationCloner();
         reflection = Cloners.builder().build();
+        recursive = Cloners.builder().setMode(CloningMode.RECURSIVE).build();
         unsafe = Cloners.builder().setUnsafe().build();
         kryo = new Kryo();
         kryo.setRegistrationRequired(false);
         kk = new com.rits.cloning.Cloner();
 
-        sample = TestObjectFactory.randomObject(10, 10);
+//        sample = new Object();
+        sample = Stream.generate(() -> TestObjectFactory.randomObject(10, 10))
+            .limit(10)
+            .collect(Collectors.toList());
     }
 
     @Benchmark
@@ -58,6 +65,11 @@ public class ClonersBenchmark {
     @Benchmark
     public void reflection() {
         reflection.clone(sample);
+    }
+
+    @Benchmark
+    public void recursive() {
+        recursive.clone(sample);
     }
 
     @Benchmark

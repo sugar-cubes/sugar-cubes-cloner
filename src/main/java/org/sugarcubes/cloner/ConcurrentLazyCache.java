@@ -10,7 +10,7 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-public class LazyCache<K, V> {
+public class ConcurrentLazyCache<K, V> {
 
     /**
      * Key-value mapping function.
@@ -27,7 +27,7 @@ public class LazyCache<K, V> {
      *
      * @param mappingFunction key-value mapping function
      */
-    public LazyCache(Function<K, V> mappingFunction) {
+    public ConcurrentLazyCache(Function<K, V> mappingFunction) {
         this(Collections.emptyMap(), mappingFunction);
     }
 
@@ -37,7 +37,7 @@ public class LazyCache<K, V> {
      * @param initialMap initial cache entries
      * @param mappingFunction key-value mapping function
      */
-    public LazyCache(Map<K, V> initialMap, Function<K, V> mappingFunction) {
+    public ConcurrentLazyCache(Map<K, V> initialMap, Function<K, V> mappingFunction) {
         this.mappingFunction = mappingFunction;
         this.cache = new ConcurrentHashMap<>(initialMap);
     }
@@ -59,7 +59,7 @@ public class LazyCache<K, V> {
      * @return value
      */
     public V get(K key) {
-        // get is faster than computeIfAbsent, try it first
+        // get() is faster than computeIfAbsent(), try it first
         V value = cache.get(key);
         return value != null ? value : cache.computeIfAbsent(key, mappingFunction);
     }

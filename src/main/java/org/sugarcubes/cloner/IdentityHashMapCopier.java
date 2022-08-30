@@ -4,11 +4,9 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * Copier for {@link IdentityHashMap}.
- *
- * {@link ReflectionCopier} is not suitable for {@link IdentityHashMap} because the result's {@link IdentityHashMap#table} has its
- * entries on wrong places because clones have different identity hash codes than original objects. Thus, the map has to be
- * entirely rebuilt.
+ * Copier for {@link IdentityHashMap}. {@link ReflectionCopier} is not suitable for {@link IdentityHashMap} because the result's
+ * {@link IdentityHashMap#table} has its entries on wrong places because clones have different identity hash codes than original
+ * objects. Thus, the map has to be entirely rebuilt.
  *
  * @author Maxim Butov
  */

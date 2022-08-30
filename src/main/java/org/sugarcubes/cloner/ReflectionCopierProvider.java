@@ -30,7 +30,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Cache of copiers.
      */
-    private final LazyCache<Class<?>, ObjectCopier<?>> copiers = new LazyCache<>(this::findCopier);
+    private final ConcurrentLazyCache<Class<?>, ObjectCopier<?>> copiers = new ConcurrentLazyCache<>(this::findCopier);
 
     /**
      * Cache of reflection copiers.

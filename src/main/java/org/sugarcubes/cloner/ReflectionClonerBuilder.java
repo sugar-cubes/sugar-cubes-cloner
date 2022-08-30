@@ -79,14 +79,14 @@ public final class ReflectionClonerBuilder {
     private FieldCopierFactory fieldCopierFactory;
 
     /**
+     * Cloning mode.
+     */
+    private CloningMode mode;
+
+    /**
      * Traversal algorithm for sequential mode.
      */
     private TraversalAlgorithm traversalAlgorithm;
-
-    /**
-     * Recursive mode.
-     */
-    private boolean recursive;
 
     /**
      * Executor service for parallel mode.
@@ -150,12 +150,16 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Checks all of {@link #traversalAlgorithm}, {@link #executor}, {@link #recursive} were not set before.
+     * Sets cloning mode.
+     *
+     * @param mode cloning mode
+     * @return same builder instance
      */
-    private void checkModeNotSet() {
-        Check.isNull(this.traversalAlgorithm, "Traversal algorithm already set");
-        Check.illegalArg(this.recursive, "Recursive mode already set");
-        Check.isNull(this.executor, "Executor already set");
+    public ReflectionClonerBuilder setMode(CloningMode mode) {
+        Check.argNotNull(mode, "Mode");
+        Check.isNull(this.mode, "Mode already set");
+        this.mode = mode;
+        return this;
     }
 
     /**
@@ -165,19 +169,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTraversalAlgorithm(TraversalAlgorithm traversalAlgorithm) {
-        checkModeNotSet();
-        this.traversalAlgorithm = Check.argNotNull(traversalAlgorithm, "Traversal algorithm");
-        return this;
-    }
-
-    /**
-     * Enables recursive mode.
-     *
-     * @return same builder instance
-     */
-    public ReflectionClonerBuilder setRecursive() {
-        checkModeNotSet();
-        this.recursive = true;
+        Check.argNotNull(traversalAlgorithm, "Traversal algorithm");
+        Check.isNull(this.traversalAlgorithm, "Traversal algorithm already set");
+        this.traversalAlgorithm = traversalAlgorithm;
         return this;
     }
 
@@ -188,8 +182,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setExecutor(ExecutorService executor) {
-        checkModeNotSet();
-        this.executor = Check.argNotNull(executor, "Executor");
+        Check.argNotNull(executor, "Executor");
+        Check.isNull(this.executor, "Executor already set");
+        this.executor = executor;
         return this;
     }
 
@@ -219,15 +214,6 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Enables parallel mode with default executor.
-     *
-     * @return same builder instance
-     */
-    public ReflectionClonerBuilder setDefaultExecutor() {
-        return setExecutor(ForkJoinPool.commonPool());
-    }
-
-    /**
      * Registers custom action for type.
      *
      * @param type object type
@@ -238,6 +224,9 @@ public final class ReflectionClonerBuilder {
         Check.argNotNull(type, "Type");
         Check.argNotNull(action, "Action");
         Check.isNull(typeActions.put(type, action), "Action for %s already set.", type);
+        if (action != CopyAction.DEFAULT) {
+            copiers.remove(type);
+        }
         return this;
     }
 
@@ -308,19 +297,26 @@ public final class ReflectionClonerBuilder {
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider = new ReflectionCopierProvider(policy, allocator, copiers, fieldCopierFactory);
         Supplier<? extends AbstractCopyContext> contextSupplier;
-        ExecutorService executor = this.executor;
-        if (executor == null) {
-            if (recursive) {
+        CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
+        switch (mode) {
+            case RECURSIVE:
+                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for recursive mode");
+                Check.isNull(this.executor, "Executor must be null for recursive mode");
                 contextSupplier = () -> new RecursiveCopyContext(provider);
-            }
-            else {
+                break;
+            case SEQUENTIAL:
+                Check.isNull(this.executor, "Executor must be null for sequential mode");
                 TraversalAlgorithm traversalAlgorithm =
                     this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
                 contextSupplier = () -> new SequentialCopyContext(provider, traversalAlgorithm);
-            }
-        }
-        else {
-            contextSupplier = () -> new ParallelCopyContext(provider, executor);
+                break;
+            case PARALLEL:
+                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for parallel mode");
+                ExecutorService executor = createIfNull(this.executor, ForkJoinPool::commonPool);
+                contextSupplier = () -> new ParallelCopyContext(provider, executor);
+                break;
+            default:
+                throw new IllegalStateException();
         }
         return new ClonerImpl(contextSupplier);
     }

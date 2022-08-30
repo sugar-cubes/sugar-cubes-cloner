@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 class ParallelReflectionClonerTest extends AbstractClonerTests {
 
     public ParallelReflectionClonerTest() {
-        super(new ReflectionClonerBuilder().setDefaultExecutor().build());
+        super(Cloners.builder().setMode(CloningMode.PARALLEL).build());
     }
 
     @Test

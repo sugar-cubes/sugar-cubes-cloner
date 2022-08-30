@@ -1,5 +1,7 @@
 package org.sugarcubes.cloner;
 
+import java.util.concurrent.Callable;
+
 /**
  * Copy context with recursive invocations.
  *
@@ -17,8 +19,8 @@ public class RecursiveCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    public void thenInvoke(ContextAction task) throws Exception {
-        task.perform();
+    public void thenInvoke(Callable<?> task) throws Exception {
+        task.call();
     }
 
     @Override

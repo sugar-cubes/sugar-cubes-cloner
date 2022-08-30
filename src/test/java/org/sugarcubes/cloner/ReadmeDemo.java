@@ -18,7 +18,7 @@ public class ReadmeDemo {
                 // custom copier for SomeOtherObject type
                 .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
                 // parallel mode
-                .setDefaultExecutor()
+                .setMode(CloningMode.PARALLEL)
                 // create cloner
                 .build();
 

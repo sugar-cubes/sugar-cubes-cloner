@@ -46,13 +46,9 @@ public class ParallelCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    public void thenInvoke(ContextAction task) {
+    public void thenInvoke(Callable<?> task) {
         if (running) {
-            Callable<?> callable = () -> {
-                task.perform();
-                return null;
-            };
-            futures.offer(executor.submit(callable));
+            futures.offer(executor.submit(task));
         }
     }
 

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 class SequentialReflectionClonerTest extends AbstractClonerTests {
 
     public SequentialReflectionClonerTest() {
-        super(new ReflectionClonerBuilder().build());
+        super(Cloners.builder().setMode(CloningMode.SEQUENTIAL).build());
     }
 
     @Test
