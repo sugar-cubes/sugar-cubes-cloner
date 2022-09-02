@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 public interface CopyPolicy {
 
     /**
-     * Returns action to apply to a field value.
+     * Returns action to apply to a field value. Must return non-null value.
      *
      * @param field field
      * @return action
@@ -20,7 +20,7 @@ public interface CopyPolicy {
     }
 
     /**
-     * Returns action to apply to an instance of the type.
+     * Returns action to apply to an instance of the type. Must return non-null value.
      *
      * @param type type
      * @return action

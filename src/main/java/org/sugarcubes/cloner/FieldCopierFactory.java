@@ -14,7 +14,7 @@ public interface FieldCopierFactory {
      *
      * @param field field
      * @param action copying action
-     * @return field copy action
+     * @return field copier
      */
     default FieldCopier getFieldCopier(Field field, FieldCopyAction action) {
         return field.getType().isPrimitive() ? getPrimitiveFieldCopier(field) : getObjectFieldCopier(field, action);

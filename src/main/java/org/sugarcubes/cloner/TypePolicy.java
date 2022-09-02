@@ -24,10 +24,10 @@ public @interface TypePolicy {
     CopyAction value();
 
     /**
-     * Apply the action for subtypes.
+     * Apply the action to subtypes.
      *
      * @return apply for subtypes
      */
-    boolean includeSubclasses() default false;
+    boolean applyToSubtypes() default false;
 
 }

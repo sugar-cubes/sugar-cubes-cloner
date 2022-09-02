@@ -1,10 +1,12 @@
 package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -92,6 +94,11 @@ public final class ReflectionClonerBuilder {
      * Executor service for parallel mode.
      */
     private ExecutorService executor;
+
+    /**
+     * Custom copy policy.
+     */
+    private CopyPolicy policy;
 
     /**
      * Custom actions for types.
@@ -185,6 +192,19 @@ public final class ReflectionClonerBuilder {
         Check.argNotNull(executor, "Executor");
         Check.isNull(this.executor, "Executor already set");
         this.executor = executor;
+        return this;
+    }
+
+    /**
+     * Sets custom copy policy.
+     *
+     * @param policy copy policy
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setPolicy(CopyPolicy policy) {
+        Check.argNotNull(policy, "Policy");
+        Check.isNull(this.policy, "Policy already set");
+        this.policy = policy;
         return this;
     }
 
@@ -292,10 +312,18 @@ public final class ReflectionClonerBuilder {
      * @return cloner
      */
     public Cloner build() {
-        CopyPolicy policy = new DefaultCopyPolicy(typeActions, fieldActions);
+        List<CopyPolicy> policies = new ArrayList<>();
+        if (this.policy != null) {
+            policies.add(this.policy);
+        }
+        policies.add(new CustomCopyPolicy(typeActions, fieldActions));
+        policies.add(new AnnotatedCopyPolicy());
+        CopyPolicy policy = new CompoundCopyPolicy(policies);
+
         ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider = new ReflectionCopierProvider(policy, allocator, copiers, fieldCopierFactory);
+
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
         switch (mode) {
