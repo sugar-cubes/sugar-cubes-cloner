@@ -52,6 +52,8 @@ public class SequentialCopyContext extends AbstractCopyContext {
 
     @Override
     public void complete() throws Exception {
+        Deque<Callable<?>> queue = this.queue;
+        Function<Deque<Callable<?>>, Callable<?>> poll = this.poll;
         for (Callable<?> next; (next = poll.apply(queue)) != null; ) {
             next.call();
         }

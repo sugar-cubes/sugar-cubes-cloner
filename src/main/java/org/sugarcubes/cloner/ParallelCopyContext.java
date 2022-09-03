@@ -61,6 +61,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
 
     @Override
     public void complete() throws Exception {
+        Queue<Future<?>> futures = this.futures;
         for (Future<?> future; (future = futures.poll()) != null; ) {
             try {
                 future.get();
@@ -79,6 +80,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
 
     private void cancel() {
         running = false;
+        Queue<Future<?>> futures = this.futures;
         for (Future<?> future; (future = futures.poll()) != null; ) {
             future.cancel(false);
         }

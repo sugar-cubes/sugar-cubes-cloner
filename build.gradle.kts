@@ -6,7 +6,7 @@ plugins {
 
 group = "org.sugarcubes"
 version = "1.0.0"
-description = "Java cloning library"
+description = "Java Reflection Cloner library"
 
 repositories {
     mavenCentral()
@@ -30,7 +30,10 @@ dependencies {
 
 }
 
-// configurations.jmh.get().extendsFrom(configurations.testCompileClasspath.get())
+tasks.withType<JavaCompile> {
+    sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+    targetCompatibility = JavaVersion.VERSION_1_8.toString()
+}
 
 checkstyle {
     toolVersion = "8.14"

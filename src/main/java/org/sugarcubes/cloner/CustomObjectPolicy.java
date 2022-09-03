@@ -23,7 +23,7 @@ public class CustomObjectPolicy implements ObjectPolicy {
     public CustomObjectPolicy(Map<Object, CopyAction> objectActions) {
         this.objectActions = new IdentityHashMap<>(objectActions);
         this.objectActions.entrySet().removeIf(entry -> entry.getValue() == CopyAction.DEFAULT);
-        Check.illegalArg(this.objectActions.isEmpty(), "");
+        Check.illegalArg(this.objectActions.isEmpty(), "Action map must contain at least one non-default action.");
     }
 
     @Override
