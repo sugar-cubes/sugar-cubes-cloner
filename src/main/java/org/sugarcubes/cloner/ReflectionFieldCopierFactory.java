@@ -7,11 +7,15 @@ import java.lang.reflect.Field;
  *
  * @author Maxim Butov
  */
-public final class ReflectionFieldCopierFactory implements FieldCopierFactory {
+public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFactory {
 
     @Override
-    public FieldCopier getPrimitiveFieldCopier(Field field) {
-        ReflectionUtils.makeAccessible(field);
+    public FieldCopier getFieldCopier(Field field, FieldCopyAction action) {
+        return super.getFieldCopier(ReflectionUtils.makeAccessible(field), action);
+    }
+
+    @Override
+    protected FieldCopier getPrimitiveFieldCopier(Field field) {
         switch (field.getType().getName()) {
             case "boolean":
                 return (original, clone, context) -> field.setBoolean(clone, field.getBoolean(original));
@@ -35,8 +39,7 @@ public final class ReflectionFieldCopierFactory implements FieldCopierFactory {
     }
 
     @Override
-    public FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
-        ReflectionUtils.makeAccessible(field);
+    protected FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
         switch (action) {
             case SKIP:
                 return FieldCopier.NOOP;

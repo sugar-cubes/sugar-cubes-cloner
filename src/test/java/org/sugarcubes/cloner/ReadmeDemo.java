@@ -16,7 +16,7 @@ public class ReadmeDemo {
                 // skip SomeObject.cachedValue field when cloning
                 .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
                 // custom copier for SomeOtherObject type
-                .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+                .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
                 // parallel mode
                 .setMode(CloningMode.PARALLEL)
                 // create cloner

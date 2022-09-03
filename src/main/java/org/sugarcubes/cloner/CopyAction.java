@@ -1,19 +1,19 @@
 package org.sugarcubes.cloner;
 
 /**
- * Actions which can be applied to inner objects.
+ * Actions which can be applied to objects.
  *
  * @author Maxim Butov
  */
 public enum CopyAction {
 
     /**
-     * Return {@code null} instead of original object.
+     * Use {@code null} instead of original object.
      */
     NULL,
 
     /**
-     * Return the original object.
+     * Use the original object.
      */
     ORIGINAL,
 

@@ -57,11 +57,12 @@ Faster than java.io serialization.
 | [Cloner](src/main/java/org/sugarcubes/cloner/Cloner.java) | The cloner interface. |
 | [ClonerException](src/main/java/org/sugarcubes/cloner/ClonerException.java) | Wrapper for all (checked and unchecked) exceptions, happened during cloning. Unchecked. |
 | [Cloners](src/main/java/org/sugarcubes/cloner/Cloners.java) | Factory for standard cloners. |
-| [CloningPolicy](src/main/java/org/sugarcubes/cloner/CloningPolicy.java) | Set of class/field rules for cloning. |
 | [CopyAction](src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (null/original/clone). |
+| [CopyPolicy](src/main/java/org/sugarcubes/cloner/CopyPolicy.java) | Set of class/field rules for cloning. |
 | [FieldCopyAction](src/main/java/org/sugarcubes/cloner/FieldCopyAction.java) | Field copy action (skip/null/original/clone). |
 | [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)| Allocator (instantiator) interface. |
 | [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier interface. |
+| [ObjectPolicy](src/main/java/org/sugarcubes/cloner/ObjectPolicy.java) | Custom copy actions for objects. |
 | [ReflectionClonerBuilder](src/main/java/org/sugarcubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
 | [TraversalAlgorithm](src/main/java/org/sugarcubes/cloner/TraversalAlgorithm.java) | DFS (default) or BFS. |
             
@@ -98,9 +99,9 @@ Cloner cloner =
         // skip SomeObject.cachedValue field when cloning
         .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
         // custom copier for SomeOtherObject type
-        .setObjectCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+        .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
         // parallel mode
-        .setDefaultExecutor()
+        .setMode(CloningMode.PARALLEL)
         // create cloner
         .build();
 

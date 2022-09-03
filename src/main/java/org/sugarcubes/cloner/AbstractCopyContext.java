@@ -16,7 +16,7 @@ public abstract class AbstractCopyContext implements CopyContext {
     private final CopierProvider copierProvider;
 
     /**
-     * Cache of previously copied objects.
+     * Previously copied objects.
      */
     private final Map<Object, Object> clones = new IdentityHashMap<>();
 
@@ -30,21 +30,21 @@ public abstract class AbstractCopyContext implements CopyContext {
     }
 
     @Override
+    public <T> void register(T original, T clone) {
+        clones.put(original, clone);
+    }
+
+    @Override
     public <T> T copy(T original) throws Exception {
         if (original == null) {
             return null;
         }
-        ObjectCopier<T> copier = (ObjectCopier<T>) copierProvider.getCopier(original.getClass());
+        ObjectCopier<T> copier = copierProvider.getCopier(original);
         // trivial case
         if (copier == ObjectCopier.NULL || copier == ObjectCopier.NOOP) {
             return copier.copy(original, this);
         }
         return doClone(original, copier);
-    }
-
-    @Override
-    public <T> void register(T original, T clone) {
-        clones.put(original, clone);
     }
 
     /**

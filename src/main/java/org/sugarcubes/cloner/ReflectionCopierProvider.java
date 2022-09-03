@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Copier provider implementation.
@@ -13,14 +14,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ReflectionCopierProvider implements CopierProvider {
 
     /**
-     * Object allocator.
+     * Object policy.
      */
-    private final ObjectAllocator allocator;
+    private final ObjectPolicy objectPolicy;
 
     /**
      * Copy policy.
      */
     private final CopyPolicy policy;
+
+    /**
+     * Object allocator.
+     */
+    private final ObjectAllocator allocator;
 
     /**
      * Field copier factory.
@@ -40,13 +46,15 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Constructor.
      *
+     * @param objectPolicy object policy
      * @param policy copy policy
      * @param allocator object allocator
      * @param copiers predefined copiers
      * @param fieldCopierFactory field copier factory
      */
-    public ReflectionCopierProvider(CopyPolicy policy, ObjectAllocator allocator, Map<Class<?>, ObjectCopier<?>> copiers,
-        FieldCopierFactory fieldCopierFactory) {
+    public ReflectionCopierProvider(ObjectPolicy objectPolicy, CopyPolicy policy, ObjectAllocator allocator, Map<Class<?>,
+        ObjectCopier<?>> copiers, FieldCopierFactory fieldCopierFactory) {
+        this.objectPolicy = objectPolicy;
         this.policy = policy;
         this.allocator = allocator;
         this.fieldCopierFactory = fieldCopierFactory;
@@ -54,8 +62,12 @@ public class ReflectionCopierProvider implements CopierProvider {
     }
 
     @Override
-    public ObjectCopier<?> getCopier(Class<?> type) {
-        return copiers.get(type);
+    public <T> ObjectCopier<T> getCopier(T original) {
+        if (objectPolicy != null) {
+            return (ObjectCopier<T>) processAction(objectPolicy.getObjectAction(original),
+                () -> copiers.get(original.getClass()));
+        }
+        return (ObjectCopier<T>) copiers.get(original.getClass());
     }
 
     /**
@@ -65,14 +77,17 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @return copier
      */
     private ObjectCopier<?> findCopier(Class<?> type) {
-        CopyAction action = policy.getTypeAction(type);
+        return processAction(policy.getTypeAction(type), () -> findCopierForType(type));
+    }
+
+    private ObjectCopier<?> processAction(CopyAction action, Supplier<ObjectCopier<?>> defaultCopierSupplier) {
         switch (action) {
             case NULL:
                 return ObjectCopier.NULL;
             case ORIGINAL:
                 return ObjectCopier.NOOP;
             case DEFAULT:
-                return findCopierForType(type);
+                return defaultCopierSupplier.get();
             default:
                 throw new IllegalStateException();
         }

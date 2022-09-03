@@ -19,7 +19,8 @@ public interface CopyContext {
     <T> void register(T original, T clone);
 
     /**
-     * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy.
+     * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy. The copy may not be
+     * the full copy of the original object, the inner state can be processed later.
      *
      * @param <T> object type
      * @param original original

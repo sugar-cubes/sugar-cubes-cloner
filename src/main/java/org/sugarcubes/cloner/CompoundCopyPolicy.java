@@ -12,6 +12,9 @@ import java.util.function.Function;
  */
 public class CompoundCopyPolicy implements CopyPolicy {
 
+    /**
+     * List of policies.
+     */
     private final CopyPolicy[] policies;
 
     /**
@@ -23,26 +26,7 @@ public class CompoundCopyPolicy implements CopyPolicy {
         this.policies = policies.toArray(new CopyPolicy[0]);
     }
 
-    /**
-     * Creates copy policy.
-     *
-     * @param policies list of policies
-     */
-    public CompoundCopyPolicy(CopyPolicy... policies) {
-        this.policies = policies;
-    }
-
     private <A extends Enum<A>> A findAction(Function<CopyPolicy, A> mapping, A defaultAction) {
-        for (CopyPolicy policy : policies) {
-            A action = mapping.apply(policy);
-            if (action != defaultAction) {
-                return action;
-            }
-        }
-        return defaultAction;
-    }
-
-    private <A extends Enum<A>> A findAction0(Function<CopyPolicy, A> mapping, A defaultAction) {
         return Arrays.stream(policies)
             .map(mapping)
             .filter(action -> action != defaultAction)
@@ -52,12 +36,12 @@ public class CompoundCopyPolicy implements CopyPolicy {
 
     @Override
     public CopyAction getTypeAction(Class<?> type) {
-        return findAction0(policy -> policy.getTypeAction(type), CopyAction.DEFAULT);
+        return findAction(policy -> policy.getTypeAction(type), CopyAction.DEFAULT);
     }
 
     @Override
     public FieldCopyAction getFieldAction(Field field) {
-        return findAction0(policy -> policy.getFieldAction(field), FieldCopyAction.DEFAULT);
+        return findAction(policy -> policy.getFieldAction(field), FieldCopyAction.DEFAULT);
     }
 
 }

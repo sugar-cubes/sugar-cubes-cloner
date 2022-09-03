@@ -8,11 +8,11 @@ package org.sugarcubes.cloner;
 public interface CopierProvider {
 
     /**
-     * Returns copier by type.
+     * Returns copier for the object.
      *
-     * @param type type
+     * @param original original object
      * @return copier
      */
-    ObjectCopier<?> getCopier(Class<?> type);
+    <T> ObjectCopier<T> getCopier(T original);
 
 }

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,6 +97,16 @@ public final class ReflectionClonerBuilder {
     private ExecutorService executor;
 
     /**
+     * Custom object policy.
+     */
+    private ObjectPolicy objectPolicy;
+
+    /**
+     * Custom actions for objects.
+     */
+    private final Map<Object, CopyAction> objectActions = new IdentityHashMap<>();
+
+    /**
      * Custom copy policy.
      */
     private CopyPolicy policy;
@@ -129,7 +140,7 @@ public final class ReflectionClonerBuilder {
      */
     public ReflectionClonerBuilder setAllocator(ObjectAllocator allocator) {
         Check.argNotNull(allocator, "Allocator");
-        Check.isNull(this.allocator, "Allocator already set");
+        Check.isNull(this.allocator, "Allocator already set.");
         this.allocator = allocator;
         return this;
     }
@@ -142,7 +153,7 @@ public final class ReflectionClonerBuilder {
      */
     public ReflectionClonerBuilder setFieldCopierFactory(FieldCopierFactory fieldCopierFactory) {
         Check.argNotNull(fieldCopierFactory, "Field copier factory");
-        Check.isNull(this.fieldCopierFactory, "Field copier factory already set");
+        Check.isNull(this.fieldCopierFactory, "Field copier factory already set.");
         this.fieldCopierFactory = fieldCopierFactory;
         return this;
     }
@@ -164,7 +175,7 @@ public final class ReflectionClonerBuilder {
      */
     public ReflectionClonerBuilder setMode(CloningMode mode) {
         Check.argNotNull(mode, "Mode");
-        Check.isNull(this.mode, "Mode already set");
+        Check.isNull(this.mode, "Mode already set.");
         this.mode = mode;
         return this;
     }
@@ -177,7 +188,7 @@ public final class ReflectionClonerBuilder {
      */
     public ReflectionClonerBuilder setTraversalAlgorithm(TraversalAlgorithm traversalAlgorithm) {
         Check.argNotNull(traversalAlgorithm, "Traversal algorithm");
-        Check.isNull(this.traversalAlgorithm, "Traversal algorithm already set");
+        Check.isNull(this.traversalAlgorithm, "Traversal algorithm already set.");
         this.traversalAlgorithm = traversalAlgorithm;
         return this;
     }
@@ -190,8 +201,36 @@ public final class ReflectionClonerBuilder {
      */
     public ReflectionClonerBuilder setExecutor(ExecutorService executor) {
         Check.argNotNull(executor, "Executor");
-        Check.isNull(this.executor, "Executor already set");
+        Check.isNull(this.executor, "Executor already set.");
         this.executor = executor;
+        return this;
+    }
+
+    /**
+     * Sets custom object policy.
+     *
+     * @param objectPolicy object policy
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setObjectPolicy(ObjectPolicy objectPolicy) {
+        Check.argNotNull(objectPolicy, "Object policy");
+        Check.isNull(this.objectPolicy, "Object policy already set.");
+        this.objectPolicy = objectPolicy;
+        return this;
+    }
+
+    /**
+     * Registers custom action for object.
+     *
+     * @param original original object
+     * @param action custom action
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setObjectAction(Object original, CopyAction action) {
+        Check.argNotNull(original, "Original");
+        Check.argNotNull(action, "Action");
+        Check.illegalArg(objectActions.containsKey(original), "Action for %s already set.", original);
+        objectActions.put(original, action);
         return this;
     }
 
@@ -203,33 +242,8 @@ public final class ReflectionClonerBuilder {
      */
     public ReflectionClonerBuilder setPolicy(CopyPolicy policy) {
         Check.argNotNull(policy, "Policy");
-        Check.isNull(this.policy, "Policy already set");
+        Check.isNull(this.policy, "Policy already set.");
         this.policy = policy;
-        return this;
-    }
-
-    /**
-     * Registers set of custom copiers.
-     *
-     * @param copiers custom copiers
-     * @return same builder instance
-     */
-    public ReflectionClonerBuilder setCopiers(Map<Class<?>, ObjectCopier<?>> copiers) {
-        copiers.forEach(this::setObjectCopier);
-        return this;
-    }
-
-    /**
-     * Registers custom copier for type.
-     *
-     * @param type object type
-     * @param copier custom copier
-     * @return same builder instance
-     */
-    public ReflectionClonerBuilder setObjectCopier(Class<?> type, ObjectCopier<?> copier) {
-        Check.argNotNull(type, "Type");
-        Check.argNotNull(copier, "Copier");
-        Check.illegalArg(copiers.put(type, copier) != DEFAULT_COPIERS.get(type), "Copier for %s already set", type);
         return this;
     }
 
@@ -243,7 +257,8 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder setTypeAction(Class<?> type, CopyAction action) {
         Check.argNotNull(type, "Type");
         Check.argNotNull(action, "Action");
-        Check.isNull(typeActions.put(type, action), "Action for %s already set.", type);
+        Check.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
+        typeActions.put(type, action);
         if (action != CopyAction.DEFAULT) {
             copiers.remove(type);
         }
@@ -274,8 +289,9 @@ public final class ReflectionClonerBuilder {
         Check.argNotNull(field, "Field");
         Check.argNotNull(action, "Action");
         Check.illegalArg(field.getType().isPrimitive() && action == FieldCopyAction.NULL,
-            "Cannot set action NULL for primitive field");
-        Check.isNull(fieldActions.put(field, action), "Action for %s already set.", field);
+            "Cannot apply action NULL for primitive field %s.", field);
+        Check.illegalArg(fieldActions.containsKey(field), "Action for %s already set.", field);
+        fieldActions.put(field, action);
         return this;
     }
 
@@ -292,6 +308,32 @@ public final class ReflectionClonerBuilder {
         Check.argNotNull(field, "Field");
         Check.argNotNull(action, "Action");
         return setFieldAction(ReflectionUtils.getField(type, field), action);
+    }
+
+    /**
+     * Registers set of custom copiers.
+     *
+     * @param copiers custom copiers
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setCopiers(Map<Class<?>, ObjectCopier<?>> copiers) {
+        copiers.forEach(this::setCopier);
+        return this;
+    }
+
+    /**
+     * Registers custom copier for type.
+     *
+     * @param type object type
+     * @param copier custom copier
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setCopier(Class<?> type, ObjectCopier<?> copier) {
+        Check.argNotNull(type, "Type");
+        Check.argNotNull(copier, "Copier");
+        Check.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
+        copiers.put(type, copier);
+        return this;
     }
 
     /**
@@ -312,6 +354,12 @@ public final class ReflectionClonerBuilder {
      * @return cloner
      */
     public Cloner build() {
+        ObjectPolicy objectPolicy = this.objectPolicy;
+        if (!objectActions.isEmpty()) {
+            Check.illegalArg(objectPolicy != null, "Cannot set object policy and object actions at te same time.");
+            objectPolicy = new CustomObjectPolicy(objectActions);
+        }
+
         List<CopyPolicy> policies = new ArrayList<>();
         if (this.policy != null) {
             policies.add(this.policy);
@@ -322,24 +370,25 @@ public final class ReflectionClonerBuilder {
 
         ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
-        ReflectionCopierProvider provider = new ReflectionCopierProvider(policy, allocator, copiers, fieldCopierFactory);
+        ReflectionCopierProvider provider =
+            new ReflectionCopierProvider(objectPolicy, policy, allocator, copiers, fieldCopierFactory);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
         switch (mode) {
             case RECURSIVE:
-                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for recursive mode");
-                Check.isNull(this.executor, "Executor must be null for recursive mode");
+                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for recursive mode.");
+                Check.isNull(this.executor, "Executor must be null for recursive mode.");
                 contextSupplier = () -> new RecursiveCopyContext(provider);
                 break;
             case SEQUENTIAL:
-                Check.isNull(this.executor, "Executor must be null for sequential mode");
+                Check.isNull(this.executor, "Executor must be null for sequential mode.");
                 TraversalAlgorithm traversalAlgorithm =
                     this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
                 contextSupplier = () -> new SequentialCopyContext(provider, traversalAlgorithm);
                 break;
             case PARALLEL:
-                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for parallel mode");
+                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for parallel mode.");
                 ExecutorService executor = createIfNull(this.executor, ForkJoinPool::commonPool);
                 contextSupplier = () -> new ParallelCopyContext(provider, executor);
                 break;

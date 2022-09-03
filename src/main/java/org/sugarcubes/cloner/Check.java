@@ -56,7 +56,7 @@ public class Check {
      * @throws IllegalArgumentException if {@code value == null}
      */
     public static <T> T argNotNull(T value, String name) throws IllegalArgumentException {
-        return notNull(value, "%s must be not null", name);
+        return notNull(value, "%s must be not null.", name);
     }
 
     /**

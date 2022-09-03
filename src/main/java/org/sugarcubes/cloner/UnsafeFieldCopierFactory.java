@@ -10,7 +10,7 @@ import sun.misc.Unsafe;
  *
  * @author Maxim Butov
  */
-public final class UnsafeFieldCopierFactory implements FieldCopierFactory {
+public final class UnsafeFieldCopierFactory extends AbstractFieldCopierFactory {
 
     /**
      * {@link Unsafe} instance.
@@ -18,7 +18,7 @@ public final class UnsafeFieldCopierFactory implements FieldCopierFactory {
     private static final Unsafe UNSAFE = UnsafeUtils.getUnsafe();
 
     @Override
-    public FieldCopier getPrimitiveFieldCopier(Field field) {
+    protected FieldCopier getPrimitiveFieldCopier(Field field) {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (field.getType().getName()) {
             case "boolean":
@@ -43,7 +43,7 @@ public final class UnsafeFieldCopierFactory implements FieldCopierFactory {
     }
 
     @Override
-    public FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
+    protected FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (action) {
             case SKIP:
