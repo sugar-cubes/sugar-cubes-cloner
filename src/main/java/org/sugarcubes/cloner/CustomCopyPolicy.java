@@ -29,13 +29,13 @@ public class CustomCopyPolicy implements CopyPolicy {
      * @param fieldActions field actions
      */
     public CustomCopyPolicy(Map<Class<?>, CopyAction> typeActions, Map<Field, FieldCopyAction> fieldActions) {
-        this.typeActions = copyOfMap(typeActions);
-        this.fieldActions = copyOfMap(fieldActions);
+        this.typeActions = copyOfMap(typeActions, CopyAction.DEFAULT);
+        this.fieldActions = copyOfMap(fieldActions, FieldCopyAction.DEFAULT);
     }
 
-    private static <K, V> Map<K, V> copyOfMap(Map<K, V> map) {
-        Map<K, V> copy = new HashMap<>(map);
-        copy.entrySet().removeIf(entry -> entry.getValue() == CopyAction.DEFAULT);
+    private static <K, A extends Enum<A>> Map<K, A> copyOfMap(Map<K, A> map, A defaultAction) {
+        Map<K, A> copy = new HashMap<>(map);
+        copy.entrySet().removeIf(entry -> entry.getValue() == defaultAction);
         return copy.isEmpty() ? Collections.emptyMap() : copy;
     }
 

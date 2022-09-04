@@ -1,8 +1,8 @@
 package org.sugarcubes.cloner;
 
 /**
- * Rules for objects cloning. Using {@link ObjectPolicy} significantly slows down cloning process,
- * that's why it is extracted to separate interface.
+ * Rules for objects cloning. Using {@link ObjectPolicy} significantly slows down cloning process, that's why it is extracted to
+ * separate interface and should not be used when {@link CopyPolicy} is enough.
  *
  * @see CopyPolicy
  *

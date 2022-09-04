@@ -62,6 +62,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> ObjectCopier<T> getCopier(T original) {
         if (objectPolicy != null) {
             return (ObjectCopier<T>) processAction(objectPolicy.getObjectAction(original),
