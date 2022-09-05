@@ -44,7 +44,7 @@ public class ClonersBenchmark {
     @Setup
     public void setup() {
 
-        serialization = new SerializationCloner();
+        serialization = Cloners.serialization();
         reflection = Cloners.builder().build();
         recursive = Cloners.builder().setMode(CloningMode.RECURSIVE).build();
         unsafe = Cloners.builder().setUnsafe().build();
