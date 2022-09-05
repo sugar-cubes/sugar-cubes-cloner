@@ -128,7 +128,7 @@ tasks.create("licenseFormat") {
             true,
             file("HEADER.txt").toURI(),
             fileTree("src/main/java"),
-            Collections.emptyMap(),
+            Collections.singletonMap("java", "SLASHSTAR_STYLE"),
             "utf-8",
             Collections.emptyList()
         )
