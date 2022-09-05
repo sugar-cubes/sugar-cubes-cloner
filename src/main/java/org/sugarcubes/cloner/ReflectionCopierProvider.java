@@ -120,6 +120,7 @@ public class ReflectionCopierProvider implements CopierProvider {
             }
             if (Modifier.isFinal(componentType.getModifiers()) &&
                 policy.getTypeAction(componentType) == CopyAction.ORIGINAL) {
+                // there is no mutable subtype of componentType, so, we can shallow clone array
                 return ObjectCopier.SHALLOW;
             }
             return ObjectCopier.OBJECT_ARRAY;

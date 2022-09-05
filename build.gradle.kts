@@ -1,9 +1,8 @@
-import com.mycila.maven.plugin.license.*
+import com.mycila.maven.plugin.license.Callback
 import com.mycila.maven.plugin.license.header.HeaderDefinition
-import nl.javadude.gradle.plugins.license.maven.*
 import nl.javadude.gradle.plugins.license.maven.AbstractLicenseMojo
+import nl.javadude.gradle.plugins.license.maven.CallbackWithFailure
 import nl.javadude.gradle.plugins.license.maven.LicenseFormatMojo
-import java.lang.reflect.Method
 import java.net.URI
 import java.util.Collections
 
