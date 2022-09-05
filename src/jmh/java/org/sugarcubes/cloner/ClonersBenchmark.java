@@ -35,6 +35,7 @@ public class ClonersBenchmark {
     private Cloner reflection;
     private Cloner recursive;
     private Cloner unsafe;
+    private Cloner parallel;
     private Kryo kryo;
     private com.rits.cloning.Cloner kk;
 
@@ -47,6 +48,7 @@ public class ClonersBenchmark {
         reflection = Cloners.builder().build();
         recursive = Cloners.builder().setMode(CloningMode.RECURSIVE).build();
         unsafe = Cloners.builder().setUnsafe().build();
+        parallel = Cloners.builder().setMode(CloningMode.PARALLEL).build();
         kryo = new Kryo();
         kryo.setRegistrationRequired(false);
         kk = new com.rits.cloning.Cloner();
@@ -75,6 +77,11 @@ public class ClonersBenchmark {
     @Benchmark
     public void unsafe() {
         unsafe.clone(sample);
+    }
+
+    @Benchmark
+    public void parallel() {
+        parallel.clone(sample);
     }
 
     @Benchmark
