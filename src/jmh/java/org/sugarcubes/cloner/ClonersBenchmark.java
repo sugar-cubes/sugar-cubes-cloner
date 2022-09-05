@@ -51,10 +51,10 @@ public class ClonersBenchmark {
         kryo.setRegistrationRequired(false);
         kk = new com.rits.cloning.Cloner();
 
-//        sample = new Object();
         sample = Stream.generate(() -> TestObjectFactory.randomObject(10, 10))
             .limit(10)
             .collect(Collectors.toList());
+
     }
 
     @Benchmark

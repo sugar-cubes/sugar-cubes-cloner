@@ -50,7 +50,7 @@ public class TestObjectFactory {
                 TestObjectFactory::randomString,
                 TestObjectFactory::randomInstant,
                 TestObjectFactory::randomLocalDateTime,
-                () -> randomPrimitiveArray(random(boolean.class, byte.class, char.class, short.class, int.class, long.class, float.class, double.class), 1 + random.nextInt(width))
+                () -> randomPrimitiveArray(randomPrimitiveType(), 1 + random.nextInt(width))
             );
         }
         Object[] array = randomObjectArray(width, depth);
@@ -69,6 +69,10 @@ public class TestObjectFactory {
                 return map;
             }
         );
+    }
+
+    private static Class<?> randomPrimitiveType() {
+        return random(boolean.class, byte.class, char.class, short.class, int.class, long.class, float.class, double.class);
     }
 
     private static String randomString() {

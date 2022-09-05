@@ -1,7 +1,22 @@
+import com.mycila.maven.plugin.license.*
+import com.mycila.maven.plugin.license.header.HeaderDefinition
+import nl.javadude.gradle.plugins.license.maven.*
+import nl.javadude.gradle.plugins.license.maven.AbstractLicenseMojo
+import nl.javadude.gradle.plugins.license.maven.LicenseFormatMojo
+import java.lang.reflect.Method
+import java.net.URI
+import java.util.Collections
+
 plugins {
     `java-library`
     id("me.champeau.jmh") version "0.6.6"
     id("checkstyle")
+}
+
+buildscript {
+    dependencies {
+        classpath("gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0")
+    }
 }
 
 group = "org.sugarcubes"
@@ -35,6 +50,17 @@ tasks.withType<JavaCompile> {
     targetCompatibility = JavaVersion.VERSION_1_8.toString()
 }
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Implementation-Title"] = project.name
+        attributes["Implementation-Version"] = project.version
+        attributes["Automatic-Module-Name"] = project.name.replace('-', '.')
+        attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+        attributes["Import-Package"] = "sun.misc;resolution:=optional,org.objenesis;resolution:=optional"
+        attributes["Export-Package"] = "sun.misc;resolution:=optional,org.objenesis;resolution:=optional"
+    }
+}
+
 checkstyle {
     toolVersion = "8.14"
     configFile = file("checkstyle/checkstyle.xml")
@@ -53,4 +79,59 @@ tasks.named<Test>("test") {
 tasks.register<Copy>("exportJavadocs") {
     from(layout.buildDirectory.file("docs"))
     into(layout.projectDirectory.file("docs"))
+}
+
+class LicenseMojo(
+    validHeaders: MutableCollection<File>?,
+    rootDir: File?,
+    initial: MutableMap<String, String>?,
+    dryRun: Boolean,
+    skipExistingHeaders: Boolean,
+    useDefaultMappings: Boolean,
+    strictCheck: Boolean,
+    header: URI?,
+    source: FileCollection?,
+    mapping: MutableMap<String, String>?,
+    encoding: String?,
+    headerDefinitions: MutableList<HeaderDefinition>?
+) : AbstractLicenseMojo(
+    validHeaders,
+    rootDir,
+    initial,
+    dryRun,
+    skipExistingHeaders,
+    useDefaultMappings,
+    strictCheck,
+    header,
+    source,
+    mapping,
+    encoding,
+    headerDefinitions
+) {
+
+    public override fun execute(callback: Callback?) {
+        super.execute(callback)
+    }
+
+}
+
+tasks.create("licenseFormat") {
+    doLast {
+        val callback: CallbackWithFailure = LicenseFormatMojo(project.rootDir, false, false)
+        val license = LicenseMojo(
+            Collections.emptySet(),
+            project.rootDir,
+            Collections.emptyMap(),
+            false,
+            false,
+            true,
+            true,
+            file("HEADER.txt").toURI(),
+            fileTree("src/main/java"),
+            Collections.emptyMap(),
+            "utf-8",
+            Collections.emptyList()
+        )
+        license.execute(callback)
+    }
 }

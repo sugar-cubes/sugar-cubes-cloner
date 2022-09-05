@@ -43,7 +43,7 @@ Still serialization, but with non-standard libraries, such as:
       
 Faster than java.io serialization.
 
-### Cloning libraries
+### Other cloning libraries
 
 - [kryo](https://github.com/EsotericSoftware/kryo#deep-and-shallow-copies)
 - [kostaskougios/cloning](https://github.com/kostaskougios/cloning)
@@ -60,7 +60,6 @@ Faster than java.io serialization.
 | [CopyAction](src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (null/original/clone). |
 | [CopyPolicy](src/main/java/org/sugarcubes/cloner/CopyPolicy.java) | Set of class/field rules for cloning. |
 | [FieldCopyAction](src/main/java/org/sugarcubes/cloner/FieldCopyAction.java) | Field copy action (skip/null/original/clone). |
-| [ObjectAllocator](src/main/java/org/sugarcubes/cloner/ObjectAllocator.java)| Allocator (instantiator) interface. |
 | [ObjectCopier](src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier interface. |
 | [ObjectPolicy](src/main/java/org/sugarcubes/cloner/ObjectPolicy.java) | Custom copy actions for objects. |
 | [ReflectionClonerBuilder](src/main/java/org/sugarcubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
@@ -128,6 +127,11 @@ In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/w
 In parallel mode order is unpredictable.
 
 If the [Objenesis](https://github.com/easymock/objenesis) library is available, uses it to instantiate objects. Otherwise, uses reflection.
+
+The priority of copy configurations is:
+1. (high) builder configuration
+2. annotations
+3. (low) default configuration (JDK immutable classes)
 
 ### Known limitations
 
