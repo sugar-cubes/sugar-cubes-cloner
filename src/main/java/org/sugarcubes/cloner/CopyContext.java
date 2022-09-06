@@ -46,6 +46,7 @@ public interface CopyContext {
 
     /**
      * Invokes task. It can be invoked immediately or later depending on the context implementation.
+     * The result of callable is ignored.
      *
      * @param task task
      * @throws Exception if something went wrong

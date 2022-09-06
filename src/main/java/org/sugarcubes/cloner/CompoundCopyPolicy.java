@@ -41,6 +41,14 @@ public class CompoundCopyPolicy implements CopyPolicy {
         this.policies = policies.toArray(new CopyPolicy[0]);
     }
 
+    /**
+     * Finds the first non-default action in the list of policies.
+     *
+     * @param <A> action enum type
+     * @param mapping method of policy returning action
+     * @param defaultAction default action
+     * @return first non-default action if found, or default if not
+     */
     private <A extends Enum<A>> A findAction(Function<CopyPolicy, A> mapping, A defaultAction) {
         return Arrays.stream(policies)
             .map(mapping)

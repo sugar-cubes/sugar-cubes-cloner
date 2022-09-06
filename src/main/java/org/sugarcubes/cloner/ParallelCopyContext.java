@@ -40,7 +40,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
     private final Queue<Future<?>> futures = new ConcurrentLinkedDeque<>();
 
     /**
-     * Running flag.
+     * Running flag. When set to {@code false} further tasks will not be executed.
      */
     private volatile boolean running = true;
 

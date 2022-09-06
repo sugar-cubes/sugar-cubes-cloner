@@ -48,6 +48,15 @@ public class CustomCopyPolicy implements CopyPolicy {
         this.fieldActions = copyOfMap(fieldActions, FieldCopyAction.DEFAULT);
     }
 
+    /**
+     * Creates copy of map with action values, removes entries with default action as value.
+     *
+     * @param <K> key type
+     * @param <A> action type
+     * @param map source map
+     * @param defaultAction default action
+     * @return filtered copy of the source map
+     */
     private static <K, A extends Enum<A>> Map<K, A> copyOfMap(Map<K, A> map, A defaultAction) {
         Map<K, A> copy = new HashMap<>(map);
         copy.entrySet().removeIf(entry -> entry.getValue() == defaultAction);

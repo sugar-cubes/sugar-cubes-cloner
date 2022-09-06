@@ -8,6 +8,7 @@ import java.util.Collections
 
 plugins {
     `java-library`
+    `maven-publish`
     id("me.champeau.jmh") version "0.6.6"
     id("checkstyle")
 }
@@ -19,7 +20,7 @@ buildscript {
 }
 
 group = "org.sugarcubes"
-version = "1.0.0"
+version = "1.0.1"
 description = "Java Reflection Cloner library"
 
 repositories {
@@ -56,7 +57,7 @@ tasks.withType<Jar> {
         attributes["Automatic-Module-Name"] = project.name.replace('-', '.')
         attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
         attributes["Import-Package"] = "sun.misc;resolution:=optional,org.objenesis;resolution:=optional"
-        attributes["Export-Package"] = "sun.misc;resolution:=optional,org.objenesis;resolution:=optional"
+        attributes["Export-Package"] = "org.sugarcubes.cloner"
     }
 }
 
@@ -132,5 +133,18 @@ tasks.create("licenseFormat") {
             Collections.emptyList()
         )
         license.execute(callback)
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = URI("https://maven.pkg.github.com/mbutov/sugar-cubes-cloner")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: extra["gpr.user"].toString()
+                password = System.getenv("GITHUB_TOKEN") ?: extra["gpr.key"].toString()
+            }
+        }
     }
 }

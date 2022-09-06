@@ -96,6 +96,14 @@ public class ReflectionCopierProvider implements CopierProvider {
         return processAction(policy.getTypeAction(type), () -> findCopierForType(type));
     }
 
+    /**
+     * Object copier for {@link CopyAction#NULL} or {@link CopyAction#ORIGINAL} can be returned instantly. For the
+     * {@link CopyAction#DEFAULT} action #defaultCopierSupplier will be called.
+     *
+     * @param action copy action
+     * @param defaultCopierSupplier supplier of default copier
+     * @return object copier
+     */
     private ObjectCopier<?> processAction(CopyAction action, Supplier<ObjectCopier<?>> defaultCopierSupplier) {
         switch (action) {
             case NULL:
@@ -109,6 +117,12 @@ public class ReflectionCopierProvider implements CopierProvider {
         }
     }
 
+    /**
+     * Finds copier for type.
+     *
+     * @param type type
+     * @return object copier
+     */
     private ObjectCopier<?> findCopierForType(Class<?> type) {
         if (type.isEnum()) {
             return ObjectCopier.NOOP;
@@ -135,6 +149,12 @@ public class ReflectionCopierProvider implements CopierProvider {
         return findReflectionCopier(type);
     }
 
+    /**
+     * Creates an instance of object copier on the basis of annotation properties.
+     *
+     * @param annotation annotation
+     * @return object copier
+     */
     private ObjectCopier<?> createCopierFromAnnotation(TypeCopier annotation) {
         Class<? extends ObjectCopier<?>> copierClass = annotation.value();
         Constructor<? extends ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);

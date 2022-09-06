@@ -49,6 +49,13 @@ public class SequentialCopyContext extends AbstractCopyContext {
         this.poll = getPollMethod(traversalAlgorithm);
     }
 
+    /**
+     * Returns queue poll method for traversal algorithm.
+     *
+     * @param <T> queue item type
+     * @param traversalAlgorithm traversal algorithm
+     * @return queue poll method
+     */
     private <T> Function<Deque<T>, T> getPollMethod(TraversalAlgorithm traversalAlgorithm) {
         switch (traversalAlgorithm) {
             case DEPTH_FIRST:

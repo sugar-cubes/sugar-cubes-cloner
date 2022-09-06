@@ -25,8 +25,19 @@ import java.util.Arrays;
  */
 public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
 
+    /**
+     * Object factory of the type.
+     */
     private final ObjectFactory<T> factory;
+
+    /**
+     * Super type cloner, nullable.
+     */
     private final ReflectionCopier<? super T> parent;
+
+    /**
+     * List of field copiers.
+     */
     private final FieldCopier[] fieldCopiers;
 
     /**
