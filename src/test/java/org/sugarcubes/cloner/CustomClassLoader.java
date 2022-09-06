@@ -40,25 +40,25 @@ public class CustomClassLoader extends ClassLoader {
 
         if (reload) {
             String resourceName = name.replace(".", "/") + ".class";
-
-            byte[] bytes;
-
-            try (InputStream is = getResourceAsStream(resourceName)) {
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                byte[] bb = new byte[1024];
-                for (int count; (count = is.read(bb)) > 0; ) {
-                    buffer.write(bb, 0, count);
-                }
-                bytes = buffer.toByteArray();
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
+            byte[] bytes = getResourceAsBytes(resourceName);
             return defineClass(name, bytes, 0, bytes.length);
         }
 
         return super.loadClass(name, resolve);
+    }
+
+    private byte[] getResourceAsBytes(String name) {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        try (InputStream input = getResourceAsStream(name)) {
+            byte[] bytes = new byte[1024];
+            for (int count; (count = input.read(bytes)) > 0; ) {
+                buffer.write(bytes, 0, count);
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return buffer.toByteArray();
     }
 
 }
