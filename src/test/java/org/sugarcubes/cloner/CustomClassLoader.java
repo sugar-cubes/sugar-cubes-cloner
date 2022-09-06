@@ -1,11 +1,10 @@
 package org.sugarcubes.cloner;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.common.io.ByteStreams;
 
 public class CustomClassLoader extends ClassLoader {
 
@@ -45,7 +44,12 @@ public class CustomClassLoader extends ClassLoader {
             byte[] bytes;
 
             try (InputStream is = getResourceAsStream(resourceName)) {
-                bytes = ByteStreams.toByteArray(is);
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                byte[] bb = new byte[1024];
+                for (int count; (count = is.read(bb)) > 0; ) {
+                    buffer.write(bb, 0, count);
+                }
+                bytes = buffer.toByteArray();
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
