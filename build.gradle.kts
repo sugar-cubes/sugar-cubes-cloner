@@ -136,8 +136,8 @@ publishing {
             name = "GitHubPackages"
             url = URI("https://maven.pkg.github.com/mbutov/sugar-cubes-cloner")
             credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String
-                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String
+                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String?
+                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String?
             }
         }
     }
