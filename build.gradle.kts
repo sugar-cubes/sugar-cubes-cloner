@@ -36,6 +36,7 @@ subprojects {
     tasks.named<Test>("test") {
         useJUnitPlatform()
         maxHeapSize = "1g"
+        jvmArgs = listOf("--illegal-access=permit")
     }
 
     apply(plugin = "checkstyle")
@@ -44,7 +45,7 @@ subprojects {
         toolVersion = "8.14"
     }
 
-    tasks.withType<Checkstyle>().configureEach {
+    tasks.withType<Checkstyle>() {
         configFile = rootProject.file("checkstyle/checkstyle.xml")
         exclude("**/module-info.java")
         isIgnoreFailures = true

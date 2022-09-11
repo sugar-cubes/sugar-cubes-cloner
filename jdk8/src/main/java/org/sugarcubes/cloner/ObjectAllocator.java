@@ -40,7 +40,9 @@ public interface ObjectAllocator {
      * @return new instance of the type
      * @throws Exception if something went wrong
      */
-    <T> T newInstance(Class<T> type) throws Exception;
+    default <T> T newInstance(Class<T> type) throws Exception {
+        return getFactory(type).newInstance();
+    }
 
     /**
      * Creates an object factory for the type.
@@ -49,8 +51,6 @@ public interface ObjectAllocator {
      * @param type type
      * @return object factory
      */
-    default <T> ObjectFactory<T> getFactory(Class<T> type) {
-        return () -> newInstance(type);
-    }
+    <T> ObjectFactory<T> getFactory(Class<T> type);
 
 }

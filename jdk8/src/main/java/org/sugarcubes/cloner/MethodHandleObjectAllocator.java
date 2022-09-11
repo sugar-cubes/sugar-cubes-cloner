@@ -37,11 +37,6 @@ public class MethodHandleObjectAllocator implements ObjectAllocator {
     private static final MethodType CONSTRUCTOR_METHOD_TYPE = MethodType.methodType(void.class);
 
     @Override
-    public <T> T newInstance(Class<T> type) throws Exception {
-        return getFactory(type).newInstance();
-    }
-
-    @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {
         MethodHandle constructor = ReflectionUtils.execute(() -> LOOKUP.findConstructor(type, CONSTRUCTOR_METHOD_TYPE));
         return () -> newInstance(constructor);

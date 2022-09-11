@@ -29,4 +29,9 @@ public class UnsafeAllocator implements ObjectAllocator {
         return (T) UnsafeUtils.getUnsafe().allocateInstance(type);
     }
 
+    @Override
+    public <T> ObjectFactory<T> getFactory(Class<T> type) {
+        return () -> newInstance(type);
+    }
+
 }
