@@ -1,20 +1,26 @@
-import java.net.*
+import java.net.URI
 
 plugins {
     id("java-library")
     id("maven-publish")
-    id("checkstyle")
 }
 
 dependencies {
+    compileOnly("org.objenesis:objenesis:3.2")
     testCompileOnly(project(":jdk8"))
     testCompileOnly(project(":jdk9"))
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
 }
 
 tasks.withType<Jar> {
 
     from(project(":jdk8").sourceSets["main"].output)
     from(project(":jdk9").sourceSets["main"].output)
+
+    exclude("org/sugarcubes/cloner/Placeholder.class")
 
     manifest {
         attributes["Implementation-Title"] = project.name

@@ -25,3 +25,9 @@ tasks.withType<JavaCompile> {
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
+
+checkstyle {
+    toolVersion = "8.14"
+    configFile = rootProject.file("checkstyle/checkstyle.xml")
+    sourceSets = listOf(project.java.sourceSets["main"])
+}

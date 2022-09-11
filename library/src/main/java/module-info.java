@@ -19,6 +19,7 @@
  * @author Maxim Butov
  */
 module sugar.cubes.cloner {
-    requires jdk.unsupported;
-    opens org.sugarcubes.cloner;
+    requires static org.objenesis;
+    requires static jdk.unsupported;
+    exports org.sugarcubes.cloner;
 }

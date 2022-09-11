@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("java-test-fixtures")
+    id("checkstyle")
 }
 
 dependencies {
@@ -19,4 +20,14 @@ dependencies {
 tasks.withType<JavaCompile> {
     sourceCompatibility = JavaVersion.VERSION_1_8.toString()
     targetCompatibility = JavaVersion.VERSION_1_8.toString()
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+}
+
+checkstyle {
+    toolVersion = "8.14"
+    configFile = rootProject.file("checkstyle/checkstyle.xml")
+    sourceSets = listOf(project.java.sourceSets["main"])
 }

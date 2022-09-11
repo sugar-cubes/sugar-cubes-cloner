@@ -6,10 +6,6 @@ import nl.javadude.gradle.plugins.license.maven.LicenseFormatMojo
 import java.net.URI
 import java.util.Collections
 
-plugins {
-    id("checkstyle")
-}
-
 buildscript {
     repositories {
         gradlePluginPortal()
@@ -26,33 +22,6 @@ allprojects {
 
     repositories {
         mavenCentral()
-    }
-}
-
-subprojects {
-
-    apply(plugin = "java")
-
-    tasks.named<Test>("test") {
-        useJUnitPlatform()
-        maxHeapSize = "1g"
-        jvmArgs = listOf("--illegal-access=permit")
-    }
-
-    apply(plugin = "checkstyle")
-
-    checkstyle {
-        toolVersion = "8.14"
-    }
-
-    tasks.withType<Checkstyle>() {
-        configFile = rootProject.file("checkstyle/checkstyle.xml")
-        exclude("**/module-info.java")
-        isIgnoreFailures = true
-    }
-
-    tasks.named<Checkstyle>("checkstyleMain") {
-        isIgnoreFailures = false
     }
 }
 
