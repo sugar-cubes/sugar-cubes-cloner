@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -45,11 +46,16 @@ abstract class AbstractClonerTests {
         assertThat(cloner.clone(null), nullValue());
     }
 
+    static class Empty implements Serializable {
+
+    }
+
     static class SimpleFields implements Serializable {
 
         int i;
         double d;
         String s;
+        Empty e;
 
     }
 
@@ -59,10 +65,13 @@ abstract class AbstractClonerTests {
         original.i = 1;
         original.d = 2.0;
         original.s = "str";
+        original.e = new Empty();
         SimpleFields clone = cloner.clone(original);
         assertThat(clone.i, is(original.i));
         assertThat(clone.d, is(original.d));
         assertThat(clone.s, is(original.s));
+        assertThat(clone.e, isA(Empty.class));
+        assertThat(clone.e, not(is(original.e)));
     }
 
     @Test
@@ -137,6 +146,96 @@ abstract class AbstractClonerTests {
 
         assertThat(clone, not(sameInstance(original)));
         assertThat(clone.i, is(original.i));
+    }
+
+    static class CopyableObject implements Copyable<CopyableObject> {
+
+        int x = 1;
+
+        @Override
+        public CopyableObject copy(CopyContext context) {
+            CopyableObject copy = new CopyableObject();
+            copy.x = -x;
+            return copy;
+        }
+
+    }
+
+    @Test
+    void testCopyable() {
+        CopyableObject original = new CopyableObject();
+        CopyableObject clone = cloner.clone(original);
+        assertThat(clone, not(sameInstance(original)));
+        assertThat(clone.x, is(-original.x));
+    }
+
+    @TypePolicy(CopyAction.ORIGINAL)
+    static class AnnotatedOriginal {
+
+    }
+
+    @TypePolicy(CopyAction.NULL)
+    static class AnnotatedNull {
+
+    }
+
+    @TypeCopier(CustomCopier.class)
+    static class AnnotatedWithCopier {
+
+        final int x;
+
+
+        public AnnotatedWithCopier(int x) {
+            this.x = x;
+        }
+
+    }
+
+    static class CustomCopier implements ObjectCopier<AnnotatedWithCopier> {
+
+        @Override
+        public AnnotatedWithCopier copy(AnnotatedWithCopier original, CopyContext context) throws Exception {
+            return new AnnotatedWithCopier(-original.x);
+        }
+
+    }
+
+    static class AnnotationTestObject {
+
+        AnnotatedOriginal ao = new AnnotatedOriginal();
+        AnnotatedNull an = new AnnotatedNull();
+        AnnotatedWithCopier ac = new AnnotatedWithCopier(1);
+
+        @FieldPolicy(FieldCopyAction.SKIP)
+        Object skip;
+
+        @FieldPolicy(FieldCopyAction.ORIGINAL)
+        Object orig;
+
+        @FieldPolicy(FieldCopyAction.NULL)
+        Object nil;
+
+    }
+
+    @Test
+    void testAnnotations() {
+        AnnotationTestObject original = new AnnotationTestObject();
+        original.skip = new Object();
+        original.orig = new Object();
+        original.nil = new Object();
+
+        AnnotationTestObject clone = cloner.clone(original);
+
+        assertThat(clone, not(sameInstance(original)));
+        assertThat(clone.ao, sameInstance(original.ao));
+        assertThat(clone.an, nullValue());
+        assertThat(clone.ac, not(nullValue()));
+        assertThat(clone.ac, not(sameInstance(original.ac)));
+        assertThat(clone.ac.x, is(-original.ac.x));
+        assertThat(clone.an, nullValue());
+        assertThat(clone.skip, nullValue());
+        assertThat(clone.orig, sameInstance(original.orig));
+        assertThat(clone.nil, nullValue());
     }
 
     @Test

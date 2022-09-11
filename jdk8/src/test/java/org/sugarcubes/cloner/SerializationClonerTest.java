@@ -15,10 +15,22 @@
  */
 package org.sugarcubes.cloner;
 
+import org.junit.jupiter.api.Disabled;
+
 public class SerializationClonerTest extends AbstractClonerTests {
 
     public SerializationClonerTest() {
         super(Cloners.serialization());
+    }
+
+    @Override
+    @Disabled
+    void testCopyable() {
+    }
+
+    @Override
+    @Disabled
+    void testAnnotations() {
     }
 
 }
