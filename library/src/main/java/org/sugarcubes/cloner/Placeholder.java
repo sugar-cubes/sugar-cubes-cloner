@@ -5,6 +5,6 @@ package org.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-class Placeholder {
+public class Placeholder {
 
 }

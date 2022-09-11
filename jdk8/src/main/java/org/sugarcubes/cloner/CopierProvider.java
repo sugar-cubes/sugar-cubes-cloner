@@ -25,6 +25,7 @@ public interface CopierProvider {
     /**
      * Returns copier for the object.
      *
+     * @param <T> object type
      * @param original original object
      * @return copier
      */
