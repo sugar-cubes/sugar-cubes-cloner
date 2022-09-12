@@ -46,7 +46,8 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<Javadoc> {
-    (options as StandardJavadocDocletOptions).links("https://docs.oracle.com/javase/8/docs/api/")
+    val opts = options as StandardJavadocDocletOptions
+    opts.links("https://docs.oracle.com/en/java/javase/11/docs/api/")
     source(project(":jdk8").sourceSets.main.get().allSource)
     source(project(":jdk9").sourceSets.main.get().allSource)
     source(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
