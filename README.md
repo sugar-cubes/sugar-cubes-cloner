@@ -70,19 +70,11 @@ Faster than java.io serialization.
 ```java
 Object clone = Cloners.reflection().clone(original);
 ```
-or
-```java
-Object clone = Cloners.reflectionClone(original);
-```
 
 For the cloning with serialization one can use:
 
 ```java
 Object clone = Cloners.serialization().clone(original);
-```
-or
-```java
-Object clone = Cloners.serializationClone(original);
 ```
 
 ### Customization
@@ -137,6 +129,10 @@ The priority of copy configurations is:
 
 Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeAllocator](jdk8/src/main/java/org/sugarcubes/cloner/UnsafeAllocator.java).
         
+### Versioning
+
+See [Semantic Versioning](https://semver.org/).
+
 ### License
 
 [Apache License 2.0](LICENSE.txt) © Maxim Butov

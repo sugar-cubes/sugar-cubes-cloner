@@ -3,12 +3,23 @@ import java.net.URI
 plugins {
     id("java-library")
     id("maven-publish")
+    id("signing")
 }
 
 dependencies {
     compileOnly("org.objenesis:objenesis:3.2")
     testCompileOnly(project(":jdk8"))
     testCompileOnly(project(":jdk9"))
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = JavaVersion.VERSION_1_9.toString()
+    targetCompatibility = JavaVersion.VERSION_1_9.toString()
 }
 
 tasks.named<Test>("test") {
@@ -35,33 +46,19 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<Javadoc> {
+    (options as StandardJavadocDocletOptions).links("https://docs.oracle.com/javase/8/docs/api/")
     source(project(":jdk8").sourceSets.main.get().allSource)
     source(project(":jdk9").sourceSets.main.get().allSource)
     source(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
     exclude("org/sugarcubes/cloner/Placeholder.java")
 }
 
-tasks {
-    val sourcesJar by creating(Jar::class) {
-        archiveClassifier.set("sources")
-        from(project(":jdk8").sourceSets.main.get().allSource)
-        from(project(":jdk9").sourceSets.main.get().allSource)
-        from(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
-        exclude("org/sugarcubes/cloner/Placeholder.java")
-        exclude("**/*.class")
-    }
-
-    val javadocJar by creating(Jar::class) {
-        dependsOn.add(javadoc)
-        archiveClassifier.set("javadoc")
-        from(javadoc)
-    }
-
-    artifacts {
-        archives(sourcesJar)
-        archives(javadocJar)
-        archives(jar)
-    }
+tasks.named<Jar>("sourcesJar") {
+    from(project(":jdk8").sourceSets.main.get().allSource)
+    from(project(":jdk9").sourceSets.main.get().allSource)
+    from(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
+    exclude("org/sugarcubes/cloner/Placeholder.java")
+    exclude("**/*.class")
 }
 
 publishing {
@@ -75,4 +72,13 @@ publishing {
             }
         }
     }
+    publications {
+        register<MavenPublication>("gpr") {
+            from(components["java"])
+        }
+    }
+}
+
+signing {
+    sign(publishing.publications["gpr"])
 }
