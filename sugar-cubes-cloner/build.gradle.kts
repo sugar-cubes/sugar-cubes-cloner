@@ -19,7 +19,7 @@ tasks.withType<Jar> {
 
     from(project(":jdk8").sourceSets.main.get().output)
     from(project(":jdk9").sourceSets.main.get().output)
-    from(project(":library").sourceSets.main.get().output)
+    from(project(":sugar-cubes-cloner").sourceSets.main.get().output)
 
     exclude("org/sugarcubes/cloner/Placeholder.class")
 
@@ -37,7 +37,7 @@ tasks.withType<Jar> {
 tasks.withType<Javadoc> {
     source(project(":jdk8").sourceSets.main.get().allSource)
     source(project(":jdk9").sourceSets.main.get().allSource)
-    source(project(":library").sourceSets.main.get().allSource)
+    source(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
     exclude("org/sugarcubes/cloner/Placeholder.java")
 }
 
@@ -46,7 +46,7 @@ tasks {
         archiveClassifier.set("sources")
         from(project(":jdk8").sourceSets.main.get().allSource)
         from(project(":jdk9").sourceSets.main.get().allSource)
-        from(project(":library").sourceSets.main.get().allSource)
+        from(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
         exclude("org/sugarcubes/cloner/Placeholder.java")
         exclude("**/*.class")
     }
