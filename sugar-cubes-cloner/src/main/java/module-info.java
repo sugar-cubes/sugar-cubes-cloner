@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 /**
- * Module descriptor.
+ * Cloner module. See {@link org.sugarcubes.cloner} package description.
  *
  * @author Maxim Butov
  */
-module sugar.cubes.cloner {
+module org.sugarcubes.cloner {
     requires static org.objenesis;
     requires static jdk.unsupported;
     exports org.sugarcubes.cloner;

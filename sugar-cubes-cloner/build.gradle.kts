@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.objenesis:objenesis:3.2")
+    api("org.objenesis:objenesis:3.3")
     testCompileOnly(project(":jdk8"))
     testCompileOnly(project(":jdk9"))
 }
@@ -76,6 +76,31 @@ publishing {
     publications {
         register<MavenPublication>("gpr") {
             from(components["java"])
+            pom {
+                name.set("Java Cloner library")
+                description.set("Deep cloning of any objects")
+                url.set("https://github.com/mbutov/sugar-cubes-cloner")
+                properties.set(mapOf(
+                ))
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("mbutov")
+                        name.set("Maxim Butov")
+                        email.set("mbutov(at)gmail.com")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/mbutov/sugar-cubes-cloner.git")
+                    developerConnection.set("scm:git:ssh://github.com/mbutov/sugar-cubes-cloner.git")
+                    url.set("https://github.com/mbutov/sugar-cubes-cloner")
+                }
+            }
         }
     }
 }

@@ -6,9 +6,9 @@ plugins {
 
 dependencies {
 
-    compileOnly("org.objenesis:objenesis:3.2")
+    compileOnly("org.objenesis:objenesis:3.3")
 
-    testFixturesImplementation("org.objenesis:objenesis:3.2")
+    testFixturesImplementation("org.objenesis:objenesis:3.3")
     testFixturesImplementation("org.hamcrest:hamcrest:2.2")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
 
