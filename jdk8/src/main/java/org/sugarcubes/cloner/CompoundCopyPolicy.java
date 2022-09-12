@@ -28,6 +28,23 @@ import java.util.function.Function;
 public class CompoundCopyPolicy implements CopyPolicy {
 
     /**
+     * Returns compound or single policy depending on list size.
+     *
+     * @param policies list of policies
+     * @return compound or single policy
+     */
+    public static CopyPolicy create(List<CopyPolicy> policies) {
+        switch (policies.size()) {
+            case 0:
+                return DEFAULT;
+            case 1:
+                return policies.iterator().next();
+            default:
+                return new CompoundCopyPolicy(policies);
+        }
+    }
+
+    /**
      * List of policies.
      */
     private final CopyPolicy[] policies;

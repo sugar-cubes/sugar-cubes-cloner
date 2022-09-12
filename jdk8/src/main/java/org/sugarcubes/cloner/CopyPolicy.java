@@ -28,6 +28,12 @@ import java.lang.reflect.Field;
 public interface CopyPolicy {
 
     /**
+     * Default copy policy.
+     */
+    CopyPolicy DEFAULT = new CopyPolicy() {
+    };
+
+    /**
      * Returns action to apply to an instance of the type. Must return non-null value.
      *
      * @param type type

@@ -380,9 +380,11 @@ public final class ReflectionClonerBuilder {
         if (this.policy != null) {
             policies.add(this.policy);
         }
-        policies.add(new CustomCopyPolicy(typeActions, fieldActions));
+        if (!typeActions.isEmpty() || !fieldActions.isEmpty()) {
+            policies.add(new CustomCopyPolicy(typeActions, fieldActions));
+        }
         policies.add(new AnnotatedCopyPolicy());
-        CopyPolicy policy = new CompoundCopyPolicy(policies);
+        CopyPolicy policy = CompoundCopyPolicy.create(policies);
 
         ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
@@ -412,17 +414,6 @@ public final class ReflectionClonerBuilder {
                 throw new IllegalStateException();
         }
         return new ClonerImpl(contextSupplier);
-    }
-
-    /**
-     * Creates reflection cloner with default settings.
-     *
-     * @return cloner with default settings
-     */
-    public static Cloner defaultCloner() {
-        CopierProvider copierProvider = new ReflectionCopierProvider(null, new AnnotatedCopyPolicy(),
-            ObjectAllocator.defaultAllocator(), DEFAULT_COPIERS, new ReflectionFieldCopierFactory());
-        return new ClonerImpl(() -> new SequentialCopyContext(copierProvider, TraversalAlgorithm.DEPTH_FIRST));
     }
 
 }
