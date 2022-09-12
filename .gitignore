@@ -1,7 +1,8 @@
 .gradle/
-.idea/
-incubator/
+/.idea/
+/incubator/
 build
 *.ipr
 *.iml
 *.iws
+/gradle.properties
