@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 /**
- * Cloner module. See {@link org.sugarcubes.cloner} package description.
+ * Java Reflection Cloner library module. See {@link org.sugarcubes.cloner} package description.
+ *
+ * @see org.sugarcubes.cloner
  *
  * @author Maxim Butov
  */

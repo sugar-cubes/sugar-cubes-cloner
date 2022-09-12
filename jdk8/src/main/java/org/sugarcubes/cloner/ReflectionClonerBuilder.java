@@ -19,9 +19,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +64,7 @@ public final class ReflectionClonerBuilder {
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
 
     static {
-        Map<Class<?>, ObjectCopier<?>> defaultCopiers = new HashMap<>();
+        Map<Class<?>, ObjectCopier<?>> defaultCopiers = new LinkedHashMap<>();
 
         IMMUTABLE_TYPES.forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
 
@@ -130,17 +130,17 @@ public final class ReflectionClonerBuilder {
     /**
      * Custom actions for types.
      */
-    private final Map<Class<?>, CopyAction> typeActions = new HashMap<>();
+    private final Map<Class<?>, CopyAction> typeActions = new LinkedHashMap<>();
 
     /**
      * Custom actions for fields.
      */
-    private final Map<Field, FieldCopyAction> fieldActions = new HashMap<>();
+    private final Map<Field, FieldCopyAction> fieldActions = new LinkedHashMap<>();
 
     /**
      * Custom copiers for types.
      */
-    private final Map<Class<?>, ObjectCopier<?>> copiers = new HashMap<>(DEFAULT_COPIERS);
+    private final Map<Class<?>, ObjectCopier<?>> copiers = new LinkedHashMap<>(DEFAULT_COPIERS);
 
     /**
      * Creates a builder.

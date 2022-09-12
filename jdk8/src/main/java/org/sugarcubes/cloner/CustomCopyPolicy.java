@@ -17,7 +17,7 @@ package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -58,7 +58,7 @@ public class CustomCopyPolicy implements CopyPolicy {
      * @return filtered copy of the source map
      */
     private static <K, A extends Enum<A>> Map<K, A> copyOfMap(Map<K, A> map, A defaultAction) {
-        Map<K, A> copy = new HashMap<>(map);
+        Map<K, A> copy = new LinkedHashMap<>(map);
         copy.entrySet().removeIf(entry -> entry.getValue() == defaultAction);
         return copy.isEmpty() ? Collections.emptyMap() : copy;
     }

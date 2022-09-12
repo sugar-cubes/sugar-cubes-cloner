@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import com.esotericsoftware.kryo.Kryo;
 
 /**
+ * Test for profiling cloners.
+ *
  * @author Maxim Butov
  */
 class ProfilingTest {

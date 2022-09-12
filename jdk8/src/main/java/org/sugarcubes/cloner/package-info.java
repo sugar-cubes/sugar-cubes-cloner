@@ -15,6 +15,32 @@
  */
 /**
  * Java Reflection Cloner library.
+ * <p>Default configuration example:</p>
+ * <pre>
+ *     Cloner cloner = Cloners.reflection();
+ *     SomeObject myObjectClone = cloner.clone(myObject);
+ * </pre>
+ * <p>Custom configuration example:</p>
+ * <pre>
+ *     Cloner cloner =
+ *         // new builder instance
+ *         Cloners.builder()
+ *             // custom allocator
+ *             .setAllocator(new ObjenesisAllocator())
+ *             // copy thread locals by reference
+ *             .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
+ *             // skip SomeObject.cachedValue field when cloning
+ *             .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
+ *             // custom copier for SomeOtherObject type
+ *             .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+ *             // parallel mode
+ *             .setMode(CloningMode.PARALLEL)
+ *             // create cloner
+ *             .build();
+ *
+ *     // perform cloning
+ *     SomeObject myObjectClone = cloner.clone(myObject);
+ * </pre>
  *
  * @see org.sugarcubes.cloner.Cloner
  * @see org.sugarcubes.cloner.ClonerException
