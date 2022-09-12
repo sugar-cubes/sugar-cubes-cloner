@@ -24,6 +24,7 @@ tasks.withType<JavaCompile> {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+    maxHeapSize = "1g"
 }
 
 tasks.withType<Jar> {

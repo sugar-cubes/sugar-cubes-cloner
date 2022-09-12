@@ -414,4 +414,15 @@ public final class ReflectionClonerBuilder {
         return new ClonerImpl(contextSupplier);
     }
 
+    /**
+     * Creates reflection cloner with default settings.
+     *
+     * @return cloner with default settings
+     */
+    public static Cloner defaultCloner() {
+        CopierProvider copierProvider = new ReflectionCopierProvider(null, new AnnotatedCopyPolicy(),
+            ObjectAllocator.defaultAllocator(), DEFAULT_COPIERS, new ReflectionFieldCopierFactory());
+        return new ClonerImpl(() -> new SequentialCopyContext(copierProvider, TraversalAlgorithm.DEPTH_FIRST));
+    }
+
 }

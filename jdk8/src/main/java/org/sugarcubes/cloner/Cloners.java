@@ -37,7 +37,7 @@ public class Cloners {
      * @return reflection sequential cloner
      */
     public static Cloner reflection() {
-        return builder().build();
+        return ReflectionClonerBuilder.defaultCloner();
     }
 
     /**
