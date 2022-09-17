@@ -23,12 +23,14 @@ package org.sugarcubes.cloner;
 public enum CopyAction {
 
     /**
-     * Skip field. This action is applicable to fields only.
+     * Skip field.
+     * This action is applicable to fields only.
      */
     SKIP,
 
     /**
      * Use {@code null} instead of original object.
+     * This action is not applicable to primitive fields.
      */
     NULL,
 
