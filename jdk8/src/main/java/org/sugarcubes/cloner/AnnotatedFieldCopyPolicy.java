@@ -15,31 +15,25 @@
  */
 package org.sugarcubes.cloner;
 
+import java.lang.reflect.Field;
+import java.util.Objects;
+import java.util.stream.Stream;
+
 /**
- * Actions which applied to fields.
+ * Field copy policy based on annotations.
  *
  * @author Maxim Butov
  */
-public enum FieldCopyAction {
+public class AnnotatedFieldCopyPolicy implements CopyPolicy<Field> {
 
-    /**
-     * Skip field.
-     */
-    SKIP,
-
-    /**
-     * Set {@code null} into clone's field value. This action cannot be applied to primitive fields.
-     */
-    NULL,
-
-    /**
-     * Set into clone's field value from original's field.
-     */
-    ORIGINAL,
-
-    /**
-     * Clone the object, if it is not immutable.
-     */
-    DEFAULT,
+    @Override
+    public CopyAction getAction(Field field) {
+        return Stream.of(field, field.getDeclaringClass())
+            .map(ae -> ae.getDeclaredAnnotation(FieldPolicy.class))
+            .filter(Objects::nonNull)
+            .map(FieldPolicy::value)
+            .findFirst()
+            .orElse(CopyAction.DEFAULT);
+    }
 
 }

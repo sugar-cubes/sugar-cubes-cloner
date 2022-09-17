@@ -34,11 +34,11 @@ public class MethodHandleObjectAllocator implements ObjectAllocator {
     /**
      * Constructor's method type.
      */
-    private static final MethodType CONSTRUCTOR_METHOD_TYPE = MethodType.methodType(void.class);
+    private static final MethodType VOID_METHOD_TYPE = MethodType.methodType(void.class);
 
     @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {
-        MethodHandle constructor = ReflectionUtils.execute(() -> LOOKUP.findConstructor(type, CONSTRUCTOR_METHOD_TYPE));
+        MethodHandle constructor = ReflectionUtils.execute(() -> LOOKUP.findConstructor(type, VOID_METHOD_TYPE));
         return () -> newInstance(constructor);
     }
 

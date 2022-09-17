@@ -33,15 +33,17 @@ public abstract class AbstractCopyContext implements CopyContext {
     /**
      * Previously copied objects.
      */
-    private final Map<Object, Object> clones = new IdentityHashMap<>();
+    private final Map<Object, Object> clones;
 
     /**
-     * Creates context with specified copier provider.
+     * Creates context with specified copier provider and predefined cloned objects.
      *
      * @param copierProvider copier provider
+     * @param clones predefined cloned objects
      */
-    protected AbstractCopyContext(CopierProvider copierProvider) {
+    protected AbstractCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
+        this.clones = new IdentityHashMap<>(clones);
     }
 
     @Override

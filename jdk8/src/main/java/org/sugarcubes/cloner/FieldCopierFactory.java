@@ -31,6 +31,6 @@ public interface FieldCopierFactory {
      * @param action copying action
      * @return field copier
      */
-    FieldCopier getFieldCopier(Field field, FieldCopyAction action);
+    FieldCopier getFieldCopier(Field field, CopyAction action);
 
 }

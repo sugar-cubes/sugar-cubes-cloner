@@ -15,6 +15,7 @@
  */
 package org.sugarcubes.cloner;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 
 /**
@@ -50,14 +51,14 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param parent copier for the super type
      */
     @SuppressWarnings("unchecked")
-    public ReflectionCopier(CopyPolicy policy, ObjectAllocator allocator, Class<T> type, FieldCopierFactory fieldCopierFactory,
-        ReflectionCopier<?> parent) {
+    public ReflectionCopier(CopyPolicy<Field> policy, ObjectAllocator allocator, Class<T> type,
+        FieldCopierFactory fieldCopierFactory, ReflectionCopier<?> parent) {
         this.factory = allocator.getFactory(type);
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?
             parent.parent : parent);
         this.fieldCopiers = Arrays.stream(type.getDeclaredFields())
             .filter(ReflectionUtils::isNonStatic)
-            .map(field -> fieldCopierFactory.getFieldCopier(field, policy.getFieldAction(field)))
+            .map(field -> fieldCopierFactory.getFieldCopier(field, policy.getAction(field)))
             .filter(copier -> copier != FieldCopier.NOOP)
             .toArray(FieldCopier[]::new);
     }

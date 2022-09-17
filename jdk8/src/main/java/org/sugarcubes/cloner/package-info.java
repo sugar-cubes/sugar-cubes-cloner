@@ -47,7 +47,6 @@
  * @see org.sugarcubes.cloner.Cloners
  * @see org.sugarcubes.cloner.CloningMode
  * @see org.sugarcubes.cloner.CopyAction
- * @see org.sugarcubes.cloner.FieldCopyAction
  * @see org.sugarcubes.cloner.FieldPolicy
  * @see org.sugarcubes.cloner.ReflectionClonerBuilder
  * @see org.sugarcubes.cloner.TraversalAlgorithm

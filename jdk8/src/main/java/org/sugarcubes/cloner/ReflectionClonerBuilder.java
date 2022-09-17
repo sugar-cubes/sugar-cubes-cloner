@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -113,9 +114,9 @@ public final class ReflectionClonerBuilder {
     private ExecutorService executor;
 
     /**
-     * Custom object policy.
+     * Object copy policy.
      */
-    private ObjectPolicy objectPolicy;
+    private CopyPolicy<Object> objectPolicy;
 
     /**
      * Custom actions for objects.
@@ -123,9 +124,9 @@ public final class ReflectionClonerBuilder {
     private final Map<Object, CopyAction> objectActions = new IdentityHashMap<>();
 
     /**
-     * Custom copy policy.
+     * Custom type copy policy.
      */
-    private CopyPolicy policy;
+    private CopyPolicy<Class<?>> typePolicy;
 
     /**
      * Custom actions for types.
@@ -133,14 +134,34 @@ public final class ReflectionClonerBuilder {
     private final Map<Class<?>, CopyAction> typeActions = new LinkedHashMap<>();
 
     /**
+     * Predicate actions for types.
+     */
+    private final Map<Predicate<Class<?>>, CopyAction> typePredicateActions = new LinkedHashMap<>();
+
+    /**
+     * Custom field copy policy.
+     */
+    private CopyPolicy<Field> fieldPolicy;
+
+    /**
      * Custom actions for fields.
      */
-    private final Map<Field, FieldCopyAction> fieldActions = new LinkedHashMap<>();
+    private final Map<Field, CopyAction> fieldActions = new LinkedHashMap<>();
+
+    /**
+     * Predicate actions for fields.
+     */
+    private final Map<Predicate<Field>, CopyAction> fieldPredicateActions = new LinkedHashMap<>();
 
     /**
      * Custom copiers for types.
      */
     private final Map<Class<?>, ObjectCopier<?>> copiers = new LinkedHashMap<>(DEFAULT_COPIERS);
+
+    /**
+     * Predefined clones.
+     */
+    private final Map<Object, Object> clones = new IdentityHashMap<>();
 
     /**
      * Creates a builder.
@@ -223,12 +244,13 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Sets custom object policy.
+     * Sets object policy. Using object policy significantly slows down cloning process, thus,
+     * type and field policies should be used if possible.
      *
      * @param objectPolicy object policy
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setObjectPolicy(ObjectPolicy objectPolicy) {
+    public ReflectionClonerBuilder setObjectPolicy(CopyPolicy<Object> objectPolicy) {
         Check.argNotNull(objectPolicy, "Object policy");
         Check.isNull(this.objectPolicy, "Object policy already set.");
         this.objectPolicy = objectPolicy;
@@ -236,10 +258,11 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Registers custom action for object.
+     * Registers action for object. Usage of object actions significantly slows down cloning process, thus,
+     * type and field policies should be used if possible.
      *
      * @param original original object
-     * @param action custom action
+     * @param action action
      * @return same builder instance
      */
     public ReflectionClonerBuilder setObjectAction(Object original, CopyAction action) {
@@ -251,23 +274,23 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Sets custom copy policy.
+     * Sets type copy policy.
      *
-     * @param policy copy policy
+     * @param typePolicy type copy policy
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setPolicy(CopyPolicy policy) {
-        Check.argNotNull(policy, "Policy");
-        Check.isNull(this.policy, "Policy already set.");
-        this.policy = policy;
+    public ReflectionClonerBuilder setTypePolicy(CopyPolicy<Class<?>> typePolicy) {
+        Check.argNotNull(typePolicy, "Type policy");
+        Check.isNull(this.typePolicy, "Type policy already set.");
+        this.typePolicy = typePolicy;
         return this;
     }
 
     /**
-     * Registers custom action for type.
+     * Registers action for type.
      *
      * @param type object type
-     * @param action custom action
+     * @param action action
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTypeAction(Class<?> type, CopyAction action) {
@@ -282,10 +305,10 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Registers custom action for type.
+     * Registers action for type.
      *
      * @param type object type name
-     * @param action custom action
+     * @param action action
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTypeAction(String type, CopyAction action) {
@@ -295,16 +318,43 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Registers custom action for field.
+     * Registers action for type predicate.
      *
-     * @param field field
-     * @param action custom action
+     * @param typePredicate type predicate
+     * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setFieldAction(Field field, FieldCopyAction action) {
+    public ReflectionClonerBuilder setTypeAction(Predicate<Class<?>> typePredicate, CopyAction action) {
+        Check.argNotNull(typePredicate, "Type predicate");
+        Check.argNotNull(action, "Action");
+        typePredicateActions.put(typePredicate, action);
+        return this;
+    }
+
+    /**
+     * Sets field copy policy.
+     *
+     * @param fieldPolicy type copy policy
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setFieldPolicy(CopyPolicy<Field> fieldPolicy) {
+        Check.argNotNull(fieldPolicy, "Field policy");
+        Check.isNull(this.fieldPolicy, "Field policy already set.");
+        this.fieldPolicy = fieldPolicy;
+        return this;
+    }
+
+    /**
+     * Registers action for field.
+     *
+     * @param field field
+     * @param action action
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setFieldAction(Field field, CopyAction action) {
         Check.argNotNull(field, "Field");
         Check.argNotNull(action, "Action");
-        Check.illegalArg(field.getType().isPrimitive() && action == FieldCopyAction.NULL,
+        Check.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
             "Cannot apply action NULL for primitive field %s.", field);
         Check.illegalArg(fieldActions.containsKey(field), "Action for %s already set.", field);
         fieldActions.put(field, action);
@@ -312,14 +362,14 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Registers custom action for field.
+     * Registers action for field.
      *
      * @param type object type
      * @param field declared field name
-     * @param action custom action
+     * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setFieldAction(Class<?> type, String field, FieldCopyAction action) {
+    public ReflectionClonerBuilder setFieldAction(Class<?> type, String field, CopyAction action) {
         Check.argNotNull(type, "Type");
         Check.argNotNull(field, "Field");
         Check.argNotNull(action, "Action");
@@ -327,9 +377,23 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Registers set of custom copiers.
+     * Registers action for field predicate.
      *
-     * @param copiers custom copiers
+     * @param fieldPredicate field predicate
+     * @param action action
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setFieldAction(Predicate<Field> fieldPredicate, CopyAction action) {
+        Check.argNotNull(fieldPredicate, "Type predicate");
+        Check.argNotNull(action, "Action");
+        fieldPredicateActions.put(fieldPredicate, action);
+        return this;
+    }
+
+    /**
+     * Registers set of copiers.
+     *
+     * @param copiers copiers
      * @return same builder instance
      */
     public ReflectionClonerBuilder setCopiers(Map<Class<?>, ObjectCopier<?>> copiers) {
@@ -338,10 +402,10 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Registers custom copier for type.
+     * Registers copier for type.
      *
      * @param type object type
-     * @param copier custom copier
+     * @param copier copier
      * @return same builder instance
      */
     public ReflectionClonerBuilder setCopier(Class<?> type, ObjectCopier<?> copier) {
@@ -349,6 +413,21 @@ public final class ReflectionClonerBuilder {
         Check.argNotNull(copier, "Copier");
         Check.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
         copiers.put(type, copier);
+        return this;
+    }
+
+    /**
+     * Registers clone for the object.
+     *
+     * @param original original object
+     * @param clone clone
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder setClone(Object original, Object clone) {
+        Check.argNotNull(original, "Original");
+        Check.argNotNull(clone, "Clone");
+        Check.illegalArg(clones.get(original) != null, "Clone for %s already set.", original);
+        clones.put(original, clone);
         return this;
     }
 
@@ -364,32 +443,48 @@ public final class ReflectionClonerBuilder {
         return value != null ? value : factory.get();
     }
 
+    private static <I> CopyPolicy<I> compound(CopyPolicy<I> policy, Map<I, CopyAction> exactMap,
+        Map<Predicate<I>, CopyAction> predicateMap, CopyPolicy<I> fallbackPolicy) {
+        List<CopyPolicy<I>> policies = new ArrayList<>();
+        if (policy != null) {
+            policies.add(policy);
+        }
+        if (!exactMap.isEmpty()) {
+            policies.add(new ExactMappedPolicy<>(exactMap));
+        }
+        if (!predicateMap.isEmpty()) {
+            policies.add(new PredicatePolicy<>(predicateMap));
+        }
+        if (fallbackPolicy != null) {
+            policies.add(fallbackPolicy);
+        }
+        return CopyPolicy.compound(policies);
+    }
+
     /**
      * Creates an instance of the cloner on the basis of the configuration.
      *
      * @return cloner
      */
     public Cloner build() {
-        ObjectPolicy objectPolicy = this.objectPolicy;
-        if (!objectActions.isEmpty()) {
-            Check.illegalArg(objectPolicy != null, "Cannot set object policy and object actions at te same time.");
-            objectPolicy = new CustomObjectPolicy(objectActions);
+        CopyPolicy<Object> objectPolicy;
+        if (this.objectPolicy != null || !objectActions.isEmpty()) {
+            objectPolicy = compound(this.objectPolicy, objectActions, Collections.emptyMap(), null);
+        }
+        else {
+            objectPolicy = null;
         }
 
-        List<CopyPolicy> policies = new ArrayList<>();
-        if (this.policy != null) {
-            policies.add(this.policy);
-        }
-        if (!typeActions.isEmpty() || !fieldActions.isEmpty()) {
-            policies.add(new CustomCopyPolicy(typeActions, fieldActions));
-        }
-        policies.add(new AnnotatedCopyPolicy());
-        CopyPolicy policy = CompoundCopyPolicy.create(policies);
+        CopyPolicy<Class<?>> typePolicy = compound(this.typePolicy, typeActions, typePredicateActions,
+            new AnnotatedTypeCopyPolicy());
+
+        CopyPolicy<Field> fieldPolicy = compound(this.fieldPolicy, fieldActions, fieldPredicateActions,
+            new AnnotatedFieldCopyPolicy());
 
         ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider =
-            new ReflectionCopierProvider(objectPolicy, policy, allocator, copiers, fieldCopierFactory);
+            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, allocator, copiers, fieldCopierFactory);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
@@ -397,18 +492,18 @@ public final class ReflectionClonerBuilder {
             case RECURSIVE:
                 Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for recursive mode.");
                 Check.isNull(this.executor, "Executor must be null for recursive mode.");
-                contextSupplier = () -> new RecursiveCopyContext(provider);
+                contextSupplier = () -> new RecursiveCopyContext(provider, clones);
                 break;
             case SEQUENTIAL:
                 Check.isNull(this.executor, "Executor must be null for sequential mode.");
                 TraversalAlgorithm traversalAlgorithm =
                     this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
-                contextSupplier = () -> new SequentialCopyContext(provider, traversalAlgorithm);
+                contextSupplier = () -> new SequentialCopyContext(provider, clones, traversalAlgorithm);
                 break;
             case PARALLEL:
                 Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for parallel mode.");
                 ExecutorService executor = createIfNull(this.executor, ForkJoinPool::commonPool);
-                contextSupplier = () -> new ParallelCopyContext(provider, executor);
+                contextSupplier = () -> new ParallelCopyContext(provider, clones, executor);
                 break;
             default:
                 throw new IllegalStateException();

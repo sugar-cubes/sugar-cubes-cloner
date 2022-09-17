@@ -32,11 +32,11 @@ public final class VarHandleFieldCopierFactory implements FieldCopierFactory {
     private static final MethodHandles.Lookup LOOKUP = MethodHandlesLookupUtils.getLookup();
 
     @Override
-    public FieldCopier getFieldCopier(Field field, FieldCopyAction action) {
-        if (action == FieldCopyAction.SKIP) {
+    public FieldCopier getFieldCopier(Field field, CopyAction action) {
+        if (action == CopyAction.SKIP) {
             return FieldCopier.NOOP;
         }
-        Check.illegalArg(field.getType().isPrimitive() && action == FieldCopyAction.NULL,
+        Check.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
             "Cannot apply action NULL for primitive field %s.", field);
         VarHandle handle = ReflectionUtils.execute(() -> LOOKUP.unreflectVarHandle(field));
         switch (action) {

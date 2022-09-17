@@ -1,7 +1,7 @@
 apply(from = "licenseFormat.gradle.kts")
 
 allprojects {
-    group = "org.sugarcubes"
+    group = "io.github.sugar-cubes"
     version = "1.0.3"
     description = "Java Reflection Cloner library"
 

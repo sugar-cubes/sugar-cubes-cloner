@@ -58,7 +58,7 @@ public final class UnsafeFieldCopierFactory extends AbstractFieldCopierFactory {
     }
 
     @Override
-    protected FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
+    protected FieldCopier getObjectFieldCopier(Field field, CopyAction action) {
         long offset = UNSAFE.objectFieldOffset(field);
         switch (action) {
             case SKIP:

@@ -25,12 +25,12 @@ import java.lang.reflect.Field;
 public abstract class AbstractFieldCopierFactory implements FieldCopierFactory {
 
     @Override
-    public FieldCopier getFieldCopier(Field field, FieldCopyAction action) {
-        if (action == FieldCopyAction.SKIP) {
+    public FieldCopier getFieldCopier(Field field, CopyAction action) {
+        if (action == CopyAction.SKIP) {
             return FieldCopier.NOOP;
         }
         if (field.getType().isPrimitive()) {
-            Check.illegalArg(action == FieldCopyAction.NULL, "Cannot apply action NULL for primitive field %s.", field);
+            Check.illegalArg(action == CopyAction.NULL, "Cannot apply action NULL for primitive field %s.", field);
             return getPrimitiveFieldCopier(field);
         }
         return getObjectFieldCopier(field, action);
@@ -51,6 +51,6 @@ public abstract class AbstractFieldCopierFactory implements FieldCopierFactory {
      * @param action copying action
      * @return field copy action
      */
-    protected abstract FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action);
+    protected abstract FieldCopier getObjectFieldCopier(Field field, CopyAction action);
 
 }

@@ -22,20 +22,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for applying {@link FieldCopyAction} to fields.
+ * Annotation for applying {@link CopyAction} to fields. If applied to the type then affects all declared fields of the type.
  *
  * @author Maxim Butov
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface FieldPolicy {
 
     /**
-     * Copy action for the field.
+     * Copy action for the field or fields.
      *
      * @return copy action
      */
-    FieldCopyAction value();
+    CopyAction value();
 
 }

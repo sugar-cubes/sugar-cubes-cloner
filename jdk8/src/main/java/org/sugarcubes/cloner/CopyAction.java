@@ -16,11 +16,16 @@
 package org.sugarcubes.cloner;
 
 /**
- * Actions which can be applied to objects.
+ * Actions which can be applied to objects/types/fields.
  *
  * @author Maxim Butov
  */
 public enum CopyAction {
+
+    /**
+     * Skip field. This action is applicable to fields only.
+     */
+    SKIP,
 
     /**
      * Use {@code null} instead of original object.

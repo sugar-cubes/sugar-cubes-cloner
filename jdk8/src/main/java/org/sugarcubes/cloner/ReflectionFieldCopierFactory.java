@@ -25,7 +25,7 @@ import java.lang.reflect.Field;
 public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFactory {
 
     @Override
-    public FieldCopier getFieldCopier(Field field, FieldCopyAction action) {
+    public FieldCopier getFieldCopier(Field field, CopyAction action) {
         return super.getFieldCopier(ReflectionUtils.makeAccessible(field), action);
     }
 
@@ -54,7 +54,7 @@ public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFacto
     }
 
     @Override
-    protected FieldCopier getObjectFieldCopier(Field field, FieldCopyAction action) {
+    protected FieldCopier getObjectFieldCopier(Field field, CopyAction action) {
         switch (action) {
             case SKIP:
                 return FieldCopier.NOOP;

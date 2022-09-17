@@ -15,42 +15,56 @@
  */
 package org.sugarcubes.cloner;
 
-import java.lang.reflect.Field;
+import java.util.List;
 
 /**
- * Set of rules for objects cloning. These rules can be applied to types and fields. For more flexible
- * logic use {@link ObjectPolicy}.
- *
- * @see ObjectPolicy
+ * Copy policy interface.
  *
  * @author Maxim Butov
  */
-public interface CopyPolicy {
+@FunctionalInterface
+public interface CopyPolicy<I> {
 
     /**
-     * Default copy policy.
-     */
-    CopyPolicy DEFAULT = new CopyPolicy() {
-    };
-
-    /**
-     * Returns action to apply to an instance of the type. Must return non-null value.
+     * Returns action to apply to an input, which may be type, field or something else.
+     * Must return non-null value.
      *
-     * @param type type
-     * @return action
+     * @param input input object
+     * @return copy action
      */
-    default CopyAction getTypeAction(Class<?> type) {
-        return CopyAction.DEFAULT;
+    CopyAction getAction(I input);
+
+    /**
+     * Returns default copy policy.
+     *
+     * @param <I> input object type
+     * @return default copy policy
+     */
+    static <I> CopyPolicy<I> defaultPolicy() {
+        return input -> CopyAction.DEFAULT;
     }
 
     /**
-     * Returns action to apply to a field value. Must return non-null value.
+     * Returns compound or single policy depending on list size.
+     * Compound copy policy searches for the first non-default action in the list of policies.
      *
-     * @param field field
-     * @return action
+     * @param <I> input type
+     * @param policies list of policies
+     * @return compound or single policy
      */
-    default FieldCopyAction getFieldAction(Field field) {
-        return FieldCopyAction.DEFAULT;
+    static <I> CopyPolicy<I> compound(List<CopyPolicy<I>> policies) {
+        switch (policies.size()) {
+            case 0:
+                return defaultPolicy();
+            case 1:
+                return policies.iterator().next();
+            default:
+                return input -> policies.stream()
+                    .map(p -> p.getAction(input))
+                    .filter(action -> action != CopyAction.DEFAULT)
+                    .findFirst()
+                    .orElse(CopyAction.DEFAULT);
+        }
     }
 
 }

@@ -29,7 +29,7 @@ class ReadmeExample {
                 // copy thread locals by reference
                 .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
                 // skip SomeObject.cachedValue field when cloning
-                .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
+                .setFieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
                 // custom copier for SomeOtherObject type
                 .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
                 // parallel mode

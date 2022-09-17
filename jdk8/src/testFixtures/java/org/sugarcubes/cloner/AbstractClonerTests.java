@@ -206,13 +206,13 @@ abstract class AbstractClonerTests {
         AnnotatedNull an = new AnnotatedNull();
         AnnotatedWithCopier ac = new AnnotatedWithCopier(1);
 
-        @FieldPolicy(FieldCopyAction.SKIP)
+        @FieldPolicy(CopyAction.SKIP)
         Object skip;
 
-        @FieldPolicy(FieldCopyAction.ORIGINAL)
+        @FieldPolicy(CopyAction.ORIGINAL)
         Object orig;
 
-        @FieldPolicy(FieldCopyAction.NULL)
+        @FieldPolicy(CopyAction.NULL)
         Object nil;
 
     }
@@ -240,8 +240,8 @@ abstract class AbstractClonerTests {
 
     @Test
     void testRandomObjects() {
-        List<Object> objects = Stream.generate(() -> TestObjectFactory.randomObject(10, 10))
-            .limit(10)
+        List<Object> objects = Stream.generate(() -> TestObjectFactory.randomObject(8, 8))
+            .limit(8)
             .collect(Collectors.toList());
         cloner.clone(objects);
     }

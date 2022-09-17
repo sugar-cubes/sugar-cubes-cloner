@@ -16,21 +16,25 @@
 package org.sugarcubes.cloner;
 
 /**
- * Rules for objects cloning. Using {@link ObjectPolicy} significantly slows down cloning process, that's why it is extracted to
- * separate interface and should not be used when {@link CopyPolicy} is enough.
- *
- * @see CopyPolicy
+ * Type copy policy based on annotations.
  *
  * @author Maxim Butov
  */
-public interface ObjectPolicy {
+public class AnnotatedTypeCopyPolicy implements CopyPolicy<Class<?>> {
 
-    /**
-     * Returns action to apply to the object. Must return non-null value.
-     *
-     * @param original original object
-     * @return action
-     */
-    CopyAction getObjectAction(Object original);
+    @Override
+    public CopyAction getAction(Class<?> type) {
+        TypePolicy annotation = type.getDeclaredAnnotation(TypePolicy.class);
+        if (annotation != null) {
+            return annotation.value();
+        }
+        for (Class<?> t = type; (t = t.getSuperclass()) != null; ) {
+            annotation = t.getDeclaredAnnotation(TypePolicy.class);
+            if (annotation != null && annotation.applyToSubtypes()) {
+                return annotation.value();
+            }
+        }
+        return CopyAction.DEFAULT;
+    }
 
 }

@@ -57,11 +57,9 @@ Faster than java.io serialization.
 | [Cloner](jdk8/src/main/java/org/sugarcubes/cloner/Cloner.java) | The cloner interface. |
 | [ClonerException](jdk8/src/main/java/org/sugarcubes/cloner/ClonerException.java) | Wrapper for all (checked and unchecked) exceptions, happened during cloning. Unchecked. |
 | [Cloners](jdk8/src/main/java/org/sugarcubes/cloner/Cloners.java) | Factory for standard cloners. |
-| [CopyAction](jdk8/src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (null/original/clone). |
+| [CopyAction](jdk8/src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (skip/null/original/clone). |
 | [CopyPolicy](jdk8/src/main/java/org/sugarcubes/cloner/CopyPolicy.java) | Set of class/field rules for cloning. |
-| [FieldCopyAction](jdk8/src/main/java/org/sugarcubes/cloner/FieldCopyAction.java) | Field copy action (skip/null/original/clone). |
 | [ObjectCopier](jdk8/src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier interface. |
-| [ObjectPolicy](jdk8/src/main/java/org/sugarcubes/cloner/ObjectPolicy.java) | Custom copy actions for objects. |
 | [ReflectionClonerBuilder](jdk8/src/main/java/org/sugarcubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
 | [TraversalAlgorithm](jdk8/src/main/java/org/sugarcubes/cloner/TraversalAlgorithm.java) | DFS (default) or BFS. |
             
@@ -88,7 +86,7 @@ Cloner cloner =
         // copy thread locals by reference
         .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
         // skip SomeObject.cachedValue field when cloning
-        .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
+        .setFieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
         // custom copier for SomeOtherObject type
         .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
         // parallel mode

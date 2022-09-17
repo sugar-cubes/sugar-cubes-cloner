@@ -16,6 +16,7 @@
 package org.sugarcubes.cloner;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,12 +32,17 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Object policy.
      */
-    private final ObjectPolicy objectPolicy;
+    private final CopyPolicy<Object> objectPolicy;
 
     /**
-     * Copy policy.
+     * Type policy.
      */
-    private final CopyPolicy policy;
+    private final CopyPolicy<Class<?>> typePolicy;
+
+    /**
+     * Field policy.
+     */
+    private final CopyPolicy<Field> fieldPolicy;
 
     /**
      * Object allocator.
@@ -62,15 +68,18 @@ public class ReflectionCopierProvider implements CopierProvider {
      * Constructor.
      *
      * @param objectPolicy object policy
-     * @param policy copy policy
+     * @param typePolicy type policy
+     * @param fieldPolicy field policy
      * @param allocator object allocator
      * @param copiers predefined copiers
      * @param fieldCopierFactory field copier factory
      */
-    public ReflectionCopierProvider(ObjectPolicy objectPolicy, CopyPolicy policy, ObjectAllocator allocator, Map<Class<?>,
-        ObjectCopier<?>> copiers, FieldCopierFactory fieldCopierFactory) {
+    public ReflectionCopierProvider(CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
+        CopyPolicy<Field> fieldPolicy, ObjectAllocator allocator, Map<Class<?>, ObjectCopier<?>> copiers,
+        FieldCopierFactory fieldCopierFactory) {
         this.objectPolicy = objectPolicy;
-        this.policy = policy;
+        this.typePolicy = typePolicy;
+        this.fieldPolicy = fieldPolicy;
         this.allocator = allocator;
         this.fieldCopierFactory = fieldCopierFactory;
         this.copiers.putAll(copiers);
@@ -80,8 +89,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     @SuppressWarnings("unchecked")
     public <T> ObjectCopier<T> getCopier(T original) {
         if (objectPolicy != null) {
-            return (ObjectCopier<T>) processAction(objectPolicy.getObjectAction(original),
-                () -> copiers.get(original.getClass()));
+            return (ObjectCopier<T>) processAction(objectPolicy.getAction(original), () -> copiers.get(original.getClass()));
         }
         return (ObjectCopier<T>) copiers.get(original.getClass());
     }
@@ -93,7 +101,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @return copier
      */
     private ObjectCopier<?> findCopier(Class<?> type) {
-        return processAction(policy.getTypeAction(type), () -> findCopierForType(type));
+        return processAction(typePolicy.getAction(type), () -> findCopierForType(type));
     }
 
     /**
@@ -133,7 +141,7 @@ public class ReflectionCopierProvider implements CopierProvider {
                 return ObjectCopier.SHALLOW;
             }
             if (Modifier.isFinal(componentType.getModifiers()) &&
-                policy.getTypeAction(componentType) == CopyAction.ORIGINAL) {
+                typePolicy.getAction(componentType) == CopyAction.ORIGINAL) {
                 // there is no mutable subtype of componentType, so, we can shallow clone array
                 return ObjectCopier.SHALLOW;
             }
@@ -172,7 +180,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
             ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType) : null;
-            copier = new ReflectionCopier<>(policy, allocator, type, fieldCopierFactory, parent);
+            copier = new ReflectionCopier<>(fieldPolicy, allocator, type, fieldCopierFactory, parent);
             reflectionCopiers.put(type, copier);
         }
         return copier;

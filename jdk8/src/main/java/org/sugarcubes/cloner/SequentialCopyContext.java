@@ -17,6 +17,7 @@ package org.sugarcubes.cloner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
@@ -42,10 +43,12 @@ public class SequentialCopyContext extends AbstractCopyContext {
      * Creates an object instance.
      *
      * @param copierProvider copier provider
+     * @param clones predefined cloned objects
      * @param traversalAlgorithm traversal algorithm
      */
-    public SequentialCopyContext(CopierProvider copierProvider, TraversalAlgorithm traversalAlgorithm) {
-        super(copierProvider);
+    public SequentialCopyContext(CopierProvider copierProvider, Map<Object, Object> clones,
+        TraversalAlgorithm traversalAlgorithm) {
+        super(copierProvider, clones);
         this.poll = getPollMethod(traversalAlgorithm);
     }
 

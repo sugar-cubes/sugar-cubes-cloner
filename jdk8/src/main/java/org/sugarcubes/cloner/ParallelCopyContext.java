@@ -15,6 +15,7 @@
  */
 package org.sugarcubes.cloner;
 
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -48,10 +49,11 @@ public class ParallelCopyContext extends AbstractCopyContext {
      * Creates an instance.
      *
      * @param copierProvider copier provider
+     * @param clones predefined cloned objects
      * @param executor executor service
      */
-    public ParallelCopyContext(CopierProvider copierProvider, ExecutorService executor) {
-        super(copierProvider);
+    public ParallelCopyContext(CopierProvider copierProvider, Map<Object, Object> clones, ExecutorService executor) {
+        super(copierProvider, clones);
         this.executor = executor;
     }
 

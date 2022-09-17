@@ -80,7 +80,7 @@ publishing {
             pom {
                 name.set("Java Cloner library")
                 description.set("Deep cloning of any objects")
-                url.set("https://github.com/mbutov/sugar-cubes-cloner")
+                url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
                 properties.set(mapOf(
                 ))
                 licenses {
@@ -94,12 +94,13 @@ publishing {
                         id.set("mbutov")
                         name.set("Maxim Butov")
                         email.set("mbutov(at)gmail.com")
+                        url.set("https://github.com/mbutov")
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/mbutov/sugar-cubes-cloner.git")
-                    developerConnection.set("scm:git:ssh://github.com/mbutov/sugar-cubes-cloner.git")
-                    url.set("https://github.com/mbutov/sugar-cubes-cloner")
+                    connection.set("scm:git:git://github.com/sugar-cubes/sugar-cubes-cloner.git")
+                    developerConnection.set("scm:git:ssh://github.com/sugar-cubes/sugar-cubes-cloner.git")
+                    url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
                 }
             }
         }

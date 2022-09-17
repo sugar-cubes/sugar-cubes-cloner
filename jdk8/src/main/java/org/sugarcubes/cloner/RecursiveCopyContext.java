@@ -15,6 +15,7 @@
  */
 package org.sugarcubes.cloner;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -28,9 +29,10 @@ public class RecursiveCopyContext extends AbstractCopyContext {
      * Creates an instance.
      *
      * @param copierProvider copier provider
+     * @param clones predefined cloned objects
      */
-    public RecursiveCopyContext(CopierProvider copierProvider) {
-        super(copierProvider);
+    public RecursiveCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
+        super(copierProvider, clones);
     }
 
     @Override
