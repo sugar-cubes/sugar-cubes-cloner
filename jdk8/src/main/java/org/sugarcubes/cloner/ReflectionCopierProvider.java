@@ -114,6 +114,8 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private ObjectCopier<?> processAction(CopyAction action, Supplier<ObjectCopier<?>> defaultCopierSupplier) {
         switch (action) {
+            case SKIP:
+                throw new IllegalStateException("SKIP action is not applicable for objects.");
             case NULL:
                 return ObjectCopier.NULL;
             case ORIGINAL:

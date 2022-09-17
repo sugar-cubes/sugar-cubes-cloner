@@ -268,6 +268,7 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder setObjectAction(Object original, CopyAction action) {
         Check.argNotNull(original, "Original");
         Check.argNotNull(action, "Action");
+        Check.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
         Check.illegalArg(objectActions.containsKey(original), "Action for %s already set.", original);
         objectActions.put(original, action);
         return this;
@@ -296,6 +297,7 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder setTypeAction(Class<?> type, CopyAction action) {
         Check.argNotNull(type, "Type");
         Check.argNotNull(action, "Action");
+        Check.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
         Check.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
         typeActions.put(type, action);
         if (action != CopyAction.DEFAULT) {
@@ -327,6 +329,7 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder setTypeAction(Predicate<Class<?>> typePredicate, CopyAction action) {
         Check.argNotNull(typePredicate, "Type predicate");
         Check.argNotNull(action, "Action");
+        Check.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
         typePredicateActions.put(typePredicate, action);
         return this;
     }
