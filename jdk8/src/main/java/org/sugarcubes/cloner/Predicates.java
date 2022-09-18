@@ -17,7 +17,9 @@ package org.sugarcubes.cloner;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Predicates factory. To be used with {@link PredicatePolicy}.
@@ -62,15 +64,17 @@ public class Predicates {
     }
 
     /**
-     * Predicate which test an element is annotated with annotation.
+     * Predicate which test an element is annotated with any of provided annotations.
      *
      * @param <T> element type
      * @param <A> annotation type
-     * @param annotation annotation type
+     * @param annotations annotation types
      * @return predicate
      */
-    public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWith(Class<A> annotation) {
-        return element -> element.getDeclaredAnnotation(annotation) != null;
+    @SafeVarargs
+    public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWith(Class<A>... annotations) {
+        Check.illegalArg(annotations.length == 0, "No annotations provided.");
+        return element -> Stream.of(annotations).map(element::getDeclaredAnnotation).anyMatch(Objects::nonNull);
     }
 
     /**

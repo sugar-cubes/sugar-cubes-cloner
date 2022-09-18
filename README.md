@@ -85,8 +85,12 @@ Cloner cloner =
         .setAllocator(new ObjenesisAllocator())
         // copy thread locals by reference
         .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
+        // do not clone closeables
+        .setTypeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
         // skip SomeObject.cachedValue field when cloning
         .setFieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
+        // set fields with @Transient annotation to null
+        .setFieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
         // custom copier for SomeOtherObject type
         .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
         // parallel mode
