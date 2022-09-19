@@ -22,7 +22,6 @@ import java.util.List;
  *
  * @author Maxim Butov
  */
-@FunctionalInterface
 public interface CopyPolicy<I> {
 
     /**
