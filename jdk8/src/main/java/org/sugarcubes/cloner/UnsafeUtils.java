@@ -37,7 +37,7 @@ public class UnsafeUtils {
             UNSAFE = (Unsafe) theUnsafe.get(null);
         }
         catch (ReflectiveOperationException e) {
-            throw new ClonerException("Cannot load sun.misc.Unsafe instance.", e);
+            throw new ClonerException("Cannot get sun.misc.Unsafe instance.", e);
         }
     }
 

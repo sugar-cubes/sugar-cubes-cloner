@@ -24,9 +24,10 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 /**
- * Copy policy based on predicates.
+ * Copy policy based on predicates. This implementation is slower than {@link ExactPolicy} but it is more flexible.
  *
  * @see Predicates
+ * @see ExactPolicy
  *
  * @author Maxim Butov
  */

@@ -53,7 +53,7 @@ public final class UnsafeFieldCopierFactory extends AbstractFieldCopierFactory {
             case "double":
                 return (original, clone, context) -> UNSAFE.putDouble(clone, offset, UNSAFE.getDouble(original, offset));
             default:
-                throw new IllegalStateException();
+                throw Check.neverHappens();
         }
     }
 
@@ -71,7 +71,7 @@ public final class UnsafeFieldCopierFactory extends AbstractFieldCopierFactory {
                 return (original, clone, context) ->
                     UNSAFE.putObject(clone, offset, context.copy(UNSAFE.getObject(original, offset)));
             default:
-                throw new IllegalStateException();
+                throw Check.neverHappens();
         }
     }
 

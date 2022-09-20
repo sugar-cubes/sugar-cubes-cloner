@@ -15,7 +15,7 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Copy policy interface.
@@ -51,7 +51,7 @@ public interface CopyPolicy<I> {
      * @param policies list of policies
      * @return compound or single policy
      */
-    static <I> CopyPolicy<I> compound(List<CopyPolicy<I>> policies) {
+    static <I> CopyPolicy<I> compound(Collection<CopyPolicy<I>> policies) {
         switch (policies.size()) {
             case 0:
                 return defaultPolicy();

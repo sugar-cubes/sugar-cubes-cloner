@@ -23,6 +23,15 @@ package org.sugarcubes.cloner;
 public class Check {
 
     /**
+     * Error for code blocks which normally must never be executed.
+     *
+     * @return nothing, throws {@link IllegalStateException}
+     */
+    public static IllegalStateException neverHappens() {
+        throw new IllegalArgumentException("Must not happen.");
+    }
+
+    /**
      * Throws {@link IllegalArgumentException}.
      *
      * @param format format for exception message

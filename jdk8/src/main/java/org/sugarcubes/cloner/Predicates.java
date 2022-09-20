@@ -17,9 +17,9 @@ package org.sugarcubes.cloner;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * Predicates factory. To be used with {@link PredicatePolicy}.
@@ -28,6 +28,7 @@ import java.util.stream.Stream;
  *
  * @author Maxim Butov
  */
+@SuppressWarnings("checkstyle:MultipleStringLiterals")
 public class Predicates {
 
     /**
@@ -64,17 +65,35 @@ public class Predicates {
     }
 
     /**
+     * Predicate which test an element is annotated with provided annotation.
+     *
+     * @param <T> element type
+     * @param <A> annotation type
+     * @param annotation annotation type
+     * @return predicate
+     */
+    public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWith(Class<A> annotation) {
+        Check.argNotNull(annotation, "Annotation");
+        return element -> element.getDeclaredAnnotation(annotation) != null;
+    }
+
+    /**
      * Predicate which test an element is annotated with any of provided annotations.
      *
      * @param <T> element type
      * @param <A> annotation type
+     * @param annotation annotation type
      * @param annotations annotation types
      * @return predicate
      */
     @SafeVarargs
-    public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWith(Class<A>... annotations) {
-        Check.illegalArg(annotations.length == 0, "No annotations provided.");
-        return element -> Stream.of(annotations).map(element::getDeclaredAnnotation).anyMatch(Objects::nonNull);
+    public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWithAny(Class<A> annotation,
+        Class<A>... annotations) {
+        for (Class<A> a : annotations) {
+            Check.argNotNull(a, "Annotation");
+        }
+        return Predicates.<T, A>annotatedWith(annotation)
+            .or(element -> Arrays.stream(annotations).map(element::getDeclaredAnnotation).anyMatch(Objects::nonNull));
     }
 
     /**

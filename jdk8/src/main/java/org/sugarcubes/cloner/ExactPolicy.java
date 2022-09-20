@@ -25,14 +25,14 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-public class ExactMappedPolicy<I> extends AbstractMappedPolicy<I, I> {
+public class ExactPolicy<I> extends AbstractMappedPolicy<I, I> {
 
     /**
      * Creates policy.
      *
      * @param map map (input, action)
      */
-    public ExactMappedPolicy(Map<I, CopyAction> map) {
+    public ExactPolicy(Map<I, CopyAction> map) {
         super(map);
     }
 
@@ -42,7 +42,7 @@ public class ExactMappedPolicy<I> extends AbstractMappedPolicy<I, I> {
      * @param map map (input, action)
      * @param mapCopyConstructor copy constructor of map as method reference
      */
-    public ExactMappedPolicy(Map<I, CopyAction> map, Function<Map<I, CopyAction>, Map<I, CopyAction>> mapCopyConstructor) {
+    public ExactPolicy(Map<I, CopyAction> map, Function<Map<I, CopyAction>, Map<I, CopyAction>> mapCopyConstructor) {
         super(map, mapCopyConstructor);
     }
 

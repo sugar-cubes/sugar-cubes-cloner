@@ -66,7 +66,7 @@ public class SequentialCopyContext extends AbstractCopyContext {
             case BREADTH_FIRST:
                 return Deque::pollFirst;
             default:
-                throw new IllegalStateException();
+                throw Check.neverHappens();
         }
     }
 

@@ -133,7 +133,7 @@ Default configuration of reflection cloner does not clone lambdas and method ref
         
 ### Versioning
 
-See [Semantic Versioning](https://semver.org/).
+[Semantic Versioning](https://semver.org).
 
 ### License
 

@@ -123,7 +123,7 @@ public class ReflectionCopierProvider implements CopierProvider {
             case DEFAULT:
                 return defaultCopierSupplier.get();
             default:
-                throw new IllegalStateException();
+                throw Check.neverHappens();
         }
     }
 
