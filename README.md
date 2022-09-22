@@ -1,5 +1,5 @@
 
-# The java cloner library [![build](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml)
+# The java cloner library [![build](actions/workflows/build.yml/badge.svg)](actions/workflows/build.yml)
                   
 Deep cloning of any objects.
 
@@ -7,7 +7,7 @@ Java 8 compatible.
 
 Thread safe.
 
-Parallel execution support.
+Supports parallel execution.
 
 ## Objectives
 
@@ -123,9 +123,9 @@ In parallel mode order is unpredictable.
 If the [Objenesis](https://github.com/easymock/objenesis) library is available, uses it to instantiate objects. Otherwise, uses reflection.
 
 The priority of copy configurations is:
-1. (high) builder configuration
-2. annotations
-3. (low) default configuration (JDK immutable classes)
+1. (high) builder configuration;
+2. annotations;
+3. (low) default configuration (JDK immutable classes).
 
 ### Known limitations
 

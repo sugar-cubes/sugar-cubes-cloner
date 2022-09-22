@@ -73,9 +73,17 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String?
             }
         }
+        maven {
+            name = "Sonatype"
+            url = URI("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+            credentials {
+                username = project.findProperty("sonatypeUsername") as String?
+                password = project.findProperty("sonatypePassword") as String?
+            }
+        }
     }
     publications {
-        register<MavenPublication>("gpr") {
+        register<MavenPublication>("library") {
             from(components["java"])
             pom {
                 name.set("Java Cloner library")
@@ -101,6 +109,9 @@ publishing {
                     connection.set("scm:git:git://github.com/sugar-cubes/sugar-cubes-cloner.git")
                     developerConnection.set("scm:git:ssh://github.com/sugar-cubes/sugar-cubes-cloner.git")
                     url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
+                    issueManagement {
+                        url.set("https://github.com/sugar-cubes/sugar-cubes-cloner/issues")
+                    }
                 }
             }
         }
@@ -108,5 +119,5 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["gpr"])
+    sign(publishing.publications["library"])
 }
