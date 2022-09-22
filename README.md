@@ -1,5 +1,8 @@
 
-# The java cloner library [![build](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml)
+# The java cloner library
+
+[![build](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml)
+[![maven central](https://maven-badges.herokuapp.com/maven-central/io.github.sugar-cubes/sugar-cubes-cloner/badge.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.sugar-cubes%22%20AND%20a%3Asugar-cubes-cloner)
                   
 Deep cloning of any objects.
 
