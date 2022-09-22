@@ -9,6 +9,20 @@ Thread safe.
 
 Supports parallel execution.
 
+Maven:
+```xml
+<dependency>
+    <groupId>io.github.sugar-cubes</groupId>
+    <artifactId>sugar-cubes-cloner</artifactId>
+    <version>0.0.1</version>
+</dependency>
+```
+
+Gradle:
+```groovy
+implementation "io.github.sugar-cubes:sugar-cubes-cloner:0.0.1"
+```
+
 ## Objectives
 
 - To get simple, convenient and configurable way of deep-cloning of objects of any types.
