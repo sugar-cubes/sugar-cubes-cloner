@@ -1,5 +1,5 @@
 
-# The java cloner library [![build](./actions/workflows/build.yml/badge.svg)](./actions/workflows/build.yml)
+# The java cloner library [![build](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml)
                   
 Deep cloning of any objects.
 
