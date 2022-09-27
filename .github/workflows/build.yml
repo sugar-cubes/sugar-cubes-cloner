@@ -22,9 +22,8 @@ jobs:
           cache: 'gradle'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Setup Gradle
+      - name: Gradle build
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-      - name: Build
-        run: ./gradlew clean build
+          arguments: clean build

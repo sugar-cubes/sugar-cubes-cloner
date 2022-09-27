@@ -1,10 +1,10 @@
 apply(from = "licenseFormat.gradle.kts")
 
-extra["version"] = file("version.txt").readText()
+val currentVersion = file("version.txt").readText().trim()
 
 allprojects {
     group = "io.github.sugar-cubes"
-    version = rootProject.extra["version"] as String
+    version = currentVersion
     description = "Java Reflection Cloner library"
 
     repositories {
