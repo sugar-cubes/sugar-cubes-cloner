@@ -27,4 +27,4 @@ jobs:
         with:
           gradle-version: wrapper
       - name: Build
-        run: gradle clean build
+        run: ./gradlew clean build
