@@ -77,8 +77,8 @@ publishing {
             name = "Sonatype"
             url = URI("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
             credentials {
-                username = project.findProperty("sonatypeUsername") as String?
-                password = project.findProperty("sonatypePassword") as String?
+                username = System.getenv("OSSRH_USERNAME") ?: project.findProperty("ossrhUsername") as String?
+                password = System.getenv("OSSRH_PASSWORD") ?: project.findProperty("ossrhPassword") as String?
             }
         }
     }

@@ -11,9 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        java: [ '9', '11' ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -22,7 +19,10 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-#      - name: Setup Gradle
-#        uses: gradle/gradle-build-action@v2
+          cache: 'gradle'
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
       - name: Build
-        run: ./gradlew clean build
+        run: gradle clean build
