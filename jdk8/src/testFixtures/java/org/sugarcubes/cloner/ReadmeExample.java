@@ -17,9 +17,20 @@ package org.sugarcubes.cloner;
 
 class ReadmeExample {
 
-    private void example() {
+    private final SomeObject original = new SomeObject();
 
-        SomeObject myObject = new SomeObject();
+    private void simple() {
+        SomeObject clone = Cloners.reflection().clone(original);
+    }
+
+    private void doNotCloneType() {
+        Cloner cloner = Cloners.builder()
+            .setTypeAction(NonCloneableType.class, CopyAction.NULL)
+            .build();
+        SomeObject clone = cloner.clone(original);
+    }
+
+    private void example() {
 
         Cloner cloner =
             // new builder instance
@@ -42,7 +53,7 @@ class ReadmeExample {
                 .build();
 
         // perform cloning
-        SomeObject myObjectClone = cloner.clone(myObject);
+        SomeObject clone = cloner.clone(original);
 
     }
 
@@ -51,6 +62,11 @@ class ReadmeExample {
     }
 
     private static class SomeOtherObject {
+
+    }
+
+    @TypeCopier(NoopCopier.class)
+    private static class NonCloneableType {
 
     }
 

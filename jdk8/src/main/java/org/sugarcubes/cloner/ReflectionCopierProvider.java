@@ -166,7 +166,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @return object copier
      */
     private ObjectCopier<?> createCopierFromAnnotation(TypeCopier annotation) {
-        Class<? extends ObjectCopier<?>> copierClass = annotation.value();
+        Class<? extends ObjectCopier<?>> copierClass = (Class) annotation.value();
         Constructor<? extends ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);
         return ReflectionUtils.execute(constructor::newInstance);
     }
