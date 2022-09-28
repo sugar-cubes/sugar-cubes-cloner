@@ -1,4 +1,6 @@
-apply(from = "licenseFormat.gradle.kts")
+plugins {
+    id ("com.github.hierynomus.license") version "0.16.1"
+}
 
 val currentVersion = file("version.txt").readText().trim()
 
@@ -9,5 +11,13 @@ allprojects {
 
     repositories {
         mavenCentral()
+    }
+
+    apply(plugin = "com.github.hierynomus.license")
+
+    license {
+        header = rootProject.file("HEADER.txt")
+        mapping("java", com.mycila.maven.plugin.license.header.HeaderType.SLASHSTAR_STYLE.name)
+        strictCheck = true
     }
 }
