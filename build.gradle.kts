@@ -17,7 +17,8 @@ allprojects {
 
     license {
         header = rootProject.file("HEADER.txt")
-        mapping("java", com.mycila.maven.plugin.license.header.HeaderType.SLASHSTAR_STYLE.name)
+        useDefaultMappings = true
+        mapping("java", "SLASHSTAR_STYLE")
         strictCheck = true
     }
 }

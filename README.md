@@ -26,6 +26,8 @@ Gradle:
 implementation "io.github.sugar-cubes:sugar-cubes-cloner:0.0.1"
 ```
 
+It is recommended also to include [Objenesis](https://github.com/easymock/objenesis) library into your application.  
+
 ## Objectives
 
 - To get simple, convenient and configurable way of deep-cloning of objects of any types.
@@ -82,11 +84,47 @@ Faster than java.io serialization.
             
 ### Usage
 
+#### Clone an object
+
 ```java
-Object clone = Cloners.reflection().clone(original);
+SomeObject clone = Cloners.reflection().clone(original);
 ```
 
-For the cloning with serialization one can use:
+#### Do not clone instances of a class
+
+```java
+Cloner cloner = Cloners.builder()
+    .setTypeAction(NonCloneableType.class, CopyAction.NULL)
+    .build();
+SomeObject clone = cloner.clone(original);
+```
+
+Here the instances of NonCloneableType in the original's object tree will be replaced with nulls in the clone.
+
+```java
+Cloner cloner = Cloners.builder()
+    .setTypeAction(NonCloneableType.class, CopyAction.ORIGINAL)
+    .build();
+SomeObject clone = cloner.clone(original);
+```
+
+Here the instances of NonCloneableType in the original's object tree will be copied by reference into the clone.
+
+The same thing can also bew done with annotations:
+
+```java
+@TypePolicy(CopyAction.NULL) // or CopyAction.ORIGINAL
+private static class NonCloneableType {
+```
+
+or
+
+```java
+@TypePolicy(CopyAction.NULL) // or CopyAction.ORIGINAL
+private static class NonCloneableType {
+```
+
+#### Clone an object with serialization
 
 ```java
 Object clone = Cloners.serialization().clone(original);
