@@ -22,44 +22,14 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import static org.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+
 /**
  * Shortcuts for Java Reflection API.
  *
  * @author Maxim Butov
  */
 public class ReflectionUtils {
-
-    /**
-     * Variant of the {@link java.util.function.Supplier} with declared exception.
-     */
-    @FunctionalInterface
-    public interface ReflectionAction<T> {
-
-        /**
-         * Actual work.
-         *
-         * @return work result
-         * @throws ReflectiveOperationException in case of reflection error
-         */
-        T get() throws ReflectiveOperationException;
-
-    }
-
-    /**
-     * Executes call to Reflection API and replaces {@link ReflectiveOperationException} with {@link ClonerException}.
-     *
-     * @param <T> object type
-     * @param action code to execute
-     * @return execution result
-     */
-    public static <T> T execute(ReflectionAction<T> action) {
-        try {
-            return action.get();
-        }
-        catch (ReflectiveOperationException e) {
-            throw new ClonerException(e);
-        }
-    }
 
     /**
      * Checks the availability of the class in current class loader.
@@ -84,7 +54,7 @@ public class ReflectionUtils {
      * @return {@link Class} instance
      */
     public static Class<?> classForName(String className) {
-        return execute(() -> Class.forName(className));
+        return replaceException(() -> Class.forName(className));
     }
 
     /**
@@ -96,7 +66,7 @@ public class ReflectionUtils {
      * @return field
      */
     public static Field getField(Class<?> type, String name) {
-        return makeAccessible(execute(() -> type.getDeclaredField(name)));
+        return replaceException(() -> makeAccessible(type.getDeclaredField(name)));
     }
 
     /**
@@ -109,7 +79,7 @@ public class ReflectionUtils {
      * @return method
      */
     public static Method getMethod(Class<?> type, String name, Class<?>... parameterTypes) {
-        return makeAccessible(execute(() -> type.getDeclaredMethod(name, parameterTypes)));
+        return replaceException(() -> makeAccessible(type.getDeclaredMethod(name, parameterTypes)));
     }
 
     /**
@@ -122,7 +92,7 @@ public class ReflectionUtils {
      * @return method
      */
     public static <T> Constructor<T> getConstructor(Class<T> type, Class<?>... parameterTypes) {
-        return makeAccessible(execute(() -> type.getDeclaredConstructor(parameterTypes)));
+        return replaceException(() -> makeAccessible(type.getDeclaredConstructor(parameterTypes)));
     }
 
     /**
@@ -141,7 +111,6 @@ public class ReflectionUtils {
      * Returns {@code true} if the member of class is non-static.
      *
      * @param member field or method or constructor
-     *
      * @return {@code true} if the member is non-static
      */
     public static boolean isNonStatic(Member member) {

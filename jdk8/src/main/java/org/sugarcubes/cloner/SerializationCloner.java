@@ -56,12 +56,7 @@ public class SerializationCloner implements Cloner {
 
     @Override
     public <T> T clone(T object) {
-        try {
-            return serializeDeserialize(object);
-        }
-        catch (Exception e) {
-            throw new ClonerException(e);
-        }
+        return ClonerExceptionUtils.replaceException(() -> serializeDeserialize(object));
     }
 
 }

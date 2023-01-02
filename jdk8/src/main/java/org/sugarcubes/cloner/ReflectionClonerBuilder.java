@@ -89,9 +89,9 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
-     * Object allocator.
+     * Object factory provider.
      */
-    private ObjectAllocator allocator;
+    private ObjectFactoryProvider objectFactoryProvider;
 
     /**
      * Field copier factory.
@@ -172,11 +172,11 @@ public final class ReflectionClonerBuilder {
     /**
      * Sets object allocator.
      *
-     * @param allocator object allocator
+     * @param objectFactoryProvider object factory provider
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setAllocator(ObjectAllocator allocator) {
-        this.allocator = check(allocator, this.allocator, "Allocator");
+    public ReflectionClonerBuilder setObjectFactoryProvider(ObjectFactoryProvider objectFactoryProvider) {
+        this.objectFactoryProvider = check(objectFactoryProvider, this.objectFactoryProvider, "Object factory provider");
         return this;
     }
 
@@ -197,7 +197,7 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setUnsafe() {
-        return setAllocator(new UnsafeAllocator()).setFieldCopierFactory(new UnsafeFieldCopierFactory());
+        return setObjectFactoryProvider(new UnsafeObjectFactoryProvider()).setFieldCopierFactory(new UnsafeFieldCopierFactory());
     }
 
     /**
@@ -497,16 +497,14 @@ public final class ReflectionClonerBuilder {
             objectPolicy = null;
         }
 
-        CopyPolicy<Class<?>> typePolicy = compound(this.typePolicy, typeActions, typePredicateActions,
-            new AnnotatedTypeCopyPolicy());
+        CopyPolicy<Class<?>> typePolicy = compound(this.typePolicy, typeActions, typePredicateActions, new AnnotatedTypeCopyPolicy());
 
-        CopyPolicy<Field> fieldPolicy = compound(this.fieldPolicy, fieldActions, fieldPredicateActions,
-            new AnnotatedFieldCopyPolicy());
+        CopyPolicy<Field> fieldPolicy = compound(this.fieldPolicy, fieldActions, fieldPredicateActions, new AnnotatedFieldCopyPolicy());
 
-        ObjectAllocator allocator = createIfNull(this.allocator, ObjectAllocator::defaultAllocator);
+        ObjectFactoryProvider objectFactoryProvider = createIfNull(this.objectFactoryProvider, ObjectFactoryProvider::defaultInstance);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider =
-            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, allocator, copiers, fieldCopierFactory);
+            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, fieldCopierFactory);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
@@ -518,8 +516,7 @@ public final class ReflectionClonerBuilder {
                 break;
             case SEQUENTIAL:
                 Check.isNull(this.executor, "Executor must be null for sequential mode.");
-                TraversalAlgorithm traversalAlgorithm =
-                    this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
+                TraversalAlgorithm traversalAlgorithm = this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
                 contextSupplier = () -> new SequentialCopyContext(provider, clones, traversalAlgorithm);
                 break;
             case PARALLEL:
@@ -528,7 +525,7 @@ public final class ReflectionClonerBuilder {
                 contextSupplier = () -> new ParallelCopyContext(provider, clones, executor);
                 break;
             default:
-                throw new IllegalStateException();
+                throw Check.neverHappens();
         }
         return new ClonerImpl(contextSupplier);
     }

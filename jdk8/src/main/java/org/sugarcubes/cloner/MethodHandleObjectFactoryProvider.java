@@ -19,12 +19,14 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
+import static org.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+
 /**
- * Object allocator using {@link MethodHandle} to invoke constructor.
+ * Object factory provider using {@link MethodHandle} to invoke constructor.
  *
  * @author Maxim Butov
  */
-public class MethodHandleObjectAllocator implements ObjectAllocator {
+public class MethodHandleObjectFactoryProvider implements ObjectFactoryProvider {
 
     /**
      * Trusted {@link MethodHandles.Lookup} instance.
@@ -38,17 +40,8 @@ public class MethodHandleObjectAllocator implements ObjectAllocator {
 
     @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {
-        MethodHandle constructor = ReflectionUtils.execute(() -> LOOKUP.findConstructor(type, VOID_METHOD_TYPE));
-        return () -> newInstance(constructor);
-    }
-
-    private static <T> T newInstance(MethodHandle constructor) {
-        try {
-            return (T) constructor.invoke();
-        }
-        catch (Throwable e) {
-            throw new ClonerException(e);
-        }
+        MethodHandle constructor = replaceException(() -> LOOKUP.findConstructor(type, VOID_METHOD_TYPE));
+        return () -> (T) replaceException(constructor::invoke);
     }
 
 }

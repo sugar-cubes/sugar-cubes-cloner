@@ -18,6 +18,8 @@ package org.sugarcubes.cloner;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 
+import static org.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+
 /**
  * Utility class to get trusted lookup instance.
  *
@@ -32,7 +34,7 @@ public class MethodHandlesLookupUtils {
 
     static {
         Field implLookup = ReflectionUtils.getField(MethodHandles.Lookup.class, "IMPL_LOOKUP");
-        LOOKUP = (MethodHandles.Lookup) ReflectionUtils.execute(() -> implLookup.get(null));
+        LOOKUP = (MethodHandles.Lookup) replaceException(() -> implLookup.get(null));
     }
 
     /**

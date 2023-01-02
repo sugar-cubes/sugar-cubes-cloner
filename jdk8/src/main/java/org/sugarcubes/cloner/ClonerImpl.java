@@ -40,18 +40,13 @@ public class ClonerImpl implements Cloner {
 
     @Override
     public <T> T clone(T object) {
-        try {
-            AbstractCopyContext context = contextSupplier.get();
-            T clone = context.copy(object);
-            context.complete();
-            return clone;
-        }
-        catch (ClonerException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new ClonerException(e);
-        }
+        return ClonerExceptionUtils.replaceException(() -> {
+                AbstractCopyContext context = contextSupplier.get();
+                T clone = context.copy(object);
+                context.complete();
+                return clone;
+            }
+        );
     }
 
 }

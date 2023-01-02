@@ -16,32 +16,20 @@
 package org.sugarcubes.cloner;
 
 /**
- * Object allocator interface.
+ * Object factory provider interface.
  *
  * @author Maxim Butov
  */
-public interface ObjectAllocator {
+public interface ObjectFactoryProvider {
 
     /**
-     * Creates default allocator. It will be {@link ObjectAllocator} if the Objenesis library available or
-     * {@link ReflectionAllocator} otherwise.
+     * Creates default object factory provider. It will be {@link ObjectFactoryProvider} if the Objenesis library available or
+     * {@link ReflectionObjectFactoryProvider} otherwise.
      *
      * @return default allocator
      */
-    static ObjectAllocator defaultAllocator() {
-        return ObjenesisUtils.isObjenesisAvailable() ? new ObjenesisAllocator() : new ReflectionAllocator();
-    }
-
-    /**
-     * Creates an instance of the specified type. Instance may be not initialized.
-     *
-     * @param <T> object type
-     * @param type type to instantiate
-     * @return new instance of the type
-     * @throws Exception if something went wrong
-     */
-    default <T> T newInstance(Class<T> type) throws Exception {
-        return getFactory(type).newInstance();
+    static ObjectFactoryProvider defaultInstance() {
+        return ObjenesisUtils.isObjenesisAvailable() ? new ObjenesisObjectFactoryProvider() : new ReflectionObjectFactoryProvider();
     }
 
     /**

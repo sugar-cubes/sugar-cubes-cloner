@@ -12,6 +12,7 @@ dependencies {
     testFixturesImplementation("org.hamcrest:hamcrest:2.2")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
 
+    testImplementation("org.objenesis:objenesis:3.3")
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
 

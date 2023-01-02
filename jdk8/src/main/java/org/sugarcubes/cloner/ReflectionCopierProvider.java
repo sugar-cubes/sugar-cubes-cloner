@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import static org.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+
 /**
  * Copier provider implementation.
  *
@@ -47,7 +49,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Object allocator.
      */
-    private final ObjectAllocator allocator;
+    private final ObjectFactoryProvider allocator;
 
     /**
      * Field copier factory.
@@ -75,7 +77,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @param fieldCopierFactory field copier factory
      */
     public ReflectionCopierProvider(CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
-        CopyPolicy<Field> fieldPolicy, ObjectAllocator allocator, Map<Class<?>, ObjectCopier<?>> copiers,
+        CopyPolicy<Field> fieldPolicy, ObjectFactoryProvider allocator, Map<Class<?>, ObjectCopier<?>> copiers,
         FieldCopierFactory fieldCopierFactory) {
         this.objectPolicy = objectPolicy;
         this.typePolicy = typePolicy;
@@ -168,7 +170,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     private ObjectCopier<?> createCopierFromAnnotation(TypeCopier annotation) {
         Class<? extends ObjectCopier<?>> copierClass = (Class) annotation.value();
         Constructor<? extends ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);
-        return ReflectionUtils.execute(constructor::newInstance);
+        return replaceException(constructor::newInstance);
     }
 
     /**

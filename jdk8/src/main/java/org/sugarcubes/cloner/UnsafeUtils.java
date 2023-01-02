@@ -32,13 +32,11 @@ public class UnsafeUtils {
     private static final Unsafe UNSAFE;
 
     static {
-        try {
-            Field theUnsafe = ReflectionUtils.getField(Unsafe.class, "theUnsafe");
-            UNSAFE = (Unsafe) theUnsafe.get(null);
-        }
-        catch (ReflectiveOperationException e) {
-            throw new ClonerException("Cannot get sun.misc.Unsafe instance.", e);
-        }
+        UNSAFE = ClonerExceptionUtils.replaceException(() -> {
+                Field theUnsafe = ReflectionUtils.getField(Unsafe.class, "theUnsafe");
+                return (Unsafe) theUnsafe.get(null);
+            }
+        );
     }
 
     /**

@@ -90,7 +90,10 @@ public class ParallelCopyContext extends AbstractCopyContext {
             }
             catch (ExecutionException e) {
                 cancel();
-                rethrow(e.getCause());
+                ClonerExceptionUtils.replaceException(() -> {
+                        throw e.getCause();
+                    }
+                );
             }
         }
     }
@@ -100,18 +103,6 @@ public class ParallelCopyContext extends AbstractCopyContext {
         Queue<Future<?>> futures = this.futures;
         for (Future<?> future; (future = futures.poll()) != null; ) {
             future.cancel(false);
-        }
-    }
-
-    private void rethrow(Throwable e) throws Exception {
-        try {
-            throw e;
-        }
-        catch (Error | Exception ex) {
-            throw ex;
-        }
-        catch (Throwable ex) {
-            throw new ClonerException(ex);
         }
     }
 

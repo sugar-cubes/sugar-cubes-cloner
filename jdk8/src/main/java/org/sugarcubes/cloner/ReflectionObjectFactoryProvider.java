@@ -16,13 +16,13 @@
 package org.sugarcubes.cloner;
 
 /**
- * Allocator which uses no-arg constructor to create object.
+ * Object factory provider which uses no-arg constructor to create object.
  *
- * @see ObjenesisAllocator
+ * @see ObjenesisObjectFactoryProvider
  *
  * @author Maxim Butov
  */
-public class ReflectionAllocator implements ObjectAllocator {
+public class ReflectionObjectFactoryProvider implements ObjectFactoryProvider {
 
     @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {

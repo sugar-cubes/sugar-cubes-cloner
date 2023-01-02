@@ -27,7 +27,7 @@ public class ObjenesisObjectFactoryTest {
 
         @Override
         public Object call() throws Exception {
-            return new ObjenesisAllocator();
+            return new ObjenesisObjectFactoryProvider();
         }
 
     }
@@ -46,7 +46,7 @@ public class ObjenesisObjectFactoryTest {
 
     @Test
     public void testObjenesis() throws Throwable {
-        new ObjenesisAllocator().newInstance(Integer.class);
+        new ObjenesisObjectFactoryProvider().getFactory(Integer.class).newInstance();
     }
 
 }

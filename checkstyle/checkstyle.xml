@@ -20,7 +20,7 @@
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 
-<!-- 
+<!--
     Checkstyle rules definition file.
     http://checkstyle.sourceforge.net/availablechecks.html
 
@@ -67,7 +67,7 @@
 
         <module name="LineLength">
             <property name="ignorePattern" value="^$"/>
-            <property name="max" value="130"/>
+            <property name="max" value="150"/>
         </module>
 
         <module name="MethodCount">

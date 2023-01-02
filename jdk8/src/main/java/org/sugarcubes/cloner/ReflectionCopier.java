@@ -51,7 +51,7 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param parent copier for the super type
      */
     @SuppressWarnings("unchecked")
-    public ReflectionCopier(CopyPolicy<Field> policy, ObjectAllocator allocator, Class<T> type,
+    public ReflectionCopier(CopyPolicy<Field> policy, ObjectFactoryProvider allocator, Class<T> type,
         FieldCopierFactory fieldCopierFactory, ReflectionCopier<?> parent) {
         this.factory = allocator.getFactory(type);
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?

@@ -36,7 +36,7 @@ class ReadmeExample {
             // new builder instance
             Cloners.builder()
                 // custom allocator
-                .setAllocator(new ObjenesisAllocator())
+                .setObjectFactoryProvider(new ObjenesisObjectFactoryProvider())
                 // copy thread locals by reference
                 .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
                 // do not clone closeables

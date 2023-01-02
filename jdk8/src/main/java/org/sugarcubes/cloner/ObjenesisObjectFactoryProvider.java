@@ -15,23 +15,40 @@
  */
 package org.sugarcubes.cloner;
 
-import sun.misc.Unsafe;
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
 
 /**
- * Object factory which uses {@link Unsafe} to create object instance.
+ * Object factory provider which uses Objenesis library to create objects.
  *
  * @author Maxim Butov
  */
-public class UnsafeAllocator implements ObjectAllocator {
+public class ObjenesisObjectFactoryProvider implements ObjectFactoryProvider {
 
-    @Override
-    public <T> T newInstance(Class<T> type) throws Exception {
-        return (T) UnsafeUtils.getUnsafe().allocateInstance(type);
+    /**
+     * Objenesis instance.
+     */
+    private final Objenesis objenesis;
+
+    /**
+     * Default constructor.
+     */
+    public ObjenesisObjectFactoryProvider() {
+        this(new ObjenesisStd());
+    }
+
+    /**
+     * Constructor with an {@link Objenesis} instance.
+     *
+     * @param objenesis {@link Objenesis} instance
+     */
+    public ObjenesisObjectFactoryProvider(Objenesis objenesis) {
+        this.objenesis = objenesis;
     }
 
     @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {
-        return () -> newInstance(type);
+        return objenesis.getInstantiatorOf(type)::newInstance;
     }
 
 }
