@@ -15,8 +15,8 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Abstract copy context. Contains common code for the context implementations.
@@ -36,19 +36,42 @@ public abstract class AbstractCopyContext implements CopyContext {
     private final Map<Object, Object> clones;
 
     /**
-     * Creates context with specified copier provider and predefined cloned objects.
+     * Creates context with specified copier provider, clones map and predefined cloned objects.
      *
      * @param copierProvider copier provider
+     * @param mapSupplier clones map supplier
      * @param clones predefined cloned objects
      */
-    protected AbstractCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
+    protected AbstractCopyContext(CopierProvider copierProvider, Supplier<Map<?, ?>> mapSupplier, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
-        this.clones = new IdentityHashMap<>(clones);
+        this.clones = new IdentityMapWrapper<>(mapSupplier, clones);
     }
+
+    /**
+     * Integer reference (array of size 1) for cloning/registration counter.
+     *
+     * @return counter
+     */
+    protected abstract int[] counter();
 
     @Override
     public <T> void register(T original, T clone) {
-        clones.put(original, clone);
+        if (--counter()[0] < 0) {
+            registrationMismatch();
+        }
+        if (clones.put(original, clone) != null) {
+            registrationMismatch();
+        }
+    }
+
+    /**
+     * Throws exception with message describing registration error.
+     */
+    protected void registrationMismatch() {
+        throw new ClonerException("Registration mismatch. " +
+            "If you use custom ObjectCopier or Copyable objects, " +
+            "ensure that you call CopyContext.register(original, clone) method " +
+            "and call it exactly once.");
     }
 
     @Override
@@ -56,11 +79,18 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (original == null) {
             return null;
         }
+
         ObjectCopier<T> copier = copierProvider.getCopier(original);
-        // trivial case
-        if (copier == ObjectCopier.NOOP || copier == ObjectCopier.NULL) {
-            return copier.copy(original, this);
+
+        // trivial cases
+        if (copier == ObjectCopier.NOOP) {
+            return original;
         }
+        if (copier == ObjectCopier.NULL) {
+            return null;
+        }
+
+        // non-trivial case
         return doClone(original, copier);
     }
 
@@ -78,15 +108,20 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (clone != null) {
             return clone;
         }
+        int[] counter = counter();
+        int count = counter[0]++;
         clone = copier.copy(original, this);
+        if (count != counter[0]) {
+            registrationMismatch();
+        }
         return clone;
     }
 
     /**
      * Completes all the delayed tasks.
      *
-     * @throws Exception if something went wrong
+     * @throws Throwable if something went wrong
      */
-    public abstract void complete() throws Exception;
+    public abstract void complete() throws Throwable;
 
 }

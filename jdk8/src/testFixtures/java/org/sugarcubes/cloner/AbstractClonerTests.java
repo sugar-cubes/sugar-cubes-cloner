@@ -154,9 +154,10 @@ abstract class AbstractClonerTests {
 
         @Override
         public CopyableObject copy(CopyContext context) {
-            CopyableObject copy = new CopyableObject();
-            copy.x = -x;
-            return copy;
+            CopyableObject clone = new CopyableObject();
+            context.register(this, clone);
+            clone.x = -x;
+            return clone;
         }
 
     }
@@ -195,7 +196,9 @@ abstract class AbstractClonerTests {
 
         @Override
         public AnnotatedWithCopier copy(AnnotatedWithCopier original, CopyContext context) throws Exception {
-            return new AnnotatedWithCopier(-original.x);
+            AnnotatedWithCopier clone = new AnnotatedWithCopier(-original.x);
+            context.register(original, clone);
+            return clone;
         }
 
     }

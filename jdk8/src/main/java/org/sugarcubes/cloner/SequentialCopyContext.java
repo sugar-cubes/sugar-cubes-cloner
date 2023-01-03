@@ -26,7 +26,7 @@ import java.util.function.Function;
  *
  * @author Maxim Butov
  */
-public class SequentialCopyContext extends AbstractCopyContext {
+public class SequentialCopyContext extends AbstractSingleThreadCopyContext {
 
     /**
      * Queue of actions to complete copying.
@@ -71,12 +71,12 @@ public class SequentialCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    public void thenInvoke(Callable<?> task) {
+    public void thenInvoke(Callable<?> task) throws Exception {
         queue.offer(task);
     }
 
     @Override
-    public void complete() throws Exception {
+    public void complete() throws Throwable {
         Deque<Callable<?>> queue = this.queue;
         Function<Deque<Callable<?>>, Callable<?>> poll = this.poll;
         for (Callable<?> next; (next = poll.apply(queue)) != null; ) {

@@ -15,33 +15,34 @@
  */
 package org.sugarcubes.cloner;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
- * Copy context with recursive invocations.
+ * Context which is used by single thread.
  *
  * @author Maxim Butov
  */
-public class RecursiveCopyContext extends AbstractSingleThreadCopyContext {
+public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContext {
 
     /**
-     * Creates an instance.
+     * Counter of objects to be cloned. Increased on the start of cloning, decreased on registration.
+     */
+    private final int[] counter = new int[1];
+
+    /**
+     * Creates context with specified copier provider and predefined cloned objects.
      *
      * @param copierProvider copier provider
      * @param clones predefined cloned objects
      */
-    public RecursiveCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
-        super(copierProvider, clones);
+    public AbstractSingleThreadCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
+        super(copierProvider, HashMap::new, clones);
     }
 
     @Override
-    public void thenInvoke(Callable<?> task) throws Exception {
-        task.call();
-    }
-
-    @Override
-    public void complete() throws Throwable {
+    protected int[] counter() {
+        return counter;
     }
 
 }

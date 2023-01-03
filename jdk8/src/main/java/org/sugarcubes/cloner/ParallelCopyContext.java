@@ -18,6 +18,7 @@ package org.sugarcubes.cloner;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -46,6 +47,11 @@ public class ParallelCopyContext extends AbstractCopyContext {
     private volatile boolean running = true;
 
     /**
+     * Counter of objects to be cloned. Increased on the start of cloning, decreased on registration.
+     */
+    private final ThreadLocal<int[]> counter = ThreadLocal.withInitial(() -> new int[1]);
+
+    /**
      * Creates an instance.
      *
      * @param copierProvider copier provider
@@ -53,17 +59,17 @@ public class ParallelCopyContext extends AbstractCopyContext {
      * @param executor executor service
      */
     public ParallelCopyContext(CopierProvider copierProvider, Map<Object, Object> clones, ExecutorService executor) {
-        super(copierProvider, clones);
+        super(copierProvider, ConcurrentHashMap::new, clones);
         this.executor = executor;
     }
 
     @Override
-    public synchronized <T> void register(T original, T clone) {
-        super.register(original, clone);
+    protected int[] counter() {
+        return counter.get();
     }
 
     @Override
-    public void thenInvoke(Callable<?> task) {
+    public void thenInvoke(Callable<?> task) throws Exception {
         if (running) {
             futures.offer(executor.submit(task));
         }
@@ -77,7 +83,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    public void complete() throws Exception {
+    public void complete() throws Throwable {
         Queue<Future<?>> futures = this.futures;
         for (Future<?> future; (future = futures.poll()) != null; ) {
             try {
@@ -90,10 +96,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
             }
             catch (ExecutionException e) {
                 cancel();
-                ClonerExceptionUtils.replaceException(() -> {
-                        throw e.getCause();
-                    }
-                );
+                throw e.getCause();
             }
         }
     }
