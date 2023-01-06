@@ -47,11 +47,6 @@ public class ParallelCopyContext extends AbstractCopyContext {
     private volatile boolean running = true;
 
     /**
-     * Counter of objects to be cloned. Increased on the start of cloning, decreased on registration.
-     */
-    private final ThreadLocal<int[]> counter = ThreadLocal.withInitial(() -> new int[1]);
-
-    /**
      * Creates an instance.
      *
      * @param copierProvider copier provider
@@ -61,11 +56,6 @@ public class ParallelCopyContext extends AbstractCopyContext {
     public ParallelCopyContext(CopierProvider copierProvider, Map<Object, Object> clones, ExecutorService executor) {
         super(copierProvider, ConcurrentHashMap::new, clones);
         this.executor = executor;
-    }
-
-    @Override
-    protected int[] counter() {
-        return counter.get();
     }
 
     @Override

@@ -15,24 +15,33 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Context which is used by single thread.
+ * Reference to an object (or null reference) to be used as a map key in order to force a map act as identity map.
  *
  * @author Maxim Butov
  */
-public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContext {
+public final class IdentityReference<K> {
 
-    /**
-     * Creates context with specified copier provider and predefined cloned objects.
-     *
-     * @param copierProvider copier provider
-     * @param clones predefined cloned objects
-     */
-    public AbstractSingleThreadCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
-        super(copierProvider, HashMap::new, clones);
+    private final K reference;
+    private final int hash;
+
+    IdentityReference(K reference) {
+        this.reference = reference;
+        this.hash = System.identityHashCode(reference);
+    }
+
+    public K getReference() {
+        return reference;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof IdentityReference && ((IdentityReference<?>) obj).reference == reference;
+    }
+
+    @Override
+    public int hashCode() {
+        return hash;
     }
 
 }

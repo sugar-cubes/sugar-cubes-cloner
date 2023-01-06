@@ -33,45 +33,44 @@ public abstract class AbstractCopyContext implements CopyContext {
     /**
      * Previously copied objects.
      */
-    private final Map<Object, Object> clones;
+    private final Map<IdentityReference<Object>, Object[]> clones;
+
+    /**
+     * Sub-map of the {@link #clones}, containing objects which are being cloned at the moment.
+     */
+    private final Map<IdentityReference<Object>, Object[]> cache;
 
     /**
      * Creates context with specified copier provider, clones map and predefined cloned objects.
      *
      * @param copierProvider copier provider
-     * @param mapSupplier clones map supplier
+     * @param cacheSupplier cache supplier
      * @param clones predefined cloned objects
      */
-    protected AbstractCopyContext(CopierProvider copierProvider, Supplier<Map<?, ?>> mapSupplier, Map<Object, Object> clones) {
+    protected AbstractCopyContext(CopierProvider copierProvider, Supplier<Map<?, ?>> cacheSupplier, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
-        this.clones = new IdentityMapWrapper<>(mapSupplier, clones);
+        this.clones = (Map) cacheSupplier.get();
+        clones.forEach((key, value) -> this.clones.put(new IdentityReference<>(key), new Object[] {value}));
+        this.cache = (Map) cacheSupplier.get();
     }
-
-    /**
-     * Integer reference (array of size 1) for cloning/registration counter.
-     *
-     * @return counter
-     */
-    protected abstract int[] counter();
 
     @Override
     public <T> void register(T original, T clone) {
-        if (--counter()[0] < 0) {
-            registrationMismatch();
+        Object[] cached = cache.remove(new IdentityReference<>(original));
+        if (cached == null) {
+            registrationMismatch(original);
         }
-        if (clones.put(original, clone) != null) {
-            registrationMismatch();
-        }
+        cached[0] = clone;
     }
 
     /**
      * Throws exception with message describing registration error.
      */
-    protected void registrationMismatch() {
-        throw new ClonerException("Registration mismatch. " +
+    private void registrationMismatch(Object obj) {
+        throw new ClonerException(String.format("Registration mismatch when cloning '%s'. " +
             "If you use custom ObjectCopier or Copyable objects, " +
             "ensure that you call CopyContext.register(original, clone) method " +
-            "and call it exactly once.");
+            "and call it exactly once.", obj));
     }
 
     @Override
@@ -104,15 +103,19 @@ public abstract class AbstractCopyContext implements CopyContext {
      * @throws Exception if something went wrong
      */
     protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
-        T clone = (T) clones.get(original);
+        IdentityReference<Object> id = new IdentityReference<>(original);
+        Object[] cached = clones.computeIfAbsent(id, key -> new Object[1]);
+        T clone = (T) cached[0];
         if (clone != null) {
             return clone;
         }
-        int[] counter = counter();
-        int count = counter[0]++;
+        cache.put(id, cached);
         clone = copier.copy(original, this);
-        if (count != counter[0]) {
-            registrationMismatch();
+        if (clone == null) {
+            throw new ClonerException(String.format("Non-null clone expected for '%s'.", original));
+        }
+        if (cache.containsKey(id) || cached[0] != clone) {
+            registrationMismatch(original);
         }
         return clone;
     }

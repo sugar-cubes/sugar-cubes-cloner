@@ -46,8 +46,7 @@ public class SequentialCopyContext extends AbstractSingleThreadCopyContext {
      * @param clones predefined cloned objects
      * @param traversalAlgorithm traversal algorithm
      */
-    public SequentialCopyContext(CopierProvider copierProvider, Map<Object, Object> clones,
-        TraversalAlgorithm traversalAlgorithm) {
+    public SequentialCopyContext(CopierProvider copierProvider, Map<Object, Object> clones, TraversalAlgorithm traversalAlgorithm) {
         super(copierProvider, clones);
         this.poll = getPollMethod(traversalAlgorithm);
     }

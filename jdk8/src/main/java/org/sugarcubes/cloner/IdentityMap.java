@@ -28,44 +28,19 @@ import java.util.function.Supplier;
  *
  * @author Maxim Butov
  */
-public class IdentityMapWrapper<K, V> extends AbstractMap<K, V> {
-
-    /**
-     * Delegate key.
-     */
-    static final class IdentityKeyWrapper<K> {
-
-        final K key;
-        final int hash;
-
-        IdentityKeyWrapper(K key) {
-            this.key = key;
-            this.hash = System.identityHashCode(key);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return ((IdentityKeyWrapper<?>) obj).key == key;
-        }
-
-        @Override
-        public int hashCode() {
-            return hash;
-        }
-
-    }
+public class IdentityMap<K, V> extends AbstractMap<K, V> {
 
     /**
      * Delegate map.
      */
-    private final Map<IdentityKeyWrapper<K>, V> delegate;
+    private final Map<IdentityReference<K>, V> delegate;
 
     /**
      * Creates map and initializes {@link #delegate} from #supplier.
      *
      * @param supplier delegate supplier
      */
-    public IdentityMapWrapper(Supplier<Map<?, ?>> supplier) {
+    public IdentityMap(Supplier<Map<?, ?>> supplier) {
         this(supplier, Collections.emptyMap());
     }
 
@@ -75,9 +50,9 @@ public class IdentityMapWrapper<K, V> extends AbstractMap<K, V> {
      * @param supplier delegate supplier
      * @param initial initial entries
      */
-    public IdentityMapWrapper(Supplier<Map<?, ?>> supplier, Map<K, V> initial) {
+    public IdentityMap(Supplier<Map<?, ?>> supplier, Map<K, V> initial) {
         delegate = (Map) supplier.get();
-        initial.forEach((key, value) -> delegate.put(new IdentityKeyWrapper<>(key), value));
+        initial.forEach((key, value) -> delegate.put(new IdentityReference<>(key), value));
     }
 
     @Override
@@ -87,22 +62,22 @@ public class IdentityMapWrapper<K, V> extends AbstractMap<K, V> {
 
     @Override
     public V get(Object key) {
-        return delegate.get(new IdentityKeyWrapper<>(key));
+        return delegate.get(new IdentityReference<>(key));
     }
 
     @Override
     public V put(K key, V value) {
-        return delegate.put(new IdentityKeyWrapper<>(key), value);
+        return delegate.put(new IdentityReference<>(key), value);
     }
 
     @Override
     public V remove(Object key) {
-        return delegate.remove(new IdentityKeyWrapper<>(key));
+        return delegate.remove(new IdentityReference<>(key));
     }
 
     class EntryIterator implements Iterator<Entry<K, V>> {
 
-        final Iterator<Entry<IdentityKeyWrapper<K>, V>> iterator = delegate.entrySet().iterator();
+        final Iterator<Entry<IdentityReference<K>, V>> iterator = delegate.entrySet().iterator();
 
         @Override
         public boolean hasNext() {
@@ -111,11 +86,11 @@ public class IdentityMapWrapper<K, V> extends AbstractMap<K, V> {
 
         @Override
         public Entry<K, V> next() {
-            Entry<IdentityKeyWrapper<K>, V> entry = iterator.next();
+            Entry<IdentityReference<K>, V> entry = iterator.next();
             return new Entry<K, V>() {
                 @Override
                 public K getKey() {
-                    return entry.getKey().key;
+                    return entry.getKey().getReference();
                 }
 
                 @Override
