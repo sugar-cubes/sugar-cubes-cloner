@@ -57,7 +57,7 @@ public abstract class AbstractCopyContext implements CopyContext {
     @Override
     public <T> void register(T original, T clone) {
         Object[] cached = cache.remove(new IdentityReference<>(original));
-        if (cached == null) {
+        if (cached == null || cached[0] != null) {
             registrationMismatch(original);
         }
         cached[0] = clone;
