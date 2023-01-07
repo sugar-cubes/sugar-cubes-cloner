@@ -254,10 +254,10 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setObjectAction(Object original, CopyAction action) {
-        Check.argNotNull(original, "Original");
-        Check.argNotNull(action, "Action");
-        Check.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
-        Check.illegalArg(objectActions.containsKey(original), "Action for %s already set.", original);
+        Checks.argNotNull(original, "Original");
+        Checks.argNotNull(action, "Action");
+        Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
+        Checks.illegalArg(objectActions.containsKey(original), "Action for %s already set.", original);
         if (action != CopyAction.DEFAULT) {
             objectActions.put(original, action);
         }
@@ -283,10 +283,10 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTypeAction(Class<?> type, CopyAction action) {
-        Check.argNotNull(type, "Type");
-        Check.argNotNull(action, "Action");
-        Check.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
-        Check.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
+        Checks.argNotNull(type, "Type");
+        Checks.argNotNull(action, "Action");
+        Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
+        Checks.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
         if (action != CopyAction.DEFAULT) {
             typeActions.put(type, action);
             copiers.remove(type);
@@ -302,8 +302,8 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTypeAction(String type, CopyAction action) {
-        Check.argNotNull(type, "Type");
-        Check.argNotNull(action, "Action");
+        Checks.argNotNull(type, "Type");
+        Checks.argNotNull(action, "Action");
         return setTypeAction(ReflectionUtils.classForName(type), action);
     }
 
@@ -315,9 +315,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setTypeAction(Predicate<Class<?>> typePredicate, CopyAction action) {
-        Check.argNotNull(typePredicate, "Type predicate");
-        Check.argNotNull(action, "Action");
-        Check.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
+        Checks.argNotNull(typePredicate, "Type predicate");
+        Checks.argNotNull(action, "Action");
+        Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
         if (action != CopyAction.DEFAULT) {
             typePredicateActions.put(typePredicate, action);
         }
@@ -331,8 +331,8 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setFieldPolicy(CopyPolicy<Field> fieldPolicy) {
-        Check.argNotNull(fieldPolicy, "Field policy");
-        Check.isNull(this.fieldPolicy, "Field policy already set.");
+        Checks.argNotNull(fieldPolicy, "Field policy");
+        Checks.isNull(this.fieldPolicy, "Field policy already set.");
         this.fieldPolicy = fieldPolicy;
         return this;
     }
@@ -345,11 +345,11 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setFieldAction(Field field, CopyAction action) {
-        Check.argNotNull(field, "Field");
-        Check.argNotNull(action, "Action");
-        Check.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
+        Checks.argNotNull(field, "Field");
+        Checks.argNotNull(action, "Action");
+        Checks.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
             "Cannot apply action NULL for primitive field %s.", field);
-        Check.illegalArg(fieldActions.containsKey(field), "Action for %s already set.", field);
+        Checks.illegalArg(fieldActions.containsKey(field), "Action for %s already set.", field);
         if (action != CopyAction.DEFAULT) {
             fieldActions.put(field, action);
         }
@@ -365,9 +365,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setFieldAction(Class<?> type, String field, CopyAction action) {
-        Check.argNotNull(type, "Type");
-        Check.argNotNull(field, "Field");
-        Check.argNotNull(action, "Action");
+        Checks.argNotNull(type, "Type");
+        Checks.argNotNull(field, "Field");
+        Checks.argNotNull(action, "Action");
         return setFieldAction(ReflectionUtils.getField(type, field), action);
     }
 
@@ -379,8 +379,8 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setFieldAction(Predicate<Field> fieldPredicate, CopyAction action) {
-        Check.argNotNull(fieldPredicate, "Field predicate");
-        Check.argNotNull(action, "Action");
+        Checks.argNotNull(fieldPredicate, "Field predicate");
+        Checks.argNotNull(action, "Action");
         if (action != CopyAction.DEFAULT) {
             fieldPredicateActions.put(fieldPredicate, action);
         }
@@ -406,9 +406,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setCopier(Class<?> type, ObjectCopier<?> copier) {
-        Check.argNotNull(type, "Type");
-        Check.argNotNull(copier, "Copier");
-        Check.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
+        Checks.argNotNull(type, "Type");
+        Checks.argNotNull(copier, "Copier");
+        Checks.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
         copiers.put(type, copier);
         return this;
     }
@@ -421,9 +421,9 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder setClone(Object original, Object clone) {
-        Check.argNotNull(original, "Original");
-        Check.argNotNull(clone, "Clone");
-        Check.illegalArg(clones.get(original) != null, "Clone for %s already set.", original);
+        Checks.argNotNull(original, "Original");
+        Checks.argNotNull(clone, "Clone");
+        Checks.illegalArg(clones.get(original) != null, "Clone for %s already set.", original);
         clones.put(original, clone);
         return this;
     }
@@ -438,8 +438,8 @@ public final class ReflectionClonerBuilder {
      * @return new value
      */
     private static <T> T check(T value, T oldValue, String arg) {
-        Check.argNotNull(value, arg);
-        Check.isNull(oldValue, "%s already set.", arg);
+        Checks.argNotNull(value, arg);
+        Checks.isNull(oldValue, "%s already set.", arg);
         return value;
     }
 
@@ -510,22 +510,22 @@ public final class ReflectionClonerBuilder {
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
         switch (mode) {
             case RECURSIVE:
-                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for recursive mode.");
-                Check.isNull(this.executor, "Executor must be null for recursive mode.");
+                Checks.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for recursive mode.");
+                Checks.isNull(this.executor, "Executor must be null for recursive mode.");
                 contextSupplier = () -> new RecursiveCopyContext(provider, clones);
                 break;
             case SEQUENTIAL:
-                Check.isNull(this.executor, "Executor must be null for sequential mode.");
+                Checks.isNull(this.executor, "Executor must be null for sequential mode.");
                 TraversalAlgorithm traversalAlgorithm = this.traversalAlgorithm != null ? this.traversalAlgorithm : TraversalAlgorithm.DEPTH_FIRST;
                 contextSupplier = () -> new SequentialCopyContext(provider, clones, traversalAlgorithm);
                 break;
             case PARALLEL:
-                Check.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for parallel mode.");
+                Checks.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for parallel mode.");
                 ExecutorService executor = createIfNull(this.executor, ForkJoinPool::commonPool);
                 contextSupplier = () -> new ParallelCopyContext(provider, clones, executor);
                 break;
             default:
-                throw Check.neverHappens();
+                throw Checks.neverHappens();
         }
         return new ClonerImpl(contextSupplier);
     }

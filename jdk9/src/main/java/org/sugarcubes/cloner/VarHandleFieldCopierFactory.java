@@ -36,7 +36,7 @@ public final class VarHandleFieldCopierFactory implements FieldCopierFactory {
         if (action == CopyAction.SKIP) {
             return FieldCopier.NOOP;
         }
-        Check.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
+        Checks.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
             "Cannot apply action NULL for primitive field %s.", field);
         VarHandle handle = ClonerExceptionUtils.replaceException(() -> LOOKUP.unreflectVarHandle(field));
         switch (action) {
@@ -47,7 +47,7 @@ public final class VarHandleFieldCopierFactory implements FieldCopierFactory {
             case DEFAULT:
                 return (original, clone, context) -> handle.set(clone, context.copy(handle.get(original)));
             default:
-                throw Check.neverHappens();
+                throw Checks.neverHappens();
         }
     }
 

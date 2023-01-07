@@ -83,8 +83,7 @@ public abstract class AbstractCopyContext implements CopyContext {
      * @throws Exception if something went wrong
      */
     protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
-        IdentityReference<Object> id = new IdentityReference<>(original);
-        Object[] cached = clones.computeIfAbsent(id, key -> new Object[1]);
+        Object[] cached = clones.computeIfAbsent(new IdentityReference<>(original), key -> new Object[1]);
         T clone = (T) cached[0];
         if (clone != null) {
             return clone;

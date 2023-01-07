@@ -20,7 +20,7 @@ package org.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-public class Check {
+public class Checks {
 
     /**
      * Error for code blocks which normally must never be executed.
@@ -36,9 +36,9 @@ public class Check {
      *
      * @param format format for exception message
      * @param args arguments for exception message
-     * @return nothing, always throws exception
+     * @return nothing, always throws {@link IllegalArgumentException}
      */
-    public static Error illegalArg(String format, Object... args) throws IllegalArgumentException {
+    public static IllegalArgumentException illegalArg(String format, Object... args) throws IllegalArgumentException {
         throw new IllegalArgumentException(args.length != 0 ? String.format(format, args) : format);
     }
 
@@ -98,7 +98,7 @@ public class Check {
     /**
      * Utility class.
      */
-    private Check() {
+    private Checks() {
     }
 
 }

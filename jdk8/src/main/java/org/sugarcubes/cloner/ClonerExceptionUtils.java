@@ -27,6 +27,7 @@ public class ClonerExceptionUtils {
      *
      * @param <T> result type
      */
+    @FunctionalInterface
     public interface Action<T> {
 
         /**

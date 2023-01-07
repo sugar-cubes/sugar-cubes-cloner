@@ -22,7 +22,7 @@ import java.util.concurrent.Callable;
  *
  * @author Maxim Butov
  */
-public class RegistrationContext implements CopyContext {
+public final class RegistrationContext implements CopyContext {
 
     /**
      * Initial copy context.

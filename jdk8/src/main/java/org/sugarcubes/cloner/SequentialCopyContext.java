@@ -65,7 +65,7 @@ public class SequentialCopyContext extends AbstractSingleThreadCopyContext {
             case BREADTH_FIRST:
                 return Deque::pollFirst;
             default:
-                throw Check.neverHappens();
+                throw Checks.neverHappens();
         }
     }
 

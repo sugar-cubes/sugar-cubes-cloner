@@ -30,7 +30,7 @@ public abstract class AbstractFieldCopierFactory implements FieldCopierFactory {
             return FieldCopier.NOOP;
         }
         if (field.getType().isPrimitive()) {
-            Check.illegalArg(action == CopyAction.NULL, "Cannot apply action NULL for primitive field %s.", field);
+            Checks.illegalArg(action == CopyAction.NULL, "Cannot apply action NULL for primitive field %s.", field);
             return getPrimitiveFieldCopier(field);
         }
         return getObjectFieldCopier(field, action);

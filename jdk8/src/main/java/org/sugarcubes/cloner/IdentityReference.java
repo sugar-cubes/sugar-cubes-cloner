@@ -22,21 +22,31 @@ package org.sugarcubes.cloner;
  */
 public final class IdentityReference<K> {
 
-    private final K reference;
+    private final K object;
     private final int hash;
 
-    IdentityReference(K reference) {
-        this.reference = reference;
-        this.hash = System.identityHashCode(reference);
+    /**
+     * Creates identity reference for the object.
+     *
+     * @param object object
+     */
+    public IdentityReference(K object) {
+        this.object = object;
+        this.hash = System.identityHashCode(object);
     }
 
-    public K getReference() {
-        return reference;
+    /**
+     * Returns the object.
+     *
+     * @return object
+     */
+    public K getObject() {
+        return object;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof IdentityReference && ((IdentityReference<?>) obj).reference == reference;
+        return obj instanceof IdentityReference && ((IdentityReference<?>) obj).object == this.object;
     }
 
     @Override

@@ -73,7 +73,7 @@ public class Predicates {
      * @return predicate
      */
     public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWith(Class<A> annotation) {
-        Check.argNotNull(annotation, "Annotation");
+        Checks.argNotNull(annotation, "Annotation");
         return element -> element.getDeclaredAnnotation(annotation) != null;
     }
 
@@ -90,7 +90,7 @@ public class Predicates {
     public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWithAny(Class<A> annotation,
         Class<A>... annotations) {
         for (Class<A> a : annotations) {
-            Check.argNotNull(a, "Annotation");
+            Checks.argNotNull(a, "Annotation");
         }
         return Predicates.<T, A>annotatedWith(annotation)
             .or(element -> Arrays.stream(annotations).map(element::getDeclaredAnnotation).anyMatch(Objects::nonNull));
