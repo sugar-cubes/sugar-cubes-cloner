@@ -36,11 +36,6 @@ public abstract class AbstractCopyContext implements CopyContext {
     private final Map<IdentityReference<Object>, Object[]> clones;
 
     /**
-     * Sub-map of the {@link #clones}, containing objects which are being cloned at the moment.
-     */
-    private final Map<IdentityReference<Object>, Object[]> cache;
-
-    /**
      * Creates context with specified copier provider, clones map and predefined cloned objects.
      *
      * @param copierProvider copier provider
@@ -51,26 +46,11 @@ public abstract class AbstractCopyContext implements CopyContext {
         this.copierProvider = copierProvider;
         this.clones = (Map) cacheSupplier.get();
         clones.forEach((key, value) -> this.clones.put(new IdentityReference<>(key), new Object[] {value}));
-        this.cache = (Map) cacheSupplier.get();
     }
 
     @Override
-    public <T> void register(T original, T clone) {
-        Object[] cached = cache.remove(new IdentityReference<>(original));
-        if (cached == null || cached[0] != null) {
-            registrationMismatch(original);
-        }
-        cached[0] = clone;
-    }
-
-    /**
-     * Throws exception with message describing registration error.
-     */
-    private void registrationMismatch(Object obj) {
-        throw new ClonerException(String.format("Registration mismatch when cloning '%s'. " +
-            "If you use custom ObjectCopier or Copyable objects, " +
-            "ensure that you call CopyContext.register(original, clone) method " +
-            "and call it exactly once.", obj));
+    public <T> T register(T clone) {
+        throw new ClonerException("Registration must be called from copy() method.");
     }
 
     @Override
@@ -109,14 +89,12 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (clone != null) {
             return clone;
         }
-        cache.put(id, cached);
-        clone = copier.copy(original, this);
+        RegistrationContext registration = new RegistrationContext(this, original, cached);
+        clone = copier.copy(original, registration);
         if (clone == null) {
             throw new ClonerException(String.format("Non-null clone expected for '%s'.", original));
         }
-        if (cache.containsKey(id) || cached[0] != clone) {
-            registrationMismatch(original);
-        }
+        registration.check(clone);
         return clone;
     }
 

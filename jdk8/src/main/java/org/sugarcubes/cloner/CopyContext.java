@@ -28,10 +28,10 @@ public interface CopyContext {
      * Registers clone in the context.
      *
      * @param <T> object type
-     * @param original original object
      * @param clone clone
+     * @return clone
      */
-    <T> void register(T original, T clone);
+    <T> T register(T clone);
 
     /**
      * Returns the instant copy of the object. It can be a copy, saved previously into cache, or fresh copy. The copy may not be

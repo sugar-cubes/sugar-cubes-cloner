@@ -32,7 +32,7 @@ public class ShallowCopier<T extends Cloneable> implements ObjectCopier<T> {
     @Override
     public T copy(T original, CopyContext context) throws Exception {
         T clone = (T) CLONE_METHOD.invoke(original);
-        context.register(original, clone);
+        context.register(clone);
         return clone;
     }
 

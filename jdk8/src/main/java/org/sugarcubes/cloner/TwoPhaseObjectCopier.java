@@ -25,7 +25,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
     @Override
     public T copy(T original, CopyContext context) throws Exception {
         T clone = allocate(original);
-        context.register(original, clone);
+        context.register(clone);
         context.thenInvoke(
             () -> {
                 deepCopy(original, clone, context);
