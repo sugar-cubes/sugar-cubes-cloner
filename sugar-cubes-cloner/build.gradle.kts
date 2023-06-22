@@ -27,7 +27,7 @@ tasks.named<Test>("test") {
     maxHeapSize = "1g"
 }
 
-tasks.withType<Jar> {
+tasks.named<Jar>("jar") {
 
     from(project(":jdk8").sourceSets.main.get().output)
     from(project(":jdk9").sourceSets.main.get().output)

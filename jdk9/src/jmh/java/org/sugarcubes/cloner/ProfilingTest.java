@@ -31,6 +31,7 @@ import com.esotericsoftware.kryo.Kryo;
 class ProfilingTest {
 
     private final Cloner reflection = Cloners.builder().build();
+    private final Cloner bfs = Cloners.builder().setTraversalAlgorithm(TraversalAlgorithm.BREADTH_FIRST).build();
     private final Cloner unsafe = Cloners.builder().setUnsafe().build();
     private final Cloner parallel = Cloners.builder().setMode(CloningMode.PARALLEL).build();
     private final Cloner recursive = Cloners.builder().setMode(CloningMode.RECURSIVE).build();
@@ -50,6 +51,7 @@ class ProfilingTest {
     @Test
     void testCloners() {
         reflection();
+        bfs();
         unsafe();
         parallel();
         recursive();
@@ -60,6 +62,10 @@ class ProfilingTest {
 
     void reflection() {
         measure("reflection", () -> reflection.clone(sample));
+    }
+
+    void bfs() {
+        measure("bfs", () -> bfs.clone(sample));
     }
 
     void unsafe() {
