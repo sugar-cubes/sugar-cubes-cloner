@@ -206,4 +206,4 @@ Default configuration of reflection cloner does not clone lambdas and method ref
 
 ### License
 
-[Apache License 2.0](LICENSE.txt) © Maxim Butov
+[Apache License 2.0](LICENSE.txt) © [Maxim Butov](https://github.com/mbutov)
