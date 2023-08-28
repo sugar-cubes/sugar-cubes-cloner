@@ -1,16 +1,16 @@
 
-# The java cloner library
+# The java deep cloning library
 
 [![build](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml)
 [![maven central](https://maven-badges.herokuapp.com/maven-central/io.github.sugar-cubes/sugar-cubes-cloner/badge.svg)](https://search.maven.org/search?q=g:io.github.sugar-cubes+AND+a:sugar-cubes-cloner)
                   
 Deep cloning of any objects.
 
-Java 8 compatible.
-
-Thread safe.
-
-Supports parallel execution.
+- Intuitive.
+- Fast.
+- Thread safe.
+- Java 8 compatible.
+- Supports parallel execution.
 
 Maven:
 ```xml
