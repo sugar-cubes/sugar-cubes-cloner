@@ -18,7 +18,7 @@ package org.sugarcubes.cloner;
 class SequentialReflectionClonerTest extends AbstractClonerTests {
 
     public SequentialReflectionClonerTest() {
-        super(Cloners.builder().setMode(CloningMode.SEQUENTIAL).build());
+        super(Cloners.builder().mode(CloningMode.SEQUENTIAL).build());
     }
 
 }

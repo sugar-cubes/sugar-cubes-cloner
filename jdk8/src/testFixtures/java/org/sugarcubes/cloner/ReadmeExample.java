@@ -15,6 +15,8 @@
  */
 package org.sugarcubes.cloner;
 
+import java.lang.reflect.Modifier;
+
 class ReadmeExample {
 
     private final SomeObject original = new SomeObject();
@@ -25,7 +27,21 @@ class ReadmeExample {
 
     private void doNotCloneType() {
         Cloner cloner = Cloners.builder()
-            .setTypeAction(NonCloneableType.class, CopyAction.NULL)
+            .typeAction(NonCloneableType.class, CopyAction.NULL)
+            .build();
+        SomeObject clone = cloner.clone(original);
+    }
+
+    private void skipTransientFields () {
+        Cloner cloner = Cloners.builder()
+            .fieldAction(field -> Modifier.isTransient(field.getModifiers()), CopyAction.SKIP)
+            .build();
+        SomeObject clone = cloner.clone(original);
+    }
+
+    private void skipTransientHibernateFields () {
+        Cloner cloner = Cloners.builder()
+            .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.SKIP)
             .build();
         SomeObject clone = cloner.clone(original);
     }
@@ -36,19 +52,19 @@ class ReadmeExample {
             // new builder instance
             Cloners.builder()
                 // custom allocator
-                .setObjectFactoryProvider(new ObjenesisObjectFactoryProvider())
+                .objectFactoryProvider(new ObjenesisObjectFactoryProvider())
                 // copy thread locals by reference
-                .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
+                .typeAction(Predicates.subclass(ThreadLocal.class), CopyAction.ORIGINAL)
                 // do not clone closeables
-                .setTypeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
+                .typeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
                 // skip SomeObject.cachedValue field when cloning
-                .setFieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
+                .fieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
                 // set fields with @Transient annotation to null
-                .setFieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
+                .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
                 // custom copier for SomeOtherObject type
-                .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+                .copier(CustomObject.class, new CustomObjectCopier())
                 // parallel mode
-                .setMode(CloningMode.PARALLEL)
+                .mode(CloningMode.PARALLEL)
                 // create cloner
                 .build();
 
@@ -61,7 +77,7 @@ class ReadmeExample {
 
     }
 
-    private static class SomeOtherObject {
+    private static class CustomObject {
 
     }
 
@@ -70,10 +86,10 @@ class ReadmeExample {
 
     }
 
-    private static class SomeOtherObjectCopier implements ObjectCopier<SomeOtherObject> {
+    private static class CustomObjectCopier implements ObjectCopier<CustomObject> {
 
         @Override
-        public SomeOtherObject copy(SomeOtherObject original, CopyContext context) throws Exception {
+        public CustomObject copy(CustomObject original, CopyContext context) throws Exception {
             throw new UnsupportedOperationException();
         }
     }

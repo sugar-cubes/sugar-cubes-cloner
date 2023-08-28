@@ -175,7 +175,7 @@ public final class ReflectionClonerBuilder {
      * @param objectFactoryProvider object factory provider
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setObjectFactoryProvider(ObjectFactoryProvider objectFactoryProvider) {
+    public ReflectionClonerBuilder objectFactoryProvider(ObjectFactoryProvider objectFactoryProvider) {
         this.objectFactoryProvider = check(objectFactoryProvider, this.objectFactoryProvider, "Object factory provider");
         return this;
     }
@@ -186,7 +186,7 @@ public final class ReflectionClonerBuilder {
      * @param fieldCopierFactory field copier factory
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setFieldCopierFactory(FieldCopierFactory fieldCopierFactory) {
+    public ReflectionClonerBuilder fieldCopierFactory(FieldCopierFactory fieldCopierFactory) {
         this.fieldCopierFactory = check(fieldCopierFactory, this.fieldCopierFactory, "Field copier factory");
         return this;
     }
@@ -196,8 +196,8 @@ public final class ReflectionClonerBuilder {
      *
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setUnsafe() {
-        return setObjectFactoryProvider(new UnsafeObjectFactoryProvider()).setFieldCopierFactory(new UnsafeFieldCopierFactory());
+    public ReflectionClonerBuilder unsafe() {
+        return objectFactoryProvider(new UnsafeObjectFactoryProvider()).fieldCopierFactory(new UnsafeFieldCopierFactory());
     }
 
     /**
@@ -206,7 +206,7 @@ public final class ReflectionClonerBuilder {
      * @param mode cloning mode
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setMode(CloningMode mode) {
+    public ReflectionClonerBuilder mode(CloningMode mode) {
         this.mode = check(mode, this.mode, "Mode");
         return this;
     }
@@ -217,7 +217,7 @@ public final class ReflectionClonerBuilder {
      * @param traversalAlgorithm traversal algorithm
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setTraversalAlgorithm(TraversalAlgorithm traversalAlgorithm) {
+    public ReflectionClonerBuilder traversalAlgorithm(TraversalAlgorithm traversalAlgorithm) {
         this.traversalAlgorithm = check(traversalAlgorithm, this.traversalAlgorithm, "Traversal algorithm");
         return this;
     }
@@ -228,7 +228,7 @@ public final class ReflectionClonerBuilder {
      * @param executor executor service
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setExecutor(ExecutorService executor) {
+    public ReflectionClonerBuilder executor(ExecutorService executor) {
         this.executor = check(executor, this.executor, "Executor");
         return this;
     }
@@ -240,7 +240,7 @@ public final class ReflectionClonerBuilder {
      * @param objectPolicy object policy
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setObjectPolicy(CopyPolicy<Object> objectPolicy) {
+    public ReflectionClonerBuilder objectPolicy(CopyPolicy<Object> objectPolicy) {
         this.objectPolicy = check(objectPolicy, this.objectPolicy, "Object policy");
         return this;
     }
@@ -253,7 +253,7 @@ public final class ReflectionClonerBuilder {
      * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setObjectAction(Object original, CopyAction action) {
+    public ReflectionClonerBuilder objectAction(Object original, CopyAction action) {
         Checks.argNotNull(original, "Original");
         Checks.argNotNull(action, "Action");
         Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
@@ -270,7 +270,7 @@ public final class ReflectionClonerBuilder {
      * @param typePolicy type copy policy
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setTypePolicy(CopyPolicy<Class<?>> typePolicy) {
+    public ReflectionClonerBuilder typePolicy(CopyPolicy<Class<?>> typePolicy) {
         this.typePolicy = check(typePolicy, this.typePolicy, "Type policy");
         return this;
     }
@@ -282,7 +282,7 @@ public final class ReflectionClonerBuilder {
      * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setTypeAction(Class<?> type, CopyAction action) {
+    public ReflectionClonerBuilder typeAction(Class<?> type, CopyAction action) {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(action, "Action");
         Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
@@ -301,10 +301,10 @@ public final class ReflectionClonerBuilder {
      * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setTypeAction(String type, CopyAction action) {
+    public ReflectionClonerBuilder typeAction(String type, CopyAction action) {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(action, "Action");
-        return setTypeAction(ReflectionUtils.classForName(type), action);
+        return typeAction(ReflectionUtils.classForName(type), action);
     }
 
     /**
@@ -314,7 +314,7 @@ public final class ReflectionClonerBuilder {
      * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setTypeAction(Predicate<Class<?>> typePredicate, CopyAction action) {
+    public ReflectionClonerBuilder typeAction(Predicate<Class<?>> typePredicate, CopyAction action) {
         Checks.argNotNull(typePredicate, "Type predicate");
         Checks.argNotNull(action, "Action");
         Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
@@ -330,7 +330,7 @@ public final class ReflectionClonerBuilder {
      * @param fieldPolicy type copy policy
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setFieldPolicy(CopyPolicy<Field> fieldPolicy) {
+    public ReflectionClonerBuilder fieldPolicy(CopyPolicy<Field> fieldPolicy) {
         Checks.argNotNull(fieldPolicy, "Field policy");
         Checks.isNull(this.fieldPolicy, "Field policy already set.");
         this.fieldPolicy = fieldPolicy;
@@ -344,7 +344,7 @@ public final class ReflectionClonerBuilder {
      * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setFieldAction(Field field, CopyAction action) {
+    public ReflectionClonerBuilder fieldAction(Field field, CopyAction action) {
         Checks.argNotNull(field, "Field");
         Checks.argNotNull(action, "Action");
         Checks.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
@@ -364,11 +364,11 @@ public final class ReflectionClonerBuilder {
      * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setFieldAction(Class<?> type, String field, CopyAction action) {
+    public ReflectionClonerBuilder fieldAction(Class<?> type, String field, CopyAction action) {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(field, "Field");
         Checks.argNotNull(action, "Action");
-        return setFieldAction(ReflectionUtils.getField(type, field), action);
+        return fieldAction(ReflectionUtils.getField(type, field), action);
     }
 
     /**
@@ -378,7 +378,7 @@ public final class ReflectionClonerBuilder {
      * @param action action
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setFieldAction(Predicate<Field> fieldPredicate, CopyAction action) {
+    public ReflectionClonerBuilder fieldAction(Predicate<Field> fieldPredicate, CopyAction action) {
         Checks.argNotNull(fieldPredicate, "Field predicate");
         Checks.argNotNull(action, "Action");
         if (action != CopyAction.DEFAULT) {
@@ -393,8 +393,8 @@ public final class ReflectionClonerBuilder {
      * @param copiers copiers
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setCopiers(Map<Class<?>, ObjectCopier<?>> copiers) {
-        copiers.forEach(this::setCopier);
+    public ReflectionClonerBuilder copiers(Map<Class<?>, ObjectCopier<?>> copiers) {
+        copiers.forEach(this::copier);
         return this;
     }
 
@@ -405,7 +405,7 @@ public final class ReflectionClonerBuilder {
      * @param copier copier
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setCopier(Class<?> type, ObjectCopier<?> copier) {
+    public ReflectionClonerBuilder copier(Class<?> type, ObjectCopier<?> copier) {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(copier, "Copier");
         Checks.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
@@ -420,7 +420,7 @@ public final class ReflectionClonerBuilder {
      * @param clone clone
      * @return same builder instance
      */
-    public ReflectionClonerBuilder setClone(Object original, Object clone) {
+    public ReflectionClonerBuilder clone(Object original, Object clone) {
         Checks.argNotNull(original, "Original");
         Checks.argNotNull(clone, "Clone");
         Checks.illegalArg(clones.get(original) != null, "Clone for %s already set.", original);

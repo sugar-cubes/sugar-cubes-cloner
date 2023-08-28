@@ -113,21 +113,35 @@ Here the instances of NonCloneableType in the original's object tree will be cop
 The same thing can also bew done with annotations:
 
 ```java
-@TypePolicy(CopyAction.NULL) // or CopyAction.ORIGINAL
+@TypePolicy(CopyAction.NULL)
 private static class NonCloneableType {
 ```
 
 or
 
 ```java
-@TypePolicy(CopyAction.NULL) // or CopyAction.ORIGINAL
+@TypePolicy(CopyAction.ORIGINAL)
 private static class NonCloneableType {
 ```
 
-#### Clone an object with serialization
+#### Skip some fields
+
+Skip transient fields:
 
 ```java
-Object clone = Cloners.serialization().clone(original);
+Cloner cloner = Cloners.builder()
+    .fieldAction(field -> Modifier.isTransient(field.getModifiers()), CopyAction.SKIP)
+    .build();
+SomeObject clone = cloner.clone(original);
+```
+
+Or (Hibernate case):
+
+```java
+Cloner cloner = Cloners.builder()
+    .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.SKIP)
+    .build();
+SomeObject clone = cloner.clone(original);
 ```
 
 ### Customization
@@ -137,24 +151,24 @@ Cloner cloner =
     // new builder instance
     Cloners.builder()
         // custom allocator
-        .setAllocator(new ObjenesisAllocator())
+        .objectFactoryProvider(new ObjenesisObjectFactoryProvider())
         // copy thread locals by reference
-        .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
-        // do not clone closeables
-        .setTypeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
+        .typeAction(Predicates.subclass(ThreadLocal.class), CopyAction.ORIGINAL)
+        // copy closeables by reference
+        .typeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
         // skip SomeObject.cachedValue field when cloning
-        .setFieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
+        .fieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
         // set fields with @Transient annotation to null
-        .setFieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
+        .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
         // custom copier for SomeOtherObject type
-        .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+        .copier(CustomObject.class, new CustomObjectCopier())
         // parallel mode
-        .setMode(CloningMode.PARALLEL)
+        .mode(CloningMode.PARALLEL)
         // create cloner
         .build();
 
 // perform cloning
-SomeObject myObjectClone = cloner.clone(myObject);
+SomeObject clone = cloner.clone(original);
 ```
 
 ### Annotations
@@ -173,9 +187,9 @@ There is three modes of execution: recursive, sequential and parallel.
 
 In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
 
-In parallel mode order is unpredictable.
+In parallel mode the order of copying is unpredictable.
 
-If the [Objenesis](https://github.com/easymock/objenesis) library is available, uses it to instantiate objects. Otherwise, uses reflection.
+If the [Objenesis](https://github.com/easymock/objenesis) library is available in the classpath, uses it to instantiate objects. Otherwise, uses reflection.
 
 The priority of copy configurations is:
 1. (high) builder configuration;

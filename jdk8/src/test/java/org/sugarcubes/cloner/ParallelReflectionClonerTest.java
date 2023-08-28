@@ -18,7 +18,7 @@ package org.sugarcubes.cloner;
 class ParallelReflectionClonerTest extends AbstractClonerTests {
 
     public ParallelReflectionClonerTest() {
-        super(Cloners.builder().setMode(CloningMode.PARALLEL).build());
+        super(Cloners.builder().mode(CloningMode.PARALLEL).build());
     }
 
 }

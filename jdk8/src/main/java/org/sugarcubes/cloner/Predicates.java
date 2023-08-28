@@ -89,11 +89,17 @@ public class Predicates {
     @SafeVarargs
     public static <T extends AnnotatedElement, A extends Annotation> Predicate<T> annotatedWithAny(Class<A> annotation,
         Class<A>... annotations) {
-        for (Class<A> a : annotations) {
-            Checks.argNotNull(a, "Annotation");
+        Predicate<T> predicate = Predicates.annotatedWith(annotation);
+        if (annotations.length != 0) {
+            for (Class<A> a : annotations) {
+                Checks.argNotNull(a, "Annotation");
+            }
+            return predicate.or(element ->
+                Arrays.stream(annotations).map(element::getDeclaredAnnotation).anyMatch(Objects::nonNull));
         }
-        return Predicates.<T, A>annotatedWith(annotation)
-            .or(element -> Arrays.stream(annotations).map(element::getDeclaredAnnotation).anyMatch(Objects::nonNull));
+        else {
+            return predicate;
+        }
     }
 
     /**

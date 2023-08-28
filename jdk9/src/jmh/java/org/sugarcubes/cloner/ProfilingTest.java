@@ -31,11 +31,11 @@ import com.esotericsoftware.kryo.Kryo;
 class ProfilingTest {
 
     private final Cloner reflection = Cloners.builder().build();
-    private final Cloner bfs = Cloners.builder().setTraversalAlgorithm(TraversalAlgorithm.BREADTH_FIRST).build();
-    private final Cloner unsafe = Cloners.builder().setUnsafe().build();
-    private final Cloner parallel = Cloners.builder().setMode(CloningMode.PARALLEL).build();
-    private final Cloner recursive = Cloners.builder().setMode(CloningMode.RECURSIVE).build();
-    private final Cloner varhandle = Cloners.builder().setFieldCopierFactory(new VarHandleFieldCopierFactory()).build();
+    private final Cloner bfs = Cloners.builder().traversalAlgorithm(TraversalAlgorithm.BREADTH_FIRST).build();
+    private final Cloner unsafe = Cloners.builder().unsafe().build();
+    private final Cloner parallel = Cloners.builder().mode(CloningMode.PARALLEL).build();
+    private final Cloner recursive = Cloners.builder().mode(CloningMode.RECURSIVE).build();
+    private final Cloner varhandle = Cloners.builder().fieldCopierFactory(new VarHandleFieldCopierFactory()).build();
 
     private final Kryo kryo = new Kryo();
     private final com.rits.cloning.Cloner kk = new com.rits.cloning.Cloner();
