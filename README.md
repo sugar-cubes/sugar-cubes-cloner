@@ -2,14 +2,13 @@
 # The java deep cloning library
 
 [![build](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml)
-[![maven central](https://maven-badges.herokuapp.com/maven-central/io.github.sugar-cubes/sugar-cubes-cloner/badge.svg)](https://search.maven.org/search?q=g:io.github.sugar-cubes+AND+a:sugar-cubes-cloner)
+[![maven central](https://maven-badges.herokuapp.com/maven-central/io.github.sugar-cubes/sugar-cubes-cloner/badge.svg)](https://search.maven.org/search?q=g:io.github.sugar-cubes+a:sugar-cubes-cloner)
                   
 Deep cloning of any objects.
 
 - Intuitive.
 - Fast.
 - Thread safe.
-- Java 8 compatible.
 - Supports parallel execution.
 
 Maven:
@@ -183,7 +182,7 @@ It's possible to use annotations to configure field/type actions and custom type
 
 ### Implementation
                        
-There is three modes of execution: recursive, sequential and parallel.
+There is three modes of execution: recursive, sequential (default) and parallel.
 
 In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
 
@@ -198,8 +197,10 @@ The priority of copy configurations is:
 
 ### Known limitations
 
-Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeAllocator](jdk8/src/main/java/org/sugarcubes/cloner/UnsafeAllocator.java).
-        
+The library requires Java 8 or higher.
+
+Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeObjectFactoryProvider](jdk8/src/main/java/org/sugarcubes/cloner/UnsafeObjectFactoryProvider.java).
+
 ### Versioning
 
 [Semantic Versioning](https://semver.org).

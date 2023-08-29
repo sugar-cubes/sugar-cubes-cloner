@@ -26,20 +26,24 @@
  *         // new builder instance
  *         Cloners.builder()
  *             // custom allocator
- *             .setAllocator(new ObjenesisAllocator())
+ *             .objectFactoryProvider(new ObjenesisObjectFactoryProvider())
  *             // copy thread locals by reference
- *             .setTypeAction(ThreadLocal.class, CopyAction.ORIGINAL)
+ *             .typeAction(Predicates.subclass(ThreadLocal.class), CopyAction.ORIGINAL)
+ *             // do not clone closeables
+ *             .typeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
  *             // skip SomeObject.cachedValue field when cloning
- *             .setFieldAction(SomeObject.class, "cachedValue", FieldCopyAction.SKIP)
+ *             .fieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
+ *             // set fields with @Transient annotation to null
+ *             .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
  *             // custom copier for SomeOtherObject type
- *             .setCopier(SomeOtherObject.class, new SomeOtherObjectCopier())
+ *             .copier(CustomObject.class, new CustomObjectCopier())
  *             // parallel mode
- *             .setMode(CloningMode.PARALLEL)
+ *             .mode(CloningMode.PARALLEL)
  *             // create cloner
  *             .build();
  *
- *     // perform cloning
- *     SomeObject myObjectClone = cloner.clone(myObject);
+ *         // perform cloning
+ *         SomeObject clone = cloner.clone(original);
  * </pre>
  *
  * @see org.sugarcubes.cloner.Cloner
