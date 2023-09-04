@@ -15,12 +15,25 @@
  */
 package org.sugarcubes.cloner;
 
+/**
+ * JDK configuration loader and holder.
+ *
+ * @author Maxim Butov
+ */
 class JdkConfigurationHolder {
 
+    /**
+     * Checks JDK version.
+     *
+     * @return {@code true} if JDK version is 9 or higher
+     */
     public static boolean isJdk9OrHigher() {
         return ReflectionUtils.isClassAvailable("java.lang.Module");
     }
 
+    /**
+     * {@link JdkConfiguration} instance.
+     */
     public static final JdkConfiguration INSTANCE = isJdk9OrHigher()
         ? ReflectionUtils.newInstance("org.sugarcubes.cloner.Jdk9ConfigurationImpl")
         : new Jdk8ConfigurationImpl();

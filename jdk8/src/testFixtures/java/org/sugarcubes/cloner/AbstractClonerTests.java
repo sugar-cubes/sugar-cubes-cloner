@@ -87,8 +87,8 @@ abstract class AbstractClonerTests {
         abstract void x();
     }
 
-    void testEnumClone(Enum e1) {
-        Enum e2 = cloner.clone(e1);
+    void testEnumClone(Enum<?> e1) {
+        Enum<?> e2 = cloner.clone(e1);
         assertThat(e2, sameInstance(e1));
     }
 
@@ -104,11 +104,9 @@ abstract class AbstractClonerTests {
         Number[] clone = cloner.clone(original);
         assertThat(clone, not(sameInstance(original)));
         assertThat(clone.length, is(original.length));
-        assertThat(clone[0], is(original[0]));
-        assertThat(clone[1], is(original[1]));
-        assertThat(clone[2], is(original[2]));
-        assertThat(clone[3], is(original[3]));
-        assertThat(clone[4], is(original[4]));
+        for (int k = 0; k < original.length; k++) {
+            assertThat(clone[k], is(original[k]));
+        }
     }
 
     static class CyclicDependencies implements Serializable {
