@@ -17,14 +17,11 @@ package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
@@ -39,27 +36,6 @@ import java.util.function.Supplier;
 public final class ReflectionClonerBuilder {
 
     /**
-     * JDK immutable types.
-     */
-    private static final Set<Class<?>> IMMUTABLE_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        java.math.BigDecimal.class, java.math.BigInteger.class, Boolean.class, Byte.class,
-        Character.class, Class.class,
-        Double.class, java.time.Duration.class,
-        Float.class,
-        java.net.Inet4Address.class, java.net.Inet6Address.class, java.net.InetSocketAddress.class, java.time.Instant.class,
-        Integer.class,
-        java.time.LocalDate.class, java.time.LocalDateTime.class, java.time.LocalTime.class, Long.class,
-        java.time.MonthDay.class,
-        java.net.NetworkInterface.class,
-        java.time.OffsetDateTime.class, java.time.OffsetTime.class,
-        java.util.regex.Pattern.class, java.time.Period.class,
-        Short.class, String.class,
-        java.net.URI.class, java.net.URL.class, java.util.UUID.class,
-        java.time.Year.class, java.time.YearMonth.class,
-        java.time.ZonedDateTime.class, java.time.ZoneOffset.class
-    )));
-
-    /**
      * Default copiers for well-known JDK types.
      */
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
@@ -67,14 +43,8 @@ public final class ReflectionClonerBuilder {
     static {
         Map<Class<?>, ObjectCopier<?>> defaultCopiers = new LinkedHashMap<>();
 
-        IMMUTABLE_TYPES.forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
-
-        defaultCopiers.put(java.util.BitSet.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(java.util.Date.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(java.util.GregorianCalendar.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(java.util.Locale.class, ObjectCopier.SHALLOW);
-        defaultCopiers.put(ReflectionUtils.classForName("java.util.JumboEnumSet"), ObjectCopier.SHALLOW);
-        defaultCopiers.put(ReflectionUtils.classForName("java.util.RegularEnumSet"), ObjectCopier.SHALLOW);
+        JdkConfigurationHolder.INSTANCE.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
+        JdkConfigurationHolder.INSTANCE.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.SHALLOW));
 
         defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
         defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
@@ -425,6 +395,19 @@ public final class ReflectionClonerBuilder {
         Checks.argNotNull(clone, "Clone");
         Checks.illegalArg(clones.get(original) != null, "Clone for %s already set.", original);
         clones.put(original, clone);
+        return this;
+    }
+
+    /**
+     * Registers singleton, i.e. the object which must be only copied by reference.
+     *
+     * @param singleton singleton
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder singleton(Object singleton) {
+        Checks.argNotNull(singleton, "Singleton");
+        Checks.illegalArg(clones.get(singleton) != null, "Singleton %s already registered.", singleton);
+        clones.put(singleton, singleton);
         return this;
     }
 

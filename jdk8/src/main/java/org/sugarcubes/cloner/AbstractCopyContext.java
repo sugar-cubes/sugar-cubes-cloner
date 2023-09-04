@@ -45,6 +45,8 @@ public abstract class AbstractCopyContext implements CopyContext {
     protected AbstractCopyContext(CopierProvider copierProvider, Supplier<Map<?, ?>> cacheSupplier, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
         this.clones = (Map) cacheSupplier.get();
+        JdkConfigurationHolder.INSTANCE.getSystemWideSingletons()
+            .forEach(singleton -> this.clones.put(new IdentityReference<>(singleton), new Object[] {singleton}));
         clones.forEach((key, value) -> this.clones.put(new IdentityReference<>(key), new Object[] {value}));
     }
 

@@ -22,18 +22,13 @@ tasks.withType<JavaCompile> {
     targetCompatibility = JavaVersion.VERSION_1_9.toString()
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-    maxHeapSize = "1g"
-}
-
 tasks.named<Jar>("jar") {
 
     from(project(":jdk8").sourceSets.main.get().output)
     from(project(":jdk9").sourceSets.main.get().output)
-    from(project(":sugar-cubes-cloner").sourceSets.main.get().output)
 
-    exclude("org/sugarcubes/cloner/Placeholder.class")
+    // from this module
+    exclude("**/Placeholder.*")
 
     manifest {
         attributes["Implementation-Title"] = project.name
@@ -43,24 +38,21 @@ tasks.named<Jar>("jar") {
         attributes["Import-Package"] = "sun.misc;resolution:=optional,org.objenesis;resolution:=optional"
         attributes["Export-Package"] = "org.sugarcubes.cloner"
     }
-
 }
 
 tasks.withType<Javadoc> {
     val opts = options as StandardJavadocDocletOptions
     opts.links("https://docs.oracle.com/en/java/javase/11/docs/api/")
+
     source(project(":jdk8").sourceSets.main.get().allSource)
     source(project(":jdk9").sourceSets.main.get().allSource)
-    source(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
-    exclude("org/sugarcubes/cloner/Placeholder.java")
+    exclude("**/Placeholder.*")
 }
 
 tasks.named<Jar>("sourcesJar") {
     from(project(":jdk8").sourceSets.main.get().allSource)
     from(project(":jdk9").sourceSets.main.get().allSource)
-    from(project(":sugar-cubes-cloner").sourceSets.main.get().allSource)
-    exclude("org/sugarcubes/cloner/Placeholder.java")
-    exclude("**/*.class")
+    exclude("**/Placeholder.*")
 }
 
 publishing {

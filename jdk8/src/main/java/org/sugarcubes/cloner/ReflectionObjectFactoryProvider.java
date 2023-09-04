@@ -15,6 +15,8 @@
  */
 package org.sugarcubes.cloner;
 
+import java.lang.reflect.Constructor;
+
 /**
  * Object factory provider which uses no-arg constructor to create object.
  *
@@ -26,7 +28,17 @@ public class ReflectionObjectFactoryProvider implements ObjectFactoryProvider {
 
     @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {
-        return ReflectionUtils.getConstructor(type)::newInstance;
+        Constructor<T> constructor;
+        try {
+            constructor = ReflectionUtils.getConstructor(type);
+        }
+        catch (ClonerException e) {
+            throw e.replaceIf(NoSuchMethodException.class,
+                () -> String.format("No-arg constructor for %1$s does not exist. " +
+                    "You may add Objenesis library into your classpath or use custom copier for %1$s.", type)
+            );
+        }
+        return constructor::newInstance;
     }
 
 }

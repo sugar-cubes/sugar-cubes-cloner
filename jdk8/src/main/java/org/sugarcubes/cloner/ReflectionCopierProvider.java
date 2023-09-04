@@ -15,14 +15,11 @@
  */
 package org.sugarcubes.cloner;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-
-import static org.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 
 /**
  * Copier provider implementation.
@@ -136,7 +133,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @return object copier
      */
     private ObjectCopier<?> findCopierForType(Class<?> type) {
-        if (type.isEnum()) {
+        if (Enum.class.isAssignableFrom(type)) {
             return ObjectCopier.NOOP;
         }
         if (type.isArray()) {
@@ -169,8 +166,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private ObjectCopier<?> createCopierFromAnnotation(TypeCopier annotation) {
         Class<? extends ObjectCopier<?>> copierClass = (Class) annotation.value();
-        Constructor<? extends ObjectCopier<?>> constructor = ReflectionUtils.getConstructor(copierClass);
-        return replaceException(constructor::newInstance);
+        return ReflectionUtils.newInstance(copierClass);
     }
 
     /**

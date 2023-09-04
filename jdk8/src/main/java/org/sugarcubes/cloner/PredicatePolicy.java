@@ -26,9 +26,10 @@ import java.util.stream.Stream;
 /**
  * Copy policy based on predicates. This implementation is slower than {@link ExactPolicy} but it is more flexible.
  *
- * @author Maxim Butov
  * @see Predicates
  * @see ExactPolicy
+ *
+ * @author Maxim Butov
  */
 public class PredicatePolicy<I> extends AbstractMappedPolicy<I, Predicate<I>> {
 

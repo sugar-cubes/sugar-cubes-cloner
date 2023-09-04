@@ -15,38 +15,35 @@
  */
 package org.sugarcubes.cloner;
 
-import java.lang.reflect.Field;
-
-import sun.misc.Unsafe;
+import java.util.Collection;
+import java.util.Set;
 
 /**
- * Utility class to obtain {@link Unsafe} instance.
+ * Interface for obtaining specific classes/objects from JDK implementation.
  *
  * @author Maxim Butov
  */
-public class UnsafeUtils {
+interface JdkConfiguration {
 
     /**
-     * The {@link Unsafe#theUnsafe}.
-     */
-    private static final Unsafe UNSAFE = ClonerExceptionUtils.replaceException(() -> {
-        Field theUnsafe = ReflectionUtils.getField(Unsafe.class, "theUnsafe");
-        return (Unsafe) theUnsafe.get(null);
-    });
-
-    /**
-     * Returns {@link Unsafe} instance.
+     * Returns immutable types.
      *
-     * @return {@link Unsafe} instance
+     * @return set of immutable types
      */
-    public static Unsafe getUnsafe() {
-        return UNSAFE;
-    }
+    Set<Class<?>> getImmutableTypes();
 
     /**
-     * Utility class.
+     * Returns cloneable types.
+     *
+     * @return set of cloneable types
      */
-    private UnsafeUtils() {
-    }
+    Set<Class<?>> getCloneableTypes();
+
+    /**
+     * Returns system-wide JDK singletons.
+     *
+     * @return system-wide JDK singletons
+     */
+    Collection<Object> getSystemWideSingletons();
 
 }

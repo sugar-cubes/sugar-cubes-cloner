@@ -103,7 +103,16 @@ public class ReflectionUtils {
      * @return same object
      */
     public static <T extends AccessibleObject> T makeAccessible(T object) {
-        object.setAccessible(true);
+        try {
+            object.setAccessible(true);
+        }
+        catch (Exception e) {
+            throw new ClonerException(
+                "Error making a member accessible. " +
+                    "On JDK 9..16 you can use --illegal-access=permit java parameter. " +
+                    "On JDK 17+ you need to configure modules opens.",
+                e);
+        }
         return object;
     }
 
@@ -115,6 +124,29 @@ public class ReflectionUtils {
      */
     public static boolean isNonStatic(Member member) {
         return !Modifier.isStatic(member.getModifiers());
+    }
+
+    /**
+     * Creates new instance of type using no-arg constructor.
+     *
+     * @param <T> type
+     * @param type object type
+     * @return new instance
+     */
+    public static <T> T newInstance(Class<T> type) {
+        Constructor<T> constructor = getConstructor(type);
+        return replaceException(constructor::newInstance);
+    }
+
+    /**
+     * Creates new instance of type using no-arg constructor.
+     *
+     * @param <T> type
+     * @param className class name
+     * @return new instance
+     */
+    public static <T> T newInstance(String className) {
+        return (T) newInstance(classForName(className));
     }
 
     /**

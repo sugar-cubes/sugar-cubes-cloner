@@ -74,6 +74,30 @@ abstract class AbstractClonerTests {
         assertThat(clone.e, not(is(original.e)));
     }
 
+    enum SimpleEnum {A}
+
+    enum ComplexEnum {
+
+        A {
+            @Override
+            void x() {
+            }
+        };
+
+        abstract void x();
+    }
+
+    void testEnumClone(Enum e1) {
+        Enum e2 = cloner.clone(e1);
+        assertThat(e2, sameInstance(e1));
+    }
+
+    @Test
+    void testEnum() {
+        testEnumClone(SimpleEnum.A);
+        testEnumClone(ComplexEnum.A);
+    }
+
     @Test
     void testArray() {
         Number[] original = {0, 1L, 2.0, BigInteger.valueOf(3), BigDecimal.valueOf(4.0)};
