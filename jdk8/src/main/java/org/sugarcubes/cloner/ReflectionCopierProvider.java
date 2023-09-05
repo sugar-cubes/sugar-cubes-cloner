@@ -122,7 +122,7 @@ public class ReflectionCopierProvider implements CopierProvider {
             case DEFAULT:
                 return defaultCopierSupplier.get();
             default:
-                throw Checks.neverHappens();
+                throw Checks.mustNotHappen();
         }
     }
 

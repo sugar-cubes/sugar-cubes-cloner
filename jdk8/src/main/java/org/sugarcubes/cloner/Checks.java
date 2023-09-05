@@ -27,7 +27,7 @@ public class Checks {
      *
      * @return nothing, throws {@link IllegalStateException}
      */
-    public static IllegalStateException neverHappens() {
+    public static IllegalStateException mustNotHappen() {
         throw new IllegalStateException("Must not happen.");
     }
 

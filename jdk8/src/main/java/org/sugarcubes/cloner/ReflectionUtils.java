@@ -51,10 +51,11 @@ public class ReflectionUtils {
      * Version of {@link Class#forName(String)} with unchecked exception.
      *
      * @param className class name
+     * @param <T> type
      * @return {@link Class} instance
      */
-    public static Class<?> classForName(String className) {
-        return replaceException(() -> Class.forName(className));
+    public static <T> Class<T> classForName(String className) {
+        return (Class<T>) replaceException(() -> Class.forName(className));
     }
 
     /**

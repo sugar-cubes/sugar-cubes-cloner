@@ -15,34 +15,17 @@
  */
 package org.sugarcubes.cloner;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.List;
-
-import static org.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Implementation of {@link JdkConfiguration} for JDK 9+.
  */
 class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
 
-    private static final List<Object> SYSTEM_WIDE_SINGLETONS = replaceException(() -> {
-        Class<?> immutableCollectionsClass = ReflectionUtils.classForName("java.util.ImmutableCollections");
-        String archivedObjectsFieldName = "archivedObjects";
-        try {
-            immutableCollectionsClass.getDeclaredField(archivedObjectsFieldName);
-        }
-        catch (NoSuchFieldException e) {
-            return List.of();
-        }
-        Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, archivedObjectsFieldName);
-        Object[] archivedObjects = (Object[]) archivedObjectsField.get(null);
-        return List.of(archivedObjects);
-    });
-
-    @Override
-    public Collection<Object> getSystemWideSingletons() {
-        return SYSTEM_WIDE_SINGLETONS;
+    Jdk9ConfigurationImpl() {
+        systemWideSingletons.addAll(List.of(List.of(), Set.of(), Map.of()));
     }
 
 }

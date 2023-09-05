@@ -49,7 +49,7 @@ public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFacto
             case "double":
                 return (original, clone, context) -> field.setDouble(clone, field.getDouble(original));
             default:
-                throw Checks.neverHappens();
+                throw Checks.mustNotHappen();
         }
     }
 
@@ -65,7 +65,7 @@ public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFacto
             case DEFAULT:
                 return (original, clone, context) -> field.set(clone, context.copy(field.get(original)));
             default:
-                throw Checks.neverHappens();
+                throw Checks.mustNotHappen();
         }
     }
 

@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
@@ -36,7 +35,7 @@ public class ImmutableCollectionsTest {
 
     <T> void testEmptyCollectionClone(T original) {
         T clone = Cloners.reflection().clone(original);
-        assertThat(clone, anyOf(sameInstance(original), equalTo(original)));
+        assertThat(clone, sameInstance(original));
     }
 
     <T> void testImmutableCollectionClone(T original) {

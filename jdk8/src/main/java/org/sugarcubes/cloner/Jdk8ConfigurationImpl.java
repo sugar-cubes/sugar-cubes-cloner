@@ -16,9 +16,9 @@
 package org.sugarcubes.cloner;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Set;
 
 /**
@@ -29,7 +29,7 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
     /**
      * JDK immutable types.
      */
-    private static final Set<Class<?>> IMMUTABLE_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    protected final Set<Class<?>> immutableTypes = new HashSet<>(Arrays.asList(
         java.math.BigDecimal.class, java.math.BigInteger.class, Boolean.class, Byte.class,
         Character.class, Class.class,
         Double.class, java.time.Duration.class,
@@ -45,12 +45,12 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
         java.net.URI.class, java.net.URL.class, java.util.UUID.class,
         java.time.Year.class, java.time.YearMonth.class,
         java.time.ZonedDateTime.class, java.time.ZoneOffset.class
-    )));
+    ));
 
     /**
      * JDK cloneable types.
      */
-    private static final Set<Class<?>> CLONEABLE_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    protected final Set<Class<?>> cloneableTypes = new HashSet<>(Arrays.asList(
         java.util.BitSet.class,
         java.util.Date.class,
         java.util.GregorianCalendar.class,
@@ -65,21 +65,38 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
         ReflectionUtils.classForName("java.text.DigitList"),
         java.text.MessageFormat.class,
         java.text.SimpleDateFormat.class
-    )));
+    ));
+
+    protected final Set<Object> systemWideSingletons = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    Jdk8ConfigurationImpl() {
+        systemWideSingletons.addAll(Arrays.asList(
+            Collections.emptyEnumeration(),
+            Collections.emptyIterator(),
+            Collections.emptyList(),
+            Collections.emptyListIterator(),
+            Collections.emptyMap(),
+            Collections.emptyNavigableMap(),
+            Collections.emptyNavigableSet(),
+            Collections.emptySet(),
+            Collections.emptySortedMap(),
+            Collections.emptySortedSet()
+        ));
+    }
 
     @Override
     public Set<Class<?>> getImmutableTypes() {
-        return IMMUTABLE_TYPES;
+        return Collections.unmodifiableSet(immutableTypes);
     }
 
     @Override
     public Set<Class<?>> getCloneableTypes() {
-        return CLONEABLE_TYPES;
+        return Collections.unmodifiableSet(cloneableTypes);
     }
 
     @Override
-    public Collection<Object> getSystemWideSingletons() {
-        return Collections.emptyList();
+    public Set<Object> getSystemWideSingletons() {
+        return Collections.unmodifiableSet(systemWideSingletons);
     }
 
 }

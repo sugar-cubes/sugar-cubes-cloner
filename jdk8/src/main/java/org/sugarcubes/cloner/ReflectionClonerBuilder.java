@@ -43,8 +43,8 @@ public final class ReflectionClonerBuilder {
     static {
         Map<Class<?>, ObjectCopier<?>> defaultCopiers = new LinkedHashMap<>();
 
-        JdkConfigurationHolder.INSTANCE.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
-        JdkConfigurationHolder.INSTANCE.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.SHALLOW));
+        JdkVersion.CONFIGURATION.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
+        JdkVersion.CONFIGURATION.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.SHALLOW));
 
         defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
         defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
@@ -508,7 +508,7 @@ public final class ReflectionClonerBuilder {
                 contextSupplier = () -> new ParallelCopyContext(provider, clones, executor);
                 break;
             default:
-                throw Checks.neverHappens();
+                throw Checks.mustNotHappen();
         }
         return new ClonerImpl(contextSupplier);
     }

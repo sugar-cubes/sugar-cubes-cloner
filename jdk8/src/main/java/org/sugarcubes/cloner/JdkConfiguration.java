@@ -15,7 +15,6 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -44,6 +43,6 @@ interface JdkConfiguration {
      *
      * @return system-wide JDK singletons
      */
-    Collection<Object> getSystemWideSingletons();
+    Set<Object> getSystemWideSingletons();
 
 }

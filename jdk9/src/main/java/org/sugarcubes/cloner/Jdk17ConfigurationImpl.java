@@ -15,27 +15,19 @@
  */
 package org.sugarcubes.cloner;
 
+import java.lang.reflect.Field;
+import java.util.List;
+
 /**
- * JDK configuration loader and holder.
- *
- * @author Maxim Butov
+ * Implementation of {@link JdkConfiguration} for JDK 17+.
  */
-class JdkConfigurationHolder {
+class Jdk17ConfigurationImpl extends Jdk9ConfigurationImpl {
 
-    /**
-     * Checks JDK version.
-     *
-     * @return {@code true} if JDK version is 9 or higher
-     */
-    public static boolean isJdk9OrHigher() {
-        return ReflectionUtils.isClassAvailable("java.lang.Module");
+    Jdk17ConfigurationImpl() {
+        Class<?> immutableCollectionsClass = ReflectionUtils.classForName("java.util.ImmutableCollections");
+        Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, "archivedObjects");
+        Object[] archivedObjects = (Object[]) ClonerExceptionUtils.replaceException(() -> archivedObjectsField.get(null));
+        systemWideSingletons.addAll(List.of(archivedObjects));
     }
-
-    /**
-     * {@link JdkConfiguration} instance.
-     */
-    public static final JdkConfiguration INSTANCE = isJdk9OrHigher()
-        ? ReflectionUtils.newInstance("org.sugarcubes.cloner.Jdk9ConfigurationImpl")
-        : new Jdk8ConfigurationImpl();
 
 }
