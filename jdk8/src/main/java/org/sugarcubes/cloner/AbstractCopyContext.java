@@ -15,8 +15,10 @@
  */
 package org.sugarcubes.cloner;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Abstract copy context. Contains common code for the context implementations.
@@ -36,6 +38,21 @@ public abstract class AbstractCopyContext implements CopyContext {
     private final Map<IdentityReference<Object>, Object[]> clones;
 
     /**
+     * Predefined system-wide singletons as map.
+     */
+    @SuppressWarnings("checkstyle:Indentation")
+    private static final Map<IdentityReference<Object>, Object[]> SYSTEM_SINGLETONS_AS_MAP =
+        JdkVersion.CONFIGURATION.getSystemWideSingletons().stream()
+            .collect(Collectors.toMap(
+                IdentityReference::new,
+                singleton -> new Object[] {singleton},
+                (key1, key2) -> {
+                    throw Checks.mustNotHappen();
+                },
+                IdentityHashMap::new
+            ));
+
+    /**
      * Creates context with specified copier provider, clones map and predefined cloned objects.
      *
      * @param copierProvider copier provider
@@ -45,8 +62,7 @@ public abstract class AbstractCopyContext implements CopyContext {
     protected AbstractCopyContext(CopierProvider copierProvider, Supplier<Map<?, ?>> cacheSupplier, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
         this.clones = (Map) cacheSupplier.get();
-        JdkVersion.CONFIGURATION.getSystemWideSingletons()
-            .forEach(singleton -> this.clones.put(new IdentityReference<>(singleton), new Object[] {singleton}));
+        this.clones.putAll(SYSTEM_SINGLETONS_AS_MAP);
         clones.forEach((key, value) -> this.clones.put(new IdentityReference<>(key), new Object[] {value}));
     }
 

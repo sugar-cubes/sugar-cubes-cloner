@@ -16,9 +16,6 @@
 package org.sugarcubes.cloner;
 
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * JDK version enum.
@@ -27,47 +24,44 @@ import java.util.stream.Collectors;
  */
 enum JdkVersion {
 
-    V8(8), V9(9), V11(11), V17(17), V21(21);
+    // versions must be reverse ordered
+
+    V21(21, "java.lang.ScopedValue"),
+    V17(17, "java.util.HexFormat"),
+    V15(15, "java.security.interfaces.EdECKey"),
+    V11(11, "java.lang.invoke.ConstantBootstraps"),
+    V9(9, "java.lang.Module"),
+    V8(8, "java.lang.FunctionalInterface");
 
     final int version;
+    final String availableClass;
 
-    JdkVersion(int version) {
+    JdkVersion(int version, String availableClass) {
         this.version = version;
+        this.availableClass = availableClass;
     }
 
-    static final JdkVersion CURRENT;
-
-    static {
-        if (ReflectionUtils.isClassAvailable("java.lang.MatchException")) {
-            CURRENT = V21;
-        }
-        else if (ReflectionUtils.isClassAvailable("java.time.InstantSource")) {
-            CURRENT = V17;
-        }
-        else if (ReflectionUtils.isClassAvailable("java.lang.invoke.ConstantBootstraps")) {
-            CURRENT = V11;
-        }
-        else if (ReflectionUtils.isClassAvailable("java.lang.Module")) {
-            CURRENT = V9;
-        }
-        else {
-            CURRENT = V8;
-        }
+    boolean applicable() {
+        return ReflectionUtils.isClassAvailable(availableClass);
     }
+
+    String configurationClassName() {
+        return String.format("%s.Jdk%dConfigurationImpl", JdkVersion.class.getPackage().getName(), version);
+    }
+
+    static final JdkVersion CURRENT = Arrays.stream(values())
+        .filter(JdkVersion::applicable)
+        .findFirst()
+        .orElseThrow(Checks::mustNotHappen);
 
     static final JdkConfiguration CONFIGURATION;
 
     static {
         JdkConfiguration configuration = null;
 
-        int currentVersion = CURRENT.version;
-        List<JdkVersion> versions = Arrays.stream(JdkVersion.values())
-            .filter(v -> v.version <= currentVersion)
-            .sorted(Comparator.reverseOrder())
-            .collect(Collectors.toList());
-        for (JdkVersion jdkVersion : versions) {
-            String configurationClassName =
-                String.format("%s.Jdk%dConfigurationImpl", JdkVersion.class.getPackage().getName(), jdkVersion.version);
+        JdkVersion[] versions = values();
+        for (int k = Arrays.asList(versions).indexOf(CURRENT); k < versions.length; k++) {
+            String configurationClassName = versions[k].configurationClassName();
             if (ReflectionUtils.isClassAvailable(configurationClassName)) {
                 configuration = ReflectionUtils.newInstance(configurationClassName);
                 break;

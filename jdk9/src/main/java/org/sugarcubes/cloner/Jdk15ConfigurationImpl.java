@@ -19,11 +19,11 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 /**
- * Implementation of {@link JdkConfiguration} for JDK 17+.
+ * Implementation of {@link JdkConfiguration} for JDK 15+.
  */
-class Jdk17ConfigurationImpl extends Jdk9ConfigurationImpl {
+class Jdk15ConfigurationImpl extends Jdk9ConfigurationImpl {
 
-    Jdk17ConfigurationImpl() {
+    Jdk15ConfigurationImpl() {
         Class<?> immutableCollectionsClass = ReflectionUtils.classForName("java.util.ImmutableCollections");
         Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, "archivedObjects");
         Object[] archivedObjects = (Object[]) ClonerExceptionUtils.replaceException(() -> archivedObjectsField.get(null));

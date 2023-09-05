@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Set;
+import java.util.Spliterators;
 
 /**
  * Implementation of {@link JdkConfiguration} for JDK 8+.
@@ -80,7 +81,11 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
             Collections.emptyNavigableSet(),
             Collections.emptySet(),
             Collections.emptySortedMap(),
-            Collections.emptySortedSet()
+            Collections.emptySortedSet(),
+            Spliterators.emptyDoubleSpliterator(),
+            Spliterators.emptyIntSpliterator(),
+            Spliterators.emptyLongSpliterator(),
+            Spliterators.emptySpliterator()
         ));
     }
 
