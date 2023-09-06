@@ -16,7 +16,7 @@
 package org.sugarcubes.cloner;
 
 /**
- * Placeholder for package. module-info.java requires non-empty package. The class is not included into release.
+ * Placeholder for package. module-info.java requires non-empty package. The class is not included into library jar.
  *
  * @author Maxim Butov
  */

@@ -76,15 +76,8 @@ abstract class AbstractClonerTests {
 
     enum SimpleEnum {A}
 
-    enum ComplexEnum {
-
-        A {
-            @Override
-            void x() {
-            }
-        };
-
-        abstract void x();
+    enum SubclassedEnum {
+        A {}
     }
 
     void testEnumClone(Enum<?> e1) {
@@ -95,7 +88,7 @@ abstract class AbstractClonerTests {
     @Test
     void testEnum() {
         testEnumClone(SimpleEnum.A);
-        testEnumClone(ComplexEnum.A);
+        testEnumClone(SubclassedEnum.A);
     }
 
     @Test
