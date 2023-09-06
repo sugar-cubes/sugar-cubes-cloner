@@ -1,5 +1,5 @@
 
-# The java deep cloning library
+# Java deep cloning library
 
 [![build](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml/badge.svg)](https://github.com/sugar-cubes/sugar-cubes-cloner/actions/workflows/build.yml)
 [![maven central](https://maven-badges.herokuapp.com/maven-central/io.github.sugar-cubes/sugar-cubes-cloner/badge.svg)](https://search.maven.org/search?q=g:io.github.sugar-cubes+a:sugar-cubes-cloner)
@@ -10,19 +10,20 @@ Deep cloning of any objects.
 - Fast.
 - Thread safe.
 - Supports parallel execution.
+- Java 8 compatible.
 
 Maven:
 ```xml
 <dependency>
     <groupId>io.github.sugar-cubes</groupId>
     <artifactId>sugar-cubes-cloner</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
 Gradle:
 ```groovy
-implementation "io.github.sugar-cubes:sugar-cubes-cloner:1.0.0"
+implementation "io.github.sugar-cubes:sugar-cubes-cloner:1.1.0"
 ```
 
 It is recommended also to include [Objenesis](https://github.com/easymock/objenesis) library into your application.  
@@ -184,7 +185,7 @@ It's possible to use annotations to configure field/type actions and custom type
                        
 There is three modes of execution: recursive, sequential (default) and parallel.
 
-In sequential mode does not use recursion. Uses [DFS](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
+In sequential mode does not use recursion. Uses [Depth-first](https://en.wikipedia.org/wiki/Depth-first_search) (by default) or [Breadth-first](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm for the object graph traversal.
 
 In parallel mode the order of copying is unpredictable.
 
@@ -200,6 +201,10 @@ The priority of copy configurations is:
 The library requires Java 8 or higher.
 
 Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeObjectFactoryProvider](jdk8/src/main/java/org/sugarcubes/cloner/UnsafeObjectFactoryProvider.java).
+
+Java 9+ restricts accessing objects members via Reflection API. To solve this one may
+- use `--illegal-access=permit` JVM argument (works on Java below 17);
+- use `--add-opens` JVM arguments, e.g. `--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED`.
 
 ### Versioning
 
