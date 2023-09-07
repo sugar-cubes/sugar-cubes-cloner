@@ -32,7 +32,7 @@ class BuildUtils {
             .flatMap {
                 Stream.of(
                     option, "${it}=ALL-UNNAMED",
-//                option, "${it}=org.sugarcubes.cloner",
+                    option, "${it}=org.sugarcubes.cloner",
                 )
             }
             .collect(Collectors.toList())
