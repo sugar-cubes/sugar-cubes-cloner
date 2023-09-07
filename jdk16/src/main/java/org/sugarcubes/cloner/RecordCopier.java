@@ -31,7 +31,7 @@ public class RecordCopier<T extends Record> implements ObjectCopier<T> {
     /**
      * Record components accessors.
      */
-    private final Method[] accessor;
+    private final Method[] accessors;
 
     /**
      * Record constructor.
@@ -46,7 +46,7 @@ public class RecordCopier<T extends Record> implements ObjectCopier<T> {
     public RecordCopier(Class<T> type) {
         Checks.illegalArg(!type.isRecord(), "%s is not a record.", type);
         RecordComponent[] components = type.getRecordComponents();
-        accessor = Arrays.stream(components)
+        accessors = Arrays.stream(components)
             .map(RecordComponent::getAccessor)
             .toArray(Method[]::new);
         Class<?>[] componentTypes = Arrays.stream(components)
@@ -57,9 +57,9 @@ public class RecordCopier<T extends Record> implements ObjectCopier<T> {
 
     @Override
     public T copy(T original, CopyContext context) throws Exception {
-        Object[] values = new Object[accessor.length];
+        Object[] values = new Object[accessors.length];
         for (int k = 0; k < values.length; k++) {
-            values[k] = context.copy(accessor[k].invoke(original));
+            values[k] = context.copy(accessors[k].invoke(original));
         }
         return context.register(constructor.newInstance(values));
     }
