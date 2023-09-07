@@ -1,5 +1,5 @@
 plugins {
-    id ("com.github.hierynomus.license") version "0.16.1"
+    id("com.github.hierynomus.license") version "0.16.1"
 }
 
 val currentVersion = file("version.txt").readText().trim()

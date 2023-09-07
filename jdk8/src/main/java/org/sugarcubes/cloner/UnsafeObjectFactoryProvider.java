@@ -25,13 +25,13 @@ import sun.misc.Unsafe;
 public class UnsafeObjectFactoryProvider implements ObjectFactoryProvider {
 
     /**
-     * {@link Unsafe} instance.
+     * {@link UnsafeBridge} instance.
      */
-    private static final Unsafe UNSAFE = UnsafeUtils.getUnsafe();
+    private final UnsafeBridge unsafe = JdkVersion.CONFIGURATION.getUnsafe();
 
     @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {
-        return () -> (T) UNSAFE.allocateInstance(type);
+        return () -> unsafe.allocateInstance(type);
     }
 
 }

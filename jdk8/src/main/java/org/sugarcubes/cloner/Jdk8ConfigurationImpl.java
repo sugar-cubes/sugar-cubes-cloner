@@ -68,7 +68,12 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
         java.text.SimpleDateFormat.class
     ));
 
+    /**
+     * System wide singletons.
+     */
     protected final Set<Object> systemWideSingletons = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    private UnsafeBridge unsafe;
 
     Jdk8ConfigurationImpl() {
         systemWideSingletons.addAll(Arrays.asList(
@@ -102,6 +107,15 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
     @Override
     public Set<Object> getSystemWideSingletons() {
         return Collections.unmodifiableSet(systemWideSingletons);
+    }
+
+    @Override
+    public UnsafeBridge getUnsafe() {
+        return unsafe != null ? unsafe : (unsafe = getUnsafeImpl());
+    }
+
+    protected UnsafeBridge getUnsafeImpl() {
+        return new SunMiscUnsafeBridge();
     }
 
 }

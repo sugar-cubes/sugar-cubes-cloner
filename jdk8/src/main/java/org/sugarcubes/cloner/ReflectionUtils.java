@@ -147,7 +147,7 @@ public class ReflectionUtils {
      * @return new instance
      */
     public static <T> T newInstance(String className) {
-        return (T) newInstance(classForName(className));
+        return newInstance(classForName(className));
     }
 
     /**

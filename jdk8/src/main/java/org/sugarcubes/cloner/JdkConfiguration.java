@@ -45,4 +45,11 @@ interface JdkConfiguration {
      */
     Set<Object> getSystemWideSingletons();
 
+    /**
+     * Returns Unsafe adapter.
+     *
+     * @return Unsafe adapter
+     */
+    UnsafeBridge getUnsafe();
+
 }

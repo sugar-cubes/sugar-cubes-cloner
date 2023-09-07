@@ -21,25 +21,39 @@ dependencies {
 
 }
 
+fun modulesJvmArgs(option: String): List<String> {
+    val modulesAndPackages = listOf(
+        "java.base/java.lang",
+        "java.base/java.lang.invoke",
+        "java.base/java.util",
+        "java.base/java.util.concurrent",
+        "java.base/jdk.internal.misc",
+    )
+    return modulesAndPackages.stream()
+        .flatMap {
+            Stream.of(
+                option, "${it}=ALL-UNNAMED",
+                option, "${it}=org.sugarcubes.cloner",
+            )
+        }
+        .collect(Collectors.toList())
+}
+
 tasks.withType<JavaCompile> {
     sourceCompatibility = JavaVersion.VERSION_1_9.toString()
     targetCompatibility = JavaVersion.VERSION_1_9.toString()
-}
 
-val jvmModuleOpens =
-    listOf("java.base/java.lang", "java.base/java.lang.invoke", "java.base/java.util", "java.base/java.util.concurrent")
-        .stream()
-        .flatMap { Stream.of("--add-opens", "${it}=ALL-UNNAMED") }
-        .collect(Collectors.toList())
+    options.compilerArgs.addAll(modulesJvmArgs("--add-exports"))
+}
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
     maxHeapSize = "1g"
-    jvmArgs(jvmModuleOpens)
+    jvmArgs = modulesJvmArgs("--add-opens")
 }
 
 jmh {
-    jvmArgs = jvmModuleOpens
+    jvmArgs.addAll(modulesJvmArgs("--add-opens"))
 }
 
 checkstyle {
