@@ -322,7 +322,7 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder fieldAction(Field field, CopyAction action) {
         Checks.argNotNull(field, "Field");
         Checks.argNotNull(action, "Action");
-        Checks.illegalArg(field.getType().isPrimitive() && action == CopyAction.NULL,
+        Checks.illegalArg(action == CopyAction.NULL && field.getType().isPrimitive(),
             "Cannot apply action NULL for primitive field %s.", field);
         Checks.illegalArg(fieldActions.containsKey(field), "Action for %s already set.", field);
         if (action != CopyAction.DEFAULT) {
