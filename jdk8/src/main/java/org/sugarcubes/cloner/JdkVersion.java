@@ -28,6 +28,7 @@ enum JdkVersion {
 
     V21(21, "java.lang.ScopedValue"),
     V17(17, "java.util.HexFormat"),
+    V16(16, "java.net.UnixDomainSocketAddress"),
     V15(15, "java.security.interfaces.EdECKey"),
     V11(11, "java.lang.invoke.ConstantBootstraps"),
     V9(9, "java.lang.Module"),

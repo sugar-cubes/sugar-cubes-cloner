@@ -6,10 +6,13 @@ plugins {
     id("signing")
 }
 
+val projects = listOf(project(":jdk8"), project(":jdk9"), project(":jdk16"))
+
 dependencies {
     api("org.objenesis:objenesis:3.3")
-    testCompileOnly(project(":jdk8"))
-    testCompileOnly(project(":jdk9"))
+    projects.forEach {
+        testCompileOnly(it)
+    }
 }
 
 java {
@@ -17,15 +20,16 @@ java {
     withSourcesJar()
 }
 
-tasks.withType<JavaCompile> {
-    sourceCompatibility = JavaVersion.VERSION_1_9.toString()
-    targetCompatibility = JavaVersion.VERSION_1_9.toString()
-}
+//tasks.withType<JavaCompile> {
+//    sourceCompatibility = JavaVersion.VERSION_1_9.toString()
+//    targetCompatibility = JavaVersion.VERSION_1_9.toString()
+//}
 
 tasks.named<Jar>("jar") {
 
-    from(project(":jdk8").sourceSets.main.get().output)
-    from(project(":jdk9").sourceSets.main.get().output)
+    projects.forEach {
+        from(it.sourceSets.main.get().output)
+    }
 
     // from this module
     exclude("**/Placeholder.*")
@@ -44,14 +48,18 @@ tasks.withType<Javadoc> {
     val opts = options as StandardJavadocDocletOptions
     opts.links("https://docs.oracle.com/en/java/javase/11/docs/api/")
 
-    source(project(":jdk8").sourceSets.main.get().allSource)
-    source(project(":jdk9").sourceSets.main.get().allSource)
+    projects.forEach {
+        source(it.sourceSets.main.get().allSource)
+    }
+
     exclude("**/Placeholder.*")
 }
 
 tasks.named<Jar>("sourcesJar") {
-    from(project(":jdk8").sourceSets.main.get().allSource)
-    from(project(":jdk9").sourceSets.main.get().allSource)
+    projects.forEach {
+        from(it.sourceSets.main.get().allSource)
+    }
+
     exclude("**/Placeholder.*")
 }
 

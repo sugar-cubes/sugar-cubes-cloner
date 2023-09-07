@@ -20,6 +20,8 @@ import java.util.List;
 
 /**
  * Implementation of {@link JdkConfiguration} for JDK 15+.
+ *
+ * @author Maxim Butov
  */
 class Jdk15ConfigurationImpl extends Jdk9ConfigurationImpl {
 

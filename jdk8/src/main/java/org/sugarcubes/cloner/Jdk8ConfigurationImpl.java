@@ -24,6 +24,8 @@ import java.util.Spliterators;
 
 /**
  * Implementation of {@link JdkConfiguration} for JDK 8+.
+ *
+ * @author Maxim Butov
  */
 class Jdk8ConfigurationImpl implements JdkConfiguration {
 
@@ -116,6 +118,11 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
 
     protected UnsafeBridge getUnsafeImpl() {
         return new SunMiscUnsafeBridge();
+    }
+
+    @Override
+    public ObjectCopier<?> getCopier(Class<?> type) {
+        return null;
     }
 
 }

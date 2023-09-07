@@ -15,19 +15,29 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.junit.jupiter.api.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.sameInstance;
 
 /**
- * Implementation of {@link JdkConfiguration} for JDK 9+.
+ * Tests of the cloning of records.
  *
  * @author Maxim Butov
  */
-class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
+public class RecordTest {
 
-    Jdk9ConfigurationImpl() {
-        systemWideSingletons.addAll(List.of(List.of(), Set.of(), Map.of()));
+    public record Cat(String name, int numberOfLives, String color) {
+
+    }
+
+    @Test
+    void testRecords() {
+        Cat cat1 = new Cat("Kesha", 7, "Gray");
+        Cat cat2 = Cloners.reflection().clone(cat1);
+        assertThat(cat2, not(sameInstance(cat1)));
+        assertThat(cat2, equalTo(cat1));
     }
 
 }

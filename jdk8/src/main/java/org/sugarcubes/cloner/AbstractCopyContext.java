@@ -38,11 +38,16 @@ public abstract class AbstractCopyContext implements CopyContext {
     private final Map<IdentityReference<Object>, Object[]> clones;
 
     /**
+     * JDK configuration.
+     */
+    private static final JdkConfiguration JDK_CONFIGURATION = JdkVersion.CONFIGURATION;
+
+    /**
      * Predefined system-wide singletons as map.
      */
     @SuppressWarnings("checkstyle:Indentation")
     private static final Map<IdentityReference<Object>, Object[]> SYSTEM_SINGLETONS_AS_MAP =
-        JdkVersion.CONFIGURATION.getSystemWideSingletons().stream()
+        JDK_CONFIGURATION.getSystemWideSingletons().stream()
             .collect(Collectors.toMap(
                 IdentityReference::new,
                 singleton -> new Object[] {singleton},

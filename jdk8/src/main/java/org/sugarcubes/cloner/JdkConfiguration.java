@@ -52,4 +52,12 @@ interface JdkConfiguration {
      */
     UnsafeBridge getUnsafe();
 
+    /**
+     * Returns custom copier for type.
+     *
+     * @param type type
+     * @return custom copier
+     */
+    ObjectCopier<?> getCopier(Class<?> type);
+
 }

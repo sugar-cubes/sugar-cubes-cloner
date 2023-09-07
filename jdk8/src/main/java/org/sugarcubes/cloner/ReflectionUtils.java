@@ -48,6 +48,24 @@ public class ReflectionUtils {
     }
 
     /**
+     * Checks the availability of the method in the class.
+     *
+     * @param type class
+     * @param methodName name of the method
+     * @param parameterTypes parameter types
+     * @return {@code true} if the method is available
+     */
+    public static boolean isMethodAvailable(Class<?> type, String methodName, Class<?>... parameterTypes) {
+        try {
+            type.getDeclaredMethod(methodName, parameterTypes);
+            return true;
+        }
+        catch (NoSuchMethodException e) {
+            return false;
+        }
+    }
+
+    /**
      * Version of {@link Class#forName(String)} with unchecked exception.
      *
      * @param className class name

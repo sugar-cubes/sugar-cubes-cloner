@@ -15,7 +15,9 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Copy policy interface.
@@ -23,6 +25,11 @@ import java.util.Collection;
  * @author Maxim Butov
  */
 public interface CopyPolicy<I> {
+
+    /**
+     * Default copy policy.
+     */
+    CopyPolicy<?> DEFAULT = input -> CopyAction.DEFAULT;
 
     /**
      * Returns action to apply to an input, which may be type, field or something else.
@@ -40,7 +47,7 @@ public interface CopyPolicy<I> {
      * @return default copy policy
      */
     static <I> CopyPolicy<I> defaultPolicy() {
-        return input -> CopyAction.DEFAULT;
+        return (CopyPolicy<I>) DEFAULT;
     }
 
     /**
@@ -51,8 +58,22 @@ public interface CopyPolicy<I> {
      * @param policies list of policies
      * @return compound or single policy
      */
-    static <I> CopyPolicy<I> compound(Collection<CopyPolicy<I>> policies) {
-        switch (policies.size()) {
+    @SafeVarargs
+    static <I> CopyPolicy<I> compound(CopyPolicy<I>... policies) {
+        return compound(Arrays.asList(policies));
+    }
+
+    /**
+     * Returns compound or single policy depending on list size.
+     * Compound copy policy searches for the first non-default action in the list of policies.
+     *
+     * @param <I> input type
+     * @param policies list of policies
+     * @return compound or single policy
+     */
+    static <I> CopyPolicy<I> compound(List<CopyPolicy<I>> policies) {
+        List<CopyPolicy<I>> nonDefaultPolicies = policies.stream().filter(p -> p != DEFAULT).collect(Collectors.toList());
+        switch (nonDefaultPolicies.size()) {
             case 0:
                 return defaultPolicy();
             case 1:

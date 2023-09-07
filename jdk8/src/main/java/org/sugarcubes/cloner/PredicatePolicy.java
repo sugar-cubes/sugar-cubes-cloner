@@ -16,6 +16,7 @@
 package org.sugarcubes.cloner;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -26,10 +27,9 @@ import java.util.stream.Stream;
 /**
  * Copy policy based on predicates. This implementation is slower than {@link ExactPolicy} but it is more flexible.
  *
+ * @author Maxim Butov
  * @see Predicates
  * @see ExactPolicy
- *
- * @author Maxim Butov
  */
 public class PredicatePolicy<I> extends AbstractMappedPolicy<I, Predicate<I>> {
 
@@ -38,6 +38,16 @@ public class PredicatePolicy<I> extends AbstractMappedPolicy<I, Predicate<I>> {
      */
     private static final Collector<CopyAction, ?, CopyAction> ACTION_COLLECTOR = Collector.of(ActionState::new,
         ActionState::accumulate, ActionState::combine, state -> state.action, Collector.Characteristics.UNORDERED);
+
+    /**
+     * Creates predicate based policy with one entry.
+     *
+     * @param predicate predicate
+     * @param action action
+     */
+    public PredicatePolicy(Predicate<I> predicate, CopyAction action) {
+        this(Collections.singletonMap(predicate, action));
+    }
 
     /**
      * Creates predicate based policy.

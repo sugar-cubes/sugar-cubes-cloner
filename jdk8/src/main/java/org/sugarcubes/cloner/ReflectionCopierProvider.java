@@ -155,7 +155,8 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (Copyable.class.isAssignableFrom(type)) {
             return ObjectCopier.COPYABLE;
         }
-        return findReflectionCopier(type);
+        ObjectCopier<?> copier = JdkVersion.CONFIGURATION.getCopier(type);
+        return copier != null ? copier : findReflectionCopier(type);
     }
 
     /**

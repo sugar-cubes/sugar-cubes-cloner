@@ -24,9 +24,8 @@ import java.util.function.Predicate;
 /**
  * Predicates factory. To be used with {@link PredicatePolicy}.
  *
- * @see PredicatePolicy
- *
  * @author Maxim Butov
+ * @see PredicatePolicy
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
 public class Predicates {

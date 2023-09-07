@@ -36,6 +36,11 @@ import java.util.function.Supplier;
 public final class ReflectionClonerBuilder {
 
     /**
+     * JDK configuration.
+     */
+    private static final JdkConfiguration JDK_CONFIGURATION = JdkVersion.CONFIGURATION;
+
+    /**
      * Default copiers for well-known JDK types.
      */
     private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
@@ -43,8 +48,8 @@ public final class ReflectionClonerBuilder {
     static {
         Map<Class<?>, ObjectCopier<?>> defaultCopiers = new LinkedHashMap<>();
 
-        JdkVersion.CONFIGURATION.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
-        JdkVersion.CONFIGURATION.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.SHALLOW));
+        JDK_CONFIGURATION.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
+        JDK_CONFIGURATION.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.SHALLOW));
 
         defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
         defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));

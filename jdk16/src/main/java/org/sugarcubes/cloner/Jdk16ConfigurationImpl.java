@@ -15,19 +15,16 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
- * Implementation of {@link JdkConfiguration} for JDK 9+.
+ * Implementation of {@link JdkConfiguration} for JDK 16+.
  *
  * @author Maxim Butov
  */
-class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
+class Jdk16ConfigurationImpl extends Jdk15ConfigurationImpl {
 
-    Jdk9ConfigurationImpl() {
-        systemWideSingletons.addAll(List.of(List.of(), Set.of(), Map.of()));
+    @Override
+    public ObjectCopier<?> getCopier(Class<?> type) {
+        return type.isRecord() ? new RecordCopier(type) : super.getCopier(type);
     }
 
 }
