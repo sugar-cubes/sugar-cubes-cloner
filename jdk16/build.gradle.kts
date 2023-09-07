@@ -1,6 +1,3 @@
-import java.util.stream.Collectors
-import java.util.stream.Stream
-
 plugins {
     id("build-logic.build-commons")
 }
@@ -16,32 +13,13 @@ dependencies {
 
 }
 
-fun modulesJvmArgs(option: String): List<String> {
-    val modulesAndPackages = listOf(
-        "java.base/java.lang",
-        "java.base/java.lang.reflect",
-        "java.base/java.lang.invoke",
-        "java.base/java.util",
-        "java.base/java.util.concurrent",
-        "java.base/jdk.internal.misc",
-    )
-    return modulesAndPackages.stream()
-        .flatMap {
-            Stream.of(
-                option, "${it}=ALL-UNNAMED",
-//                option, "${it}=org.sugarcubes.cloner",
-            )
-        }
-        .collect(Collectors.toList())
-}
-
 tasks.withType<JavaCompile> {
     targetCompatibility = JavaVersion.VERSION_16.toString()
     sourceCompatibility = JavaVersion.VERSION_16.toString()
 
-    options.compilerArgs.addAll(modulesJvmArgs("--add-exports"))
+    options.compilerArgs.addAll(utils.modulesJvmArgs("--add-exports"))
 }
 
 tasks.named<Test>("test") {
-    jvmArgs = modulesJvmArgs("--add-opens")
+    jvmArgs = utils.modulesJvmArgs("--add-opens")
 }
