@@ -16,6 +16,7 @@
 package org.sugarcubes.cloner;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 
@@ -23,15 +24,14 @@ import java.util.Arrays;
  * Records copier.
  *
  * @param <T> type
- *
  * @author Maxim Butov
  */
 public class RecordCopier<T extends Record> implements ObjectCopier<T> {
 
     /**
-     * Record components.
+     * Record components accessors.
      */
-    private final RecordComponent[] components;
+    private final Method[] accessor;
 
     /**
      * Record constructor.
@@ -45,7 +45,10 @@ public class RecordCopier<T extends Record> implements ObjectCopier<T> {
      */
     public RecordCopier(Class<T> type) {
         Checks.illegalArg(!type.isRecord(), "%s is not a record.", type);
-        components = type.getRecordComponents();
+        RecordComponent[] components = type.getRecordComponents();
+        accessor = Arrays.stream(components)
+            .map(RecordComponent::getAccessor)
+            .toArray(Method[]::new);
         Class<?>[] componentTypes = Arrays.stream(components)
             .map(RecordComponent::getType)
             .toArray(Class<?>[]::new);
@@ -54,9 +57,9 @@ public class RecordCopier<T extends Record> implements ObjectCopier<T> {
 
     @Override
     public T copy(T original, CopyContext context) throws Exception {
-        Object[] values = new Object[components.length];
+        Object[] values = new Object[accessor.length];
         for (int k = 0; k < values.length; k++) {
-            values[k] = context.copy(components[k].getAccessor().invoke(original));
+            values[k] = context.copy(accessor[k].invoke(original));
         }
         return context.register(constructor.newInstance(values));
     }
