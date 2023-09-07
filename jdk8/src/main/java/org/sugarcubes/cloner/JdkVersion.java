@@ -16,6 +16,7 @@
 package org.sugarcubes.cloner;
 
 import java.util.Arrays;
+import java.util.function.BooleanSupplier;
 
 /**
  * JDK version enum.
@@ -35,19 +36,20 @@ enum JdkVersion {
     V8(8, "java.lang.FunctionalInterface");
 
     final int version;
-    final String availableClass;
+    final BooleanSupplier applicable;
 
     JdkVersion(int version, String availableClass) {
         this.version = version;
-        this.availableClass = availableClass;
+        this.applicable = () -> ReflectionUtils.isClassAvailable(availableClass);
+    }
+
+    JdkVersion(int version, Class<?> type, String methodName, Class<?>... parameterTypes) {
+        this.version = version;
+        this.applicable = () -> ReflectionUtils.isMethodAvailable(type, methodName, parameterTypes);
     }
 
     boolean applicable() {
-        return ReflectionUtils.isClassAvailable(availableClass);
-    }
-
-    String configurationClassName() {
-        return String.format("%s.Jdk%dConfigurationImpl", JdkVersion.class.getPackage().getName(), version);
+        return applicable.getAsBoolean();
     }
 
     static final JdkVersion CURRENT = Arrays.stream(values())
@@ -60,9 +62,9 @@ enum JdkVersion {
     static {
         JdkConfiguration configuration = null;
 
-        JdkVersion[] versions = values();
-        for (int k = Arrays.asList(versions).indexOf(CURRENT); k < versions.length; k++) {
-            String configurationClassName = versions[k].configurationClassName();
+        for (int version = CURRENT.version; version >= V8.version; version--) {
+            String configurationClassName =
+                String.format("%s.Jdk%dConfigurationImpl", JdkVersion.class.getPackage().getName(), version);
             if (ReflectionUtils.isClassAvailable(configurationClassName)) {
                 configuration = ReflectionUtils.newInstance(configurationClassName);
                 break;
@@ -70,7 +72,7 @@ enum JdkVersion {
         }
 
         if (configuration == null) {
-            configuration = new Jdk8ConfigurationImpl();
+            throw Checks.mustNotHappen();
         }
 
         CONFIGURATION = configuration;
