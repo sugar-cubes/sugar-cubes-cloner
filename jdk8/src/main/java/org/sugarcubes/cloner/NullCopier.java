@@ -22,6 +22,12 @@ package org.sugarcubes.cloner;
  */
 public final class NullCopier<T> implements TrivialCopier<T> {
 
+    /**
+     * Do not create outside of package. One should use {@link ObjectCopier#NULL}.
+     */
+    NullCopier() {
+    }
+
     @Override
     public T copy(T original, CopyContext context) throws Exception {
         return null;

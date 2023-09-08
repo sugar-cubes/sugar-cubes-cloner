@@ -30,6 +30,9 @@ public class RecordTest {
 
     public record Cat(String name, int numberOfLives, String color) {
 
+        public Cat {
+        }
+
     }
 
     @Test

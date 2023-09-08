@@ -23,6 +23,7 @@ package org.sugarcubes.cloner;
 class Jdk16ConfigurationImpl extends Jdk15ConfigurationImpl {
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public ObjectCopier<?> getCopier(Class<?> type) {
         return type.isRecord() ? new RecordCopier(type) : super.getCopier(type);
     }

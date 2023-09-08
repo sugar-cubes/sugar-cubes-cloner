@@ -38,7 +38,7 @@ public final class ReflectionClonerBuilder {
     /**
      * JDK configuration.
      */
-    private static final JdkConfiguration JDK_CONFIGURATION = JdkVersion.CONFIGURATION;
+    private static final JdkConfiguration JDK_CONFIGURATION = JdkConfigurationHolder.CONFIGURATION;
 
     /**
      * Default copiers for well-known JDK types.

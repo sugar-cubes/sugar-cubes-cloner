@@ -16,7 +16,7 @@
 package org.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * Implementation of {@link JdkConfiguration} for JDK 15+.
@@ -29,7 +29,7 @@ class Jdk15ConfigurationImpl extends Jdk9ConfigurationImpl {
         Class<?> immutableCollectionsClass = ReflectionUtils.classForName("java.util.ImmutableCollections");
         Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, "archivedObjects");
         Object[] archivedObjects = (Object[]) ClonerExceptionUtils.replaceException(() -> archivedObjectsField.get(null));
-        systemWideSingletons.addAll(List.of(archivedObjects));
+        systemWideSingletons.addAll(Arrays.asList(archivedObjects));
     }
 
 }

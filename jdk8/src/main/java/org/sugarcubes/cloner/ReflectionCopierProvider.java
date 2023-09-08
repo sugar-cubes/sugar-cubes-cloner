@@ -155,7 +155,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (Copyable.class.isAssignableFrom(type)) {
             return ObjectCopier.COPYABLE;
         }
-        ObjectCopier<?> copier = JdkVersion.CONFIGURATION.getCopier(type);
+        ObjectCopier<?> copier = JdkConfigurationHolder.CONFIGURATION.getCopier(type);
         return copier != null ? copier : findReflectionCopier(type);
     }
 
@@ -167,6 +167,12 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private ObjectCopier<?> createCopierFromAnnotation(TypeCopier annotation) {
         Class<? extends ObjectCopier<?>> copierClass = (Class) annotation.value();
+        if (NullCopier.class.equals(copierClass)) {
+            return ObjectCopier.NULL;
+        }
+        if (NoopCopier.class.equals(copierClass)) {
+            return ObjectCopier.NOOP;
+        }
         return ReflectionUtils.newInstance(copierClass);
     }
 

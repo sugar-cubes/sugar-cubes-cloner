@@ -18,6 +18,10 @@ package org.sugarcubes.cloner;
 import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 
+import static org.sugarcubes.cloner.ReflectionUtils.classForName;
+import static org.sugarcubes.cloner.ReflectionUtils.isClassAvailable;
+import static org.sugarcubes.cloner.ReflectionUtils.isMethodAvailable;
+
 /**
  * JDK version enum.
  *
@@ -40,42 +44,23 @@ enum JdkVersion {
 
     JdkVersion(int version, String availableClass) {
         this.version = version;
-        this.applicable = () -> ReflectionUtils.isClassAvailable(availableClass);
+        this.applicable = () -> isClassAvailable(availableClass);
     }
 
-    JdkVersion(int version, Class<?> type, String methodName, Class<?>... parameterTypes) {
+    JdkVersion(int version, String type, String methodName, Class<?>... parameterTypes) {
         this.version = version;
-        this.applicable = () -> ReflectionUtils.isMethodAvailable(type, methodName, parameterTypes);
+        this.applicable = () -> isClassAvailable(type) && isMethodAvailable(classForName(type), methodName, parameterTypes);
     }
 
     boolean applicable() {
         return applicable.getAsBoolean();
     }
 
+    static final JdkVersion MINIMAL = V8;
+
     static final JdkVersion CURRENT = Arrays.stream(values())
         .filter(JdkVersion::applicable)
         .findFirst()
         .orElseThrow(Checks::mustNotHappen);
-
-    static final JdkConfiguration CONFIGURATION;
-
-    static {
-        JdkConfiguration configuration = null;
-
-        for (int version = CURRENT.version; version >= V8.version; version--) {
-            String configurationClassName =
-                String.format("%s.Jdk%dConfigurationImpl", JdkVersion.class.getPackage().getName(), version);
-            if (ReflectionUtils.isClassAvailable(configurationClassName)) {
-                configuration = ReflectionUtils.newInstance(configurationClassName);
-                break;
-            }
-        }
-
-        if (configuration == null) {
-            throw Checks.mustNotHappen();
-        }
-
-        CONFIGURATION = configuration;
-    }
 
 }

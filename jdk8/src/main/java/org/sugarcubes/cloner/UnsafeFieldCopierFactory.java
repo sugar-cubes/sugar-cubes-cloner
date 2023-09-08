@@ -31,7 +31,7 @@ public final class UnsafeFieldCopierFactory extends AbstractFieldCopierFactory {
     /**
      * {@link UnsafeBridge} instance.
      */
-    private final UnsafeBridge unsafe = JdkVersion.CONFIGURATION.getUnsafe();
+    private final UnsafeBridge unsafe = JdkConfigurationHolder.CONFIGURATION.getUnsafe();
 
     @Override
     protected FieldCopier getPrimitiveFieldCopier(Field field) {

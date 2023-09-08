@@ -27,7 +27,7 @@ public class UnsafeObjectFactoryProvider implements ObjectFactoryProvider {
     /**
      * {@link UnsafeBridge} instance.
      */
-    private final UnsafeBridge unsafe = JdkVersion.CONFIGURATION.getUnsafe();
+    private final UnsafeBridge unsafe = JdkConfigurationHolder.CONFIGURATION.getUnsafe();
 
     @Override
     public <T> ObjectFactory<T> getFactory(Class<T> type) {

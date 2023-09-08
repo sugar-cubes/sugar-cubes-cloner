@@ -15,6 +15,7 @@
  */
 package org.sugarcubes.cloner;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +28,7 @@ import java.util.Set;
 class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
 
     Jdk9ConfigurationImpl() {
-        systemWideSingletons.addAll(List.of(List.of(), Set.of(), Map.of()));
+        systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
     }
 
 }

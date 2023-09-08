@@ -15,7 +15,6 @@
  */
 package org.sugarcubes.cloner;
 
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -40,7 +39,7 @@ public abstract class AbstractCopyContext implements CopyContext {
     /**
      * JDK configuration.
      */
-    private static final JdkConfiguration JDK_CONFIGURATION = JdkVersion.CONFIGURATION;
+    private static final JdkConfiguration JDK_CONFIGURATION = JdkConfigurationHolder.CONFIGURATION;
 
     /**
      * Predefined system-wide singletons as map.
@@ -48,14 +47,7 @@ public abstract class AbstractCopyContext implements CopyContext {
     @SuppressWarnings("checkstyle:Indentation")
     private static final Map<IdentityReference<Object>, Object[]> SYSTEM_SINGLETONS_AS_MAP =
         JDK_CONFIGURATION.getSystemWideSingletons().stream()
-            .collect(Collectors.toMap(
-                IdentityReference::new,
-                singleton -> new Object[] {singleton},
-                (key1, key2) -> {
-                    throw Checks.mustNotHappen();
-                },
-                IdentityHashMap::new
-            ));
+            .collect(Collectors.toMap(IdentityReference::new, singleton -> new Object[] {singleton}));
 
     /**
      * Creates context with specified copier provider, clones map and predefined cloned objects.

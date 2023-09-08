@@ -22,6 +22,12 @@ package org.sugarcubes.cloner;
  */
 public final class NoopCopier<T> implements TrivialCopier<T> {
 
+    /**
+     * Do not create outside of package. One should use {@link ObjectCopier#NOOP}.
+     */
+    NoopCopier() {
+    }
+
     @Override
     public T copy(T original, CopyContext context) throws Exception {
         return original;
