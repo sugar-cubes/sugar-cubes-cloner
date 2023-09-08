@@ -22,7 +22,14 @@ package io.github.sugarcubes.cloner;
  */
 public final class IdentityReference<K> {
 
+    /**
+     * Object reference.
+     */
     private final K object;
+
+    /**
+     * System identity hash code of {@link #object}.
+     */
     private final int hash;
 
     /**
