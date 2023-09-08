@@ -11,3 +11,7 @@ tasks.withType<JavaCompile> {
     sourceCompatibility = JavaVersion.VERSION_1_9.toString()
     options.encoding = "utf-8"
 }
+
+tasks.withType<Javadoc> {
+    enabled = false
+}

@@ -31,4 +31,15 @@ class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
         systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
     }
 
+    @Override
+    protected UnsafeBridge getUnsafeImpl() {
+        try {
+            return new JdkInternalMiscUnsafeBridge();
+        }
+        catch (Exception e) {
+            // fallback to the classics
+            return super.getUnsafeImpl();
+        }
+    }
+
 }

@@ -15,6 +15,10 @@ tasks.named<Test>("test") {
     maxHeapSize = "1g"
 }
 
+tasks.withType<Javadoc> {
+    enabled = false
+}
+
 checkstyle {
     toolVersion = "8.14"
     configFile = rootProject.file("checkstyle/checkstyle.xml")

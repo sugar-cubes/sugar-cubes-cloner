@@ -51,6 +51,8 @@ tasks.withType<Javadoc> {
 
     // exclude placeholder
     exclude("**/_*.*")
+
+    exclude("**/JdkInternalMiscUnsafeBridge.*")
 }
 
 tasks.named<Jar>("sourcesJar") {
