@@ -71,16 +71,17 @@ Faster than java.io serialization.
 
 ### Interface
 
-| Class | Description |
-| --- | --- |
-| [Cloner](jdk8/src/main/java/io/github/sugar-cubes/cloner/Cloner.java) | The cloner interface. |
-| [ClonerException](jdk8/src/main/java/io/github/sugar-cubes/cloner/ClonerException.java) | Wrapper for all (checked and unchecked) exceptions, happened during cloning. Unchecked. |
-| [Cloners](jdk8/src/main/java/io/github/sugar-cubes/cloner/Cloners.java) | Factory for standard cloners. |
-| [CopyAction](jdk8/src/main/java/io/github/sugar-cubes/cloner/CopyAction.java) | Copy action (skip/null/original/clone). |
-| [CopyPolicy](jdk8/src/main/java/io/github/sugar-cubes/cloner/CopyPolicy.java) | Set of class/field rules for cloning. |
-| [ObjectCopier](jdk8/src/main/java/io/github/sugar-cubes/cloner/ObjectCopier.java) | Object copier interface. |
-| [ReflectionClonerBuilder](jdk8/src/main/java/io/github/sugar-cubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
-| [TraversalAlgorithm](jdk8/src/main/java/io/github/sugar-cubes/cloner/TraversalAlgorithm.java) | DFS (default) or BFS. |
+| Class                                                                                                   | Description                                                                             |
+|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [Cloner](jdk8/src/main/java/io/github/sugar-cubes/cloner/Cloner.java)                                   | The cloner interface.                                                                   |
+| [ClonerException](jdk8/src/main/java/io/github/sugar-cubes/cloner/ClonerException.java)                 | Wrapper for all (checked and unchecked) exceptions, happened during cloning. Unchecked. |
+| [Cloners](jdk8/src/main/java/io/github/sugar-cubes/cloner/Cloners.java)                                 | Factory for standard cloners.                                                           |
+| [CopyAction](jdk8/src/main/java/io/github/sugar-cubes/cloner/CopyAction.java)                           | Copy action (skip/null/original/clone).                                                 |
+| [CopyPolicy](jdk8/src/main/java/io/github/sugar-cubes/cloner/CopyPolicy.java)                           | Set of class/field rules for cloning.                                                   |
+| [ObjectCopier](jdk8/src/main/java/io/github/sugar-cubes/cloner/ObjectCopier.java)                       | Object copier interface.                                                                |
+| [Predicates](jdk8/src/main/java/io/github/sugar-cubes/cloner/Predicates.java)                           | Predicates factory to configure policies.                                               |
+| [ReflectionClonerBuilder](jdk8/src/main/java/io/github/sugar-cubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners.                                                    |
+| [TraversalAlgorithm](jdk8/src/main/java/io/github/sugar-cubes/cloner/TraversalAlgorithm.java)           | Depth-first (default) or breadth-first.                                                 |
             
 ### Usage
 
