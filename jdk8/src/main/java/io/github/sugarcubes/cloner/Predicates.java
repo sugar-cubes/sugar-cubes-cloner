@@ -31,6 +31,16 @@ import java.util.function.Predicate;
 public class Predicates {
 
     /**
+     * Always true predicate.
+     *
+     * @param <T> object type
+     * @return always true predicate
+     */
+    public static <T> Predicate<T> all() {
+        return t -> true;
+    }
+
+    /**
      * Negates predicate.
      *
      * @param <T> object type
