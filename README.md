@@ -73,14 +73,14 @@ Faster than java.io serialization.
 
 | Class | Description |
 | --- | --- |
-| [Cloner](jdk8/src/main/java/org/sugarcubes/cloner/Cloner.java) | The cloner interface. |
-| [ClonerException](jdk8/src/main/java/org/sugarcubes/cloner/ClonerException.java) | Wrapper for all (checked and unchecked) exceptions, happened during cloning. Unchecked. |
-| [Cloners](jdk8/src/main/java/org/sugarcubes/cloner/Cloners.java) | Factory for standard cloners. |
-| [CopyAction](jdk8/src/main/java/org/sugarcubes/cloner/CopyAction.java) | Copy action (skip/null/original/clone). |
-| [CopyPolicy](jdk8/src/main/java/org/sugarcubes/cloner/CopyPolicy.java) | Set of class/field rules for cloning. |
-| [ObjectCopier](jdk8/src/main/java/org/sugarcubes/cloner/ObjectCopier.java) | Object copier interface. |
-| [ReflectionClonerBuilder](jdk8/src/main/java/org/sugarcubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
-| [TraversalAlgorithm](jdk8/src/main/java/org/sugarcubes/cloner/TraversalAlgorithm.java) | DFS (default) or BFS. |
+| [Cloner](jdk8/src/main/java/io/github/sugar-cubes/cloner/Cloner.java) | The cloner interface. |
+| [ClonerException](jdk8/src/main/java/io/github/sugar-cubes/cloner/ClonerException.java) | Wrapper for all (checked and unchecked) exceptions, happened during cloning. Unchecked. |
+| [Cloners](jdk8/src/main/java/io/github/sugar-cubes/cloner/Cloners.java) | Factory for standard cloners. |
+| [CopyAction](jdk8/src/main/java/io/github/sugar-cubes/cloner/CopyAction.java) | Copy action (skip/null/original/clone). |
+| [CopyPolicy](jdk8/src/main/java/io/github/sugar-cubes/cloner/CopyPolicy.java) | Set of class/field rules for cloning. |
+| [ObjectCopier](jdk8/src/main/java/io/github/sugar-cubes/cloner/ObjectCopier.java) | Object copier interface. |
+| [ReflectionClonerBuilder](jdk8/src/main/java/io/github/sugar-cubes/cloner/ReflectionClonerBuilder.java) | Builder for creating custom cloners. |
+| [TraversalAlgorithm](jdk8/src/main/java/io/github/sugar-cubes/cloner/TraversalAlgorithm.java) | DFS (default) or BFS. |
             
 ### Usage
 
@@ -177,9 +177,9 @@ It's possible to use annotations to configure field/type actions and custom type
 
 | Annotation | Description |
 | --- | --- |
-| [FieldPolicy](jdk8/src/main/java/org/sugarcubes/cloner/FieldPolicy.java) | Field copy policy. |
-| [TypeCopier](jdk8/src/main/java/org/sugarcubes/cloner/TypeCopier.java) | Type copier. |
-| [TypePolicy](jdk8/src/main/java/org/sugarcubes/cloner/TypePolicy.java) | Type copy policy. |
+| [FieldPolicy](jdk8/src/main/java/io/github/sugar-cubes/cloner/FieldPolicy.java) | Field copy policy. |
+| [TypeCopier](jdk8/src/main/java/io/github/sugar-cubes/cloner/TypeCopier.java) | Type copier. |
+| [TypePolicy](jdk8/src/main/java/io/github/sugar-cubes/cloner/TypePolicy.java) | Type copy policy. |
 
 ### Implementation
                        
@@ -200,7 +200,7 @@ The priority of copy configurations is:
 
 The library requires Java 8 or higher.
 
-Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeObjectFactoryProvider](jdk8/src/main/java/org/sugarcubes/cloner/UnsafeObjectFactoryProvider.java).
+Default configuration of reflection cloner does not clone lambdas and method references. These can be cloned using [UnsafeObjectFactoryProvider](jdk8/src/main/java/io/github/sugar-cubes/cloner/UnsafeObjectFactoryProvider.java).
 
 Java 9+ restricts accessing objects members via Reflection API. To solve this one may
 - use `--illegal-access=permit` JVM argument (works on Java below 17);

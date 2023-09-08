@@ -6,7 +6,12 @@ plugins {
     id("signing")
 }
 
-val projects = listOf(project(":jdk8"), project(":jdk9"), project(":jdk16"))
+val projects = listOf(
+    project(":jdk8"),
+    project(":jdk9"),
+    project(":jdk9-module"),
+    project(":jdk16"),
+)
 
 dependencies {
     api("org.objenesis:objenesis:3.3")
@@ -20,27 +25,19 @@ java {
     withSourcesJar()
 }
 
-//tasks.withType<JavaCompile> {
-//    sourceCompatibility = JavaVersion.VERSION_1_9.toString()
-//    targetCompatibility = JavaVersion.VERSION_1_9.toString()
-//}
-
 tasks.named<Jar>("jar") {
 
     projects.forEach {
         from(it.sourceSets.main.get().output)
     }
 
-    // from this module
-    exclude("**/Placeholder.*")
-
     manifest {
         attributes["Implementation-Title"] = project.name
         attributes["Implementation-Version"] = project.version
-        attributes["Automatic-Module-Name"] = project.name.replace('-', '.')
+        attributes["Automatic-Module-Name"] = "io.github.sugarcubes.cloner"
         attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
         attributes["Import-Package"] = "sun.misc;resolution:=optional,org.objenesis;resolution:=optional"
-        attributes["Export-Package"] = "org.sugarcubes.cloner"
+        attributes["Export-Package"] = "io.github.sugarcubes.cloner"
     }
 }
 
@@ -52,7 +49,8 @@ tasks.withType<Javadoc> {
         source(it.sourceSets.main.get().allSource)
     }
 
-    exclude("**/Placeholder.*")
+    // exclude placeholder
+    exclude("**/_*.*")
 }
 
 tasks.named<Jar>("sourcesJar") {
@@ -60,7 +58,8 @@ tasks.named<Jar>("sourcesJar") {
         from(it.sourceSets.main.get().allSource)
     }
 
-    exclude("**/Placeholder.*")
+    // exclude placeholder
+    exclude("**/_*.*")
 }
 
 publishing {
@@ -86,11 +85,13 @@ publishing {
         register<MavenPublication>("library") {
             from(components["java"])
             pom {
-                name.set("Java Cloner library")
+                name.set("Java deep cloning library")
                 description.set("Deep cloning of any objects")
                 url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
-                properties.set(mapOf(
-                ))
+                properties.set(
+                    mapOf(
+                    )
+                )
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")

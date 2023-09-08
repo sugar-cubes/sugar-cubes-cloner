@@ -6,6 +6,10 @@ plugins {
     id("checkstyle")
 }
 
+tasks.withType<JavaCompile> {
+    options.encoding = "utf-8"
+}
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
     maxHeapSize = "1g"
@@ -32,7 +36,7 @@ class BuildUtils {
             .flatMap {
                 Stream.of(
                     option, "${it}=ALL-UNNAMED",
-                    option, "${it}=org.sugarcubes.cloner",
+                    option, "${it}=io.github.sugarcubes.cloner",
                 )
             }
             .collect(Collectors.toList())
