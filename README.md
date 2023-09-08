@@ -151,7 +151,7 @@ you may do:
 
 ```java
 Cloner cloner = Cloners.builder()
-    .fieldAction(Predicates.all(), CopyAction.ORIGINAL)
+    .fieldPolicy(CopyPolicy.original())
     .build();
 SomeObject clone = cloner.clone(original);
 ```

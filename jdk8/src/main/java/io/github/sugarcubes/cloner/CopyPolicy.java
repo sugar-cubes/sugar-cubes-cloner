@@ -32,6 +32,11 @@ public interface CopyPolicy<I> {
     CopyPolicy<?> DEFAULT = input -> CopyAction.DEFAULT;
 
     /**
+     * Copy policy which always uses originals.
+     */
+    CopyPolicy<?> ORIGINAL = input -> CopyAction.ORIGINAL;
+
+    /**
      * Returns action to apply to an input, which may be type, field or something else.
      * Must return non-null value.
      *
@@ -48,6 +53,16 @@ public interface CopyPolicy<I> {
      */
     static <I> CopyPolicy<I> defaultPolicy() {
         return (CopyPolicy<I>) DEFAULT;
+    }
+
+    /**
+     * Returns copy policy which always uses originals.
+     *
+     * @param <I> input object type
+     * @return copy policy which always uses originals
+     */
+    static <I> CopyPolicy<I> original() {
+        return (CopyPolicy<I>) ORIGINAL;
     }
 
     /**

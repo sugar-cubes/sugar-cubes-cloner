@@ -98,4 +98,11 @@ class ReadmeExample {
 
     }
 
+    private void shallowCopy() {
+        Cloner cloner = Cloners.builder()
+            .fieldPolicy(CopyPolicy.original())
+            .build();
+        SomeObject clone = cloner.clone(original);
+    }
+
 }
