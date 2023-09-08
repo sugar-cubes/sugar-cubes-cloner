@@ -10,7 +10,7 @@ Deep cloning of any objects.
 - Fast.
 - Thread safe.
 - Supports parallel execution.
-- Java 8 compatible.
+- Java 8+ compatible.
 
 Maven:
 ```xml
@@ -114,14 +114,14 @@ The same thing can also bew done with annotations:
 
 ```java
 @TypePolicy(CopyAction.NULL)
-private static class NonCloneableType {
+public class NonCloneableType {
 ```
 
 or
 
 ```java
 @TypePolicy(CopyAction.ORIGINAL)
-private static class NonCloneableType {
+public class NonCloneableType {
 ```
 
 #### Skip some fields

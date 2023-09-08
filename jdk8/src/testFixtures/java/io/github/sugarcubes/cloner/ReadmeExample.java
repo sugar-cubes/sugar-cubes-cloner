@@ -82,7 +82,7 @@ class ReadmeExample {
     }
 
     @TypeCopier(NoopCopier.class)
-    private static class NonCloneableType {
+    public class NonCloneableType {
 
     }
 
