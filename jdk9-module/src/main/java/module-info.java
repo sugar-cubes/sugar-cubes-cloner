@@ -22,7 +22,7 @@
  * @author Maxim Butov
  */
 module io.github.sugarcubes.cloner {
-    requires static org.objenesis;
     requires static jdk.unsupported;
+    requires static org.objenesis;
     exports io.github.sugarcubes.cloner;
 }

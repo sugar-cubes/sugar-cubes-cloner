@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.stream.Collectors
 
 plugins {
     id("java-library")
@@ -20,9 +21,50 @@ dependencies {
     }
 }
 
+afterEvaluate {
+    configurations {
+        setOf(apiElements, runtimeElements).forEach {
+            it.configure {
+                attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+            }
+        }
+    }
+}
+
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "utf-8"
+}
+
+tasks.withType<Jar> {
+
+    manifest {
+        mapOf(
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to project.version,
+            "Automatic-Module-Name" to "io.github.sugarcubes.cloner",
+            "Created-By" to
+                    System.getProperty("java.version") + " " + System.getProperty("java.specification.vendor"),
+            "Import-Package" to
+                    listOf(
+                        "jdk.internal.misc",
+                        "org.objenesis",
+                        "sun.misc",
+                    )
+                        .stream()
+                        .map { "${it};resolution:=optional" }
+                        .collect(Collectors.joining(",")),
+            "Export-Package" to "io.github.sugarcubes.cloner",
+        )
+            .forEach { key, value ->
+                attributes[key] = value
+            }
+    }
+
 }
 
 tasks.named<Jar>("jar") {
@@ -31,14 +73,6 @@ tasks.named<Jar>("jar") {
         from(it.sourceSets.main.get().output)
     }
 
-    manifest {
-        attributes["Implementation-Title"] = project.name
-        attributes["Implementation-Version"] = project.version
-        attributes["Automatic-Module-Name"] = "io.github.sugarcubes.cloner"
-        attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
-        attributes["Import-Package"] = "sun.misc;resolution:=optional,org.objenesis;resolution:=optional"
-        attributes["Export-Package"] = "io.github.sugarcubes.cloner"
-    }
 }
 
 tasks.withType<Javadoc> {
@@ -66,6 +100,10 @@ tasks.named<Jar>("sourcesJar") {
 
 publishing {
     repositories {
+        maven {
+            name = "ProjectLocal"
+            url = URI("file:${rootDir}/repo")
+        }
         maven {
             name = "GitHubPackages"
             url = URI("https://maven.pkg.github.com/sugar-cubes/sugar-cubes-cloner")
