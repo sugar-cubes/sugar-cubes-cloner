@@ -217,7 +217,9 @@ Default configuration of reflection cloner does not clone lambdas and method ref
 
 Java 9+ restricts accessing objects members via Reflection API. To solve this one may
 - use `--illegal-access=permit` JVM argument (works on Java below 17);
-- use `--add-opens` JVM arguments, e.g. `--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED`.
+- if you add the cloner into classpath, use `--add-opens` JVM arguments, e.g. `--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED`;
+- if you have an application with the modules which are properly configured, then use cloner's module name, i.e. `--add-opens java.base/java.lang=io.github.sugarcubes.cloner --add-opens java.base/java.lang.invoke=io.github.sugarcubes.cloner --add-opens java.base/java.util=io.github.sugarcubes.cloner --add-opens java.base/java.util.concurrent=io.github.sugarcubes.cloner`;
+- the library also contains a Java agent which opens modules for the cloner, just run java with arg `-javaagent:/path/to/sugar-cubes-cloner-1.2.2.jar`.
 
 ### Versioning
 

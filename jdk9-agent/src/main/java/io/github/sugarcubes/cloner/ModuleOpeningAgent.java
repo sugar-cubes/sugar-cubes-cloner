@@ -69,6 +69,9 @@ class ModuleOpeningAgent {
                         open(instrumentation, m, module);
                     }
                 }
+                else {
+                    modules.add(module);
+                }
             }
             else if (module != clonerModule && modules.add(module)) {
                 open(instrumentation, module, clonerModule);
