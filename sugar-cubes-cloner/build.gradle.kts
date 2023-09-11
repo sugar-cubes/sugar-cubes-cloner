@@ -7,16 +7,17 @@ plugins {
     id("signing")
 }
 
-val projects = listOf(
+val clonerModules = listOf(
     project(":jdk8"),
     project(":jdk9"),
+    project(":jdk9-agent"),
     project(":jdk9-module"),
     project(":jdk16"),
 )
 
 dependencies {
     api("org.objenesis:objenesis:3.3")
-    projects.forEach {
+    clonerModules.forEach {
         testCompileOnly(it)
     }
 }
@@ -42,35 +43,33 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Jar> {
 
-    manifest {
-        mapOf(
-            "Implementation-Title" to project.name,
-            "Implementation-Version" to project.version,
-            "Automatic-Module-Name" to "io.github.sugarcubes.cloner",
-            "Created-By" to
-                    System.getProperty("java.version") + " " + System.getProperty("java.specification.vendor"),
-            "Import-Package" to
-                    listOf(
-                        "jdk.internal.misc",
-                        "org.objenesis",
-                        "sun.misc",
-                    )
-                        .stream()
-                        .map { "${it};resolution:=optional" }
-                        .collect(Collectors.joining(",")),
-            "Export-Package" to "io.github.sugarcubes.cloner",
-        )
-            .forEach { key, value ->
-                attributes[key] = value
-            }
-    }
+    manifest.attributes(mapOf(
+        "Implementation-Title" to project.name,
+        "Implementation-Version" to project.version,
+        "Automatic-Module-Name" to "io.github.sugarcubes.cloner",
+        "Created-By" to
+                System.getProperty("java.version") + " " + System.getProperty("java.specification.vendor"),
+        "Import-Package" to
+                listOf(
+                    "jdk.internal.misc",
+                    "org.objenesis",
+                    "sun.misc",
+                )
+                    .stream()
+                    .map { "${it};resolution:=optional" }
+                    .collect(Collectors.joining(",")),
+        "Export-Package" to "io.github.sugarcubes.cloner",
+    ))
 
 }
 
 tasks.named<Jar>("jar") {
 
-    projects.forEach {
+    clonerModules.forEach {
         from(it.sourceSets.main.get().output)
+        manifest {
+            attributes(it.tasks.jar.get().manifest.attributes)
+        }
     }
 
 }
@@ -79,7 +78,7 @@ tasks.withType<Javadoc> {
     val opts = options as StandardJavadocDocletOptions
     opts.links("https://docs.oracle.com/en/java/javase/11/docs/api/")
 
-    projects.forEach {
+    clonerModules.forEach {
         source(it.sourceSets.main.get().allSource)
     }
 
@@ -90,7 +89,7 @@ tasks.withType<Javadoc> {
 }
 
 tasks.named<Jar>("sourcesJar") {
-    projects.forEach {
+    clonerModules.forEach {
         from(it.sourceSets.main.get().allSource)
     }
 

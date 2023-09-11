@@ -22,6 +22,7 @@
  * @author Maxim Butov
  */
 module io.github.sugarcubes.cloner {
+    requires static java.instrument;
     requires static jdk.unsupported;
     requires static org.objenesis;
     exports io.github.sugarcubes.cloner;
