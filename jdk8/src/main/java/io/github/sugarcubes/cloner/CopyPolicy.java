@@ -29,12 +29,12 @@ public interface CopyPolicy<I> {
     /**
      * Default copy policy.
      */
-    CopyPolicy<?> DEFAULT = input -> CopyAction.DEFAULT;
+    CopyPolicy<?> DEFAULT = constant(CopyAction.DEFAULT);
 
     /**
      * Copy policy which always uses originals.
      */
-    CopyPolicy<?> ORIGINAL = input -> CopyAction.ORIGINAL;
+    CopyPolicy<?> ORIGINAL = constant(CopyAction.ORIGINAL);
 
     /**
      * Returns action to apply to an input, which may be type, field or something else.
@@ -44,6 +44,18 @@ public interface CopyPolicy<I> {
      * @return copy action
      */
     CopyAction getAction(I input);
+
+    /**
+     * Returns copy policy which always returns the same action.
+     *
+     * @param <I> input object type
+     * @param action action
+     * @return copy policy which always returns the same action
+     */
+    static <I> CopyPolicy<I> constant(CopyAction action) {
+        Checks.argNotNull(action, "Action");
+        return input -> action;
+    }
 
     /**
      * Returns default copy policy.
@@ -94,7 +106,7 @@ public interface CopyPolicy<I> {
             case 1:
                 return policies.iterator().next();
             default:
-                return input -> policies.stream()
+                return input -> nonDefaultPolicies.stream()
                     .map(p -> p.getAction(input))
                     .filter(action -> action != CopyAction.DEFAULT)
                     .findFirst()
