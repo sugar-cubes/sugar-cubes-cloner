@@ -17,13 +17,13 @@ Maven:
 <dependency>
     <groupId>io.github.sugar-cubes</groupId>
     <artifactId>sugar-cubes-cloner</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
 Gradle:
 ```groovy
-implementation "io.github.sugar-cubes:sugar-cubes-cloner:1.2.1"
+implementation "io.github.sugar-cubes:sugar-cubes-cloner:1.2.2"
 ```
 
 It is recommended also to include [Objenesis](https://github.com/easymock/objenesis) library into your application.  
