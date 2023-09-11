@@ -1,5 +1,4 @@
 import java.net.URI
-import java.util.stream.Collectors
 
 plugins {
     id("java-library")
@@ -41,37 +40,32 @@ tasks.withType<JavaCompile> {
     options.encoding = "utf-8"
 }
 
-tasks.withType<Jar> {
+val jarTasks = listOf(
+    tasks.named<Jar>("jar"),
+    tasks.named<Jar>("sourcesJar"),
+)
 
-    manifest.attributes(mapOf(
-        "Implementation-Title" to project.name,
-        "Implementation-Version" to project.version,
-        "Automatic-Module-Name" to "io.github.sugarcubes.cloner",
-        "Created-By" to
-                System.getProperty("java.version") + " " + System.getProperty("java.specification.vendor"),
-        "Import-Package" to
-                listOf(
-                    "jdk.internal.misc",
-                    "org.objenesis",
-                    "sun.misc",
-                )
-                    .stream()
-                    .map { "${it};resolution:=optional" }
-                    .collect(Collectors.joining(",")),
-        "Export-Package" to "io.github.sugarcubes.cloner",
-    ))
+jarTasks.forEach {
+    it.configure {
 
-}
+        manifest.attributes(
+            mapOf(
+                "Implementation-Title" to project.name,
+                "Implementation-Version" to project.version,
+                "Automatic-Module-Name" to "io.github.sugarcubes.cloner",
+                "Created-By" to
+                        System.getProperty("java.version") + " " + System.getProperty("java.specification.vendor"),
+            )
+        )
 
-tasks.named<Jar>("jar") {
-
-    clonerModules.forEach {
-        from(it.sourceSets.main.get().output)
-        manifest {
-            attributes(it.tasks.jar.get().manifest.attributes)
+        clonerModules.forEach {
+            from(it.sourceSets.main.get().output)
+            manifest {
+                attributes(it.tasks.jar.get().manifest.attributes)
+            }
         }
-    }
 
+    }
 }
 
 tasks.withType<Javadoc> {
@@ -92,6 +86,8 @@ tasks.named<Jar>("sourcesJar") {
     clonerModules.forEach {
         from(it.sourceSets.main.get().allSource)
     }
+
+    exclude("**/*.class")
 
     // exclude placeholder
     exclude("**/_*.*")
