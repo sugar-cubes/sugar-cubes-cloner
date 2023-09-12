@@ -17,9 +17,11 @@ package io.github.sugarcubes.cloner;
 
 import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * Implementation of {@link JdkConfiguration} for JDK 9+.
@@ -49,10 +51,11 @@ class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
     }
 
     private final Module clonerModule = Jdk9ConfigurationImpl.class.getModule();
+    private final Set<Class<?>> accessible = Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override
     public void makeAccessible(Class<?> type) {
-        if (instrumentation != null) {
+        if (instrumentation != null && accessible.add(type)) {
             Module module = type.getModule();
             if (module != clonerModule) {
                 String packageName = type.getPackageName();
