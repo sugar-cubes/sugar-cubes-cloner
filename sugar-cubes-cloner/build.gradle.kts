@@ -1,6 +1,7 @@
 import java.net.URI
 
 plugins {
+    id("java-conventions")
     id("java-library")
     id("maven-publish")
     id("signing")
@@ -23,10 +24,6 @@ java {
     }
     withJavadocJar()
     withSourcesJar()
-}
-
-tasks.withType<JavaCompile> {
-    options.encoding = "utf-8"
 }
 
 val jarTasks = listOf(
