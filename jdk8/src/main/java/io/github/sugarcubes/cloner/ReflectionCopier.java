@@ -49,23 +49,20 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param type object type
      * @param fieldCopierFactory field copier factory
      * @param parent copier for the super type
-     * @param shallowMode shallow mode
+     * @param shallow shallow mode
      */
     @SuppressWarnings("unchecked")
     public ReflectionCopier(CopyPolicy<Field> policy, ObjectFactoryProvider allocator, Class<T> type,
-        FieldCopierFactory fieldCopierFactory, ReflectionCopier<?> parent, boolean shallowMode) {
+        FieldCopierFactory fieldCopierFactory, ReflectionCopier<?> parent, boolean shallow) {
         this.factory = allocator.getFactory(type);
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?
             parent.parent : parent);
+        CopyPolicy<Field> fieldPolicy = shallow
+            ? CopyPolicy.compound(policy, CopyPolicy.original())
+            : policy;
         this.fieldCopiers = Arrays.stream(ReflectionUtils.getDeclaredFields(type))
             .filter(ReflectionUtils::isNonStatic)
-            .map(field -> {
-                CopyAction action = policy.getAction(field);
-                if (shallowMode && action == CopyAction.DEFAULT) {
-                    action = CopyAction.ORIGINAL;
-                }
-                return fieldCopierFactory.getFieldCopier(field, action);
-            })
+            .map(field -> fieldCopierFactory.getFieldCopier(field, fieldPolicy.getAction(field)))
             .filter(copier -> copier != FieldCopier.NOOP)
             .toArray(FieldCopier[]::new);
     }

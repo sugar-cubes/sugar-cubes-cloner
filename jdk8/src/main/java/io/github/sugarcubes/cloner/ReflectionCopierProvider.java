@@ -63,7 +63,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Shallow mode types.
      */
-    private final Set<Class<?>> shallow;
+    private final Set<Class<?>> shallows;
 
     /**
      * Cache of reflection copiers.
@@ -78,19 +78,19 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @param fieldPolicy field policy
      * @param allocator object allocator
      * @param copiers predefined copiers
-     * @param shallow shallow-mode types
+     * @param shallows shallow-mode types
      * @param fieldCopierFactory field copier factory
      */
     public ReflectionCopierProvider(CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
         CopyPolicy<Field> fieldPolicy, ObjectFactoryProvider allocator, Map<Class<?>, ObjectCopier<?>> copiers,
-        Set<Class<?>> shallow, FieldCopierFactory fieldCopierFactory) {
+        Set<Class<?>> shallows, FieldCopierFactory fieldCopierFactory) {
         this.objectPolicy = objectPolicy;
         this.typePolicy = typePolicy;
         this.fieldPolicy = fieldPolicy;
         this.allocator = allocator;
         this.fieldCopierFactory = fieldCopierFactory;
         this.copiers.putAll(copiers);
-        this.shallow = shallow;
+        this.shallows = shallows;
     }
 
     @Override
@@ -165,7 +165,7 @@ public class ReflectionCopierProvider implements CopierProvider {
             return ObjectCopier.COPYABLE;
         }
         ObjectCopier<?> copier = JdkConfigurationHolder.CONFIGURATION.getCopier(type);
-        return copier != null ? copier : findReflectionCopier(type, shallow.contains(type));
+        return copier != null ? copier : findReflectionCopier(type, shallows.contains(type));
     }
 
     /**
@@ -191,13 +191,13 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @param type object type
      * @return copier instance
      */
-    private ReflectionCopier<?> findReflectionCopier(Class<?> type, boolean shallowMode) {
-        Map.Entry<Class<?>, Boolean> key = (Map.Entry) Collections.singletonMap(type, shallowMode).entrySet().iterator().next();
+    private ReflectionCopier<?> findReflectionCopier(Class<?> type, boolean shallow) {
+        Map.Entry<Class<?>, Boolean> key = (Map.Entry) Collections.singletonMap(type, shallow).entrySet().iterator().next();
         ReflectionCopier<?> copier = reflectionCopiers.get(key);
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
-            ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType, shallowMode) : null;
-            copier = new ReflectionCopier<>(fieldPolicy, allocator, type, fieldCopierFactory, parent, shallowMode);
+            ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType, shallow) : null;
+            copier = new ReflectionCopier<>(fieldPolicy, allocator, type, fieldCopierFactory, parent, shallow);
             reflectionCopiers.put(key, copier);
         }
         return copier;

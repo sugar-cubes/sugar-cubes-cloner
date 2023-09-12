@@ -27,7 +27,11 @@ import static org.hamcrest.Matchers.sameInstance;
  */
 public class ShallowCloneTest {
 
-    static class Shallow {
+    static class Super {
+        Object superInner = new Object();
+    }
+
+    static class Shallow extends Super {
         Object inner = new Object();
     }
 
@@ -37,11 +41,21 @@ public class ShallowCloneTest {
 
     @Test
     void testShallow() {
+        Cloner cloner = Cloners.builder().shallow(Shallow.class).build();
+
         Outer original = new Outer();
-        Outer clone = Cloners.builder().shallow(Shallow.class).build().clone(original);
+        Outer clone = cloner.clone(original);
+
         assertThat(clone, not(sameInstance(original)));
         assertThat(clone.shallow, not(sameInstance(original.shallow)));
         assertThat(clone.shallow.inner, sameInstance(original.shallow.inner));
+        assertThat(clone.shallow.superInner, sameInstance(original.shallow.superInner));
+
+        Super originalSuper = new Super();
+        Super cloneSuper = cloner.clone(originalSuper);
+
+        assertThat(cloneSuper, not(sameInstance(originalSuper)));
+        assertThat(cloneSuper.superInner, not(sameInstance(originalSuper.superInner)));
     }
 
 }

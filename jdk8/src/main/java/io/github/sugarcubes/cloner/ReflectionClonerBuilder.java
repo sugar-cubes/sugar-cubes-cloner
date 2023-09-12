@@ -143,7 +143,7 @@ public final class ReflectionClonerBuilder {
     /**
      * Shallow-mode types.
      */
-    private final Set<Class<?>> shallow = new HashSet<>();
+    private final Set<Class<?>> shallows = new HashSet<>();
 
     /**
      * Creates a builder.
@@ -433,9 +433,9 @@ public final class ReflectionClonerBuilder {
         Checks.argNotNull(type, "Type");
         Checks.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
         Checks.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
-        Checks.illegalArg(shallow.contains(type), "Shallow mode already enabled for %s.", type);
+        Checks.illegalArg(shallows.contains(type), "Shallow mode already enabled for %s.", type);
         copiers.remove(type);
-        shallow.add(type);
+        shallows.add(type);
         return this;
     }
 
@@ -515,7 +515,7 @@ public final class ReflectionClonerBuilder {
         ObjectFactoryProvider objectFactoryProvider = createIfNull(this.objectFactoryProvider, ObjectFactoryProvider::defaultInstance);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider =
-            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, shallow, fieldCopierFactory);
+            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, shallows, fieldCopierFactory);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
