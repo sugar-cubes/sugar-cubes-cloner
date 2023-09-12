@@ -147,8 +147,7 @@ SomeObject clone = cloner.clone(original);
 
 #### Creating shallow copy
 
-If you wish to create a shallow copy of an object, i.e. another object which references same children as the original,
-you may do:
+If you wish to create a shallow copy of an object, i.e. another object which references same children as the original, you may do:
 
 ```java
 Cloner cloner = Cloners.builder()
@@ -156,6 +155,15 @@ Cloner cloner = Cloners.builder()
     .build();
 SomeObject clone = cloner.clone(original);
 ```
+
+If you want to have deep cloning by default and shallow cloning of all instances of `SomeObject`, you may do:
+
+```java
+Cloner cloner = Cloners.builder()
+    .shallow(SomeObject.class)
+    .build();
+```
+
 
 ### Customization
 
