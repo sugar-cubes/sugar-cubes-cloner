@@ -33,9 +33,9 @@ public interface ObjectCopier<T> {
     ObjectCopier<?> NOOP = new NoopCopier<>();
 
     /**
-     * Singleton instance of {@link ShallowCopier}.
+     * Singleton instance of {@link CloneableCopier}.
      */
-    ObjectCopier<?> SHALLOW = new ShallowCopier<>();
+    ObjectCopier<?> CLONEABLE = new CloneableCopier<>();
 
     /**
      * Singleton instance of {@link ObjectArrayCopier}.

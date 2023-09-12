@@ -18,10 +18,12 @@ package io.github.sugarcubes.cloner;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
@@ -49,7 +51,7 @@ public final class ReflectionClonerBuilder {
         Map<Class<?>, ObjectCopier<?>> defaultCopiers = new LinkedHashMap<>();
 
         JDK_CONFIGURATION.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
-        JDK_CONFIGURATION.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.SHALLOW));
+        JDK_CONFIGURATION.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.CLONEABLE));
 
         defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
         defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
@@ -137,6 +139,11 @@ public final class ReflectionClonerBuilder {
      * Predefined clones.
      */
     private final Map<Object, Object> clones = new IdentityHashMap<>();
+
+    /**
+     * Shallow-mode types.
+     */
+    private final Set<Class<?>> shallow = new HashSet<>();
 
     /**
      * Creates a builder.
@@ -417,6 +424,22 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
+     * Registers type to be copied in shallow mode, i.e. field values won't be cloned.
+     *
+     * @param type type
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder shallow(Class<?> type) {
+        Checks.argNotNull(type, "Type");
+        Checks.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
+        Checks.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
+        Checks.illegalArg(shallow.contains(type), "Shallow mode already enabled for %s.", type);
+        copiers.remove(type);
+        shallow.add(type);
+        return this;
+    }
+
+    /**
      * Checks new value to be not null and old value to be null.
      *
      * @param <T> argument type
@@ -492,7 +515,7 @@ public final class ReflectionClonerBuilder {
         ObjectFactoryProvider objectFactoryProvider = createIfNull(this.objectFactoryProvider, ObjectFactoryProvider::defaultInstance);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider =
-            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, fieldCopierFactory);
+            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, shallow, fieldCopierFactory);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;

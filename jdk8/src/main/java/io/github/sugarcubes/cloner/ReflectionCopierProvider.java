@@ -17,7 +17,9 @@ package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -59,9 +61,14 @@ public class ReflectionCopierProvider implements CopierProvider {
     private final ConcurrentLazyCache<Class<?>, ObjectCopier<?>> copiers = new ConcurrentLazyCache<>(this::findCopier);
 
     /**
+     * Shallow mode types.
+     */
+    private final Set<Class<?>> shallow;
+
+    /**
      * Cache of reflection copiers.
      */
-    private final Map<Class<?>, ReflectionCopier<?>> reflectionCopiers = new ConcurrentHashMap<>();
+    private final Map<Map.Entry<Class<?>, Boolean>, ReflectionCopier<?>> reflectionCopiers = new ConcurrentHashMap<>();
 
     /**
      * Constructor.
@@ -71,17 +78,19 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @param fieldPolicy field policy
      * @param allocator object allocator
      * @param copiers predefined copiers
+     * @param shallow shallow-mode types
      * @param fieldCopierFactory field copier factory
      */
     public ReflectionCopierProvider(CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
         CopyPolicy<Field> fieldPolicy, ObjectFactoryProvider allocator, Map<Class<?>, ObjectCopier<?>> copiers,
-        FieldCopierFactory fieldCopierFactory) {
+        Set<Class<?>> shallow, FieldCopierFactory fieldCopierFactory) {
         this.objectPolicy = objectPolicy;
         this.typePolicy = typePolicy;
         this.fieldPolicy = fieldPolicy;
         this.allocator = allocator;
         this.fieldCopierFactory = fieldCopierFactory;
         this.copiers.putAll(copiers);
+        this.shallow = shallow;
     }
 
     @Override
@@ -139,12 +148,12 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (type.isArray()) {
             Class<?> componentType = type.getComponentType();
             if (componentType.isPrimitive() || componentType.isEnum()) {
-                return ObjectCopier.SHALLOW;
+                return ObjectCopier.CLONEABLE;
             }
             if (Modifier.isFinal(componentType.getModifiers()) &&
                 typePolicy.getAction(componentType) == CopyAction.ORIGINAL) {
                 // there is no mutable subtype of componentType, so, we can shallow clone array
-                return ObjectCopier.SHALLOW;
+                return ObjectCopier.CLONEABLE;
             }
             return ObjectCopier.OBJECT_ARRAY;
         }
@@ -156,7 +165,7 @@ public class ReflectionCopierProvider implements CopierProvider {
             return ObjectCopier.COPYABLE;
         }
         ObjectCopier<?> copier = JdkConfigurationHolder.CONFIGURATION.getCopier(type);
-        return copier != null ? copier : findReflectionCopier(type);
+        return copier != null ? copier : findReflectionCopier(type, shallow.contains(type));
     }
 
     /**
@@ -182,13 +191,14 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @param type object type
      * @return copier instance
      */
-    private ReflectionCopier<?> findReflectionCopier(Class<?> type) {
-        ReflectionCopier<?> copier = reflectionCopiers.get(type);
+    private ReflectionCopier<?> findReflectionCopier(Class<?> type, boolean shallowMode) {
+        Map.Entry<Class<?>, Boolean> key = (Map.Entry) Collections.singletonMap(type, shallowMode).entrySet().iterator().next();
+        ReflectionCopier<?> copier = reflectionCopiers.get(key);
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
-            ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType) : null;
-            copier = new ReflectionCopier<>(fieldPolicy, allocator, type, fieldCopierFactory, parent);
-            reflectionCopiers.put(type, copier);
+            ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType, shallowMode) : null;
+            copier = new ReflectionCopier<>(fieldPolicy, allocator, type, fieldCopierFactory, parent, shallowMode);
+            reflectionCopiers.put(key, copier);
         }
         return copier;
     }
