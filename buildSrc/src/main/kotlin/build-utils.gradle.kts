@@ -1,28 +1,12 @@
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.withType
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
 plugins {
     id("java")
-    id("checkstyle")
-}
-
-tasks.withType<JavaCompile> {
-    options.encoding = "utf-8"
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-    maxHeapSize = "1g"
-}
-
-tasks.withType<Javadoc> {
-    enabled = false
-}
-
-checkstyle {
-    toolVersion = "8.14"
-    configFile = rootProject.file("checkstyle/checkstyle.xml")
-    sourceSets = listOf(project.java.sourceSets["main"])
 }
 
 class BuildUtils {
@@ -48,4 +32,14 @@ class BuildUtils {
 
 }
 
-extensions.add("utils", BuildUtils())
+val utils = BuildUtils()
+
+extensions.add("utils", utils)
+
+tasks.withType<JavaCompile> {
+    options.compilerArgs.addAll(utils.modulesJvmArgs("--add-exports"))
+}
+
+tasks.withType<Test> {
+    jvmArgs = jvmArgs + utils.modulesJvmArgs("--add-opens")
+}

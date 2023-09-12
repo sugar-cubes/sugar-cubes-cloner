@@ -1,17 +1,13 @@
 plugins {
-    id("java")
+    id("java-conventions")
 }
 
 dependencies {
     compileOnly("org.objenesis:objenesis:3.3")
 }
 
-tasks.withType<JavaCompile> {
-    targetCompatibility = JavaVersion.VERSION_1_9.toString()
-    sourceCompatibility = JavaVersion.VERSION_1_9.toString()
-    options.encoding = "utf-8"
-}
-
-tasks.withType<Javadoc> {
-    enabled = false
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(9))
+    }
 }

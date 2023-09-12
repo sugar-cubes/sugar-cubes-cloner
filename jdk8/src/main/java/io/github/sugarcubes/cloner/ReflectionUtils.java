@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 
@@ -77,6 +78,19 @@ public class ReflectionUtils {
     }
 
     /**
+     * Returns accessible declared fields of the class.
+     * Same as {@link Class#getDeclaredFields()}.
+     *
+     * @param type {@link Class} instance
+     * @return declared fields
+     */
+    public static Field[] getDeclaredFields(Class<?> type) {
+        Field[] fields = makeAccessible(type).getDeclaredFields();
+        Arrays.stream(fields).forEach(ReflectionUtils::makeAccessible);
+        return fields;
+    }
+
+    /**
      * Returns accessible field.
      * Same as {@link Class#getDeclaredField(String)}.
      *
@@ -85,7 +99,7 @@ public class ReflectionUtils {
      * @return field
      */
     public static Field getField(Class<?> type, String name) {
-        return replaceException(() -> makeAccessible(type.getDeclaredField(name)));
+        return replaceException(() -> makeAccessible(makeAccessible(type).getDeclaredField(name)));
     }
 
     /**
@@ -98,7 +112,7 @@ public class ReflectionUtils {
      * @return method
      */
     public static Method getMethod(Class<?> type, String name, Class<?>... parameterTypes) {
-        return replaceException(() -> makeAccessible(type.getDeclaredMethod(name, parameterTypes)));
+        return replaceException(() -> makeAccessible(makeAccessible(type).getDeclaredMethod(name, parameterTypes)));
     }
 
     /**
@@ -108,10 +122,22 @@ public class ReflectionUtils {
      * @param type {@link Class} instance
      * @param parameterTypes parameter types
      * @param <T> type
-     * @return method
+     * @return constructor
      */
     public static <T> Constructor<T> getConstructor(Class<T> type, Class<?>... parameterTypes) {
-        return replaceException(() -> makeAccessible(type.getDeclaredConstructor(parameterTypes)));
+        return replaceException(() -> makeAccessible(makeAccessible(type).getDeclaredConstructor(parameterTypes)));
+    }
+
+    /**
+     * Makes class accessible from cloner module.
+     *
+     * @param <T> type
+     * @param type object type
+     * @return same type
+     */
+    public static <T> Class<T> makeAccessible(Class<T> type) {
+        JdkConfigurationHolder.CONFIGURATION.makeAccessible(type);
+        return type;
     }
 
     /**
@@ -150,11 +176,12 @@ public class ReflectionUtils {
      *
      * @param <T> type
      * @param type object type
+     * @param args constructor arguments
      * @return new instance
      */
-    public static <T> T newInstance(Class<T> type) {
+    public static <T> T newInstance(Class<T> type, Object... args) {
         Constructor<T> constructor = getConstructor(type);
-        return replaceException(constructor::newInstance);
+        return replaceException(() -> constructor.newInstance(args));
     }
 
     /**

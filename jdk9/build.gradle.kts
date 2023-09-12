@@ -1,5 +1,7 @@
 plugins {
-    id("build-logic.build-commons")
+    id("java-conventions")
+    id("checkstyle-conventions")
+    id("build-utils")
     id("me.champeau.jmh") version "0.6.6"
 }
 
@@ -17,15 +19,10 @@ dependencies {
 
 }
 
-tasks.withType<JavaCompile> {
-    targetCompatibility = JavaVersion.VERSION_1_9.toString()
-    sourceCompatibility = JavaVersion.VERSION_1_9.toString()
-
-    options.compilerArgs.addAll(utils.modulesJvmArgs("--add-exports"))
-}
-
-tasks.named<Test>("test") {
-    jvmArgs = utils.modulesJvmArgs("--add-opens")
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(9))
+    }
 }
 
 jmh {

@@ -77,7 +77,8 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
 
     private UnsafeBridge unsafe;
 
-    Jdk8ConfigurationImpl() {
+    @Override
+    public void initialize() {
         systemWideSingletons.addAll(Arrays.asList(
             Collections.emptyEnumeration(),
             Collections.emptyIterator(),
@@ -112,6 +113,11 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
     }
 
     @Override
+    public ObjectCopier<?> getCopier(Class<?> type) {
+        return null;
+    }
+
+    @Override
     public UnsafeBridge getUnsafe() {
         return unsafe != null ? unsafe : (unsafe = getUnsafeImpl());
     }
@@ -121,8 +127,8 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
     }
 
     @Override
-    public ObjectCopier<?> getCopier(Class<?> type) {
-        return null;
+    public void makeAccessible(Class<?> type) {
+        // good old Java 8, nothing to do
     }
 
 }

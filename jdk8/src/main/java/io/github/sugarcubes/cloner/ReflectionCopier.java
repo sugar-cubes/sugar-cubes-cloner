@@ -56,7 +56,7 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
         this.factory = allocator.getFactory(type);
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?
             parent.parent : parent);
-        this.fieldCopiers = Arrays.stream(type.getDeclaredFields())
+        this.fieldCopiers = Arrays.stream(ReflectionUtils.getDeclaredFields(type))
             .filter(ReflectionUtils::isNonStatic)
             .map(field -> fieldCopierFactory.getFieldCopier(field, policy.getAction(field)))
             .filter(copier -> copier != FieldCopier.NOOP)

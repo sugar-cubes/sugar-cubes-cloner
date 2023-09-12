@@ -9,29 +9,18 @@ plugins {
 val clonerModules = listOf(
     project(":jdk8"),
     project(":jdk9"),
-    project(":jdk9-agent"),
     project(":jdk9-module"),
     project(":jdk16"),
 )
 
 dependencies {
     api("org.objenesis:objenesis:3.3")
-    clonerModules.forEach {
-        testCompileOnly(it)
-    }
-}
-
-afterEvaluate {
-    configurations {
-        setOf(apiElements, runtimeElements).forEach {
-            it.configure {
-                attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
-            }
-        }
-    }
 }
 
 java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
     withJavadocJar()
     withSourcesJar()
 }
@@ -68,10 +57,29 @@ jarTasks.forEach {
     }
 }
 
-tasks.withType<Javadoc> {
-    val opts = options as StandardJavadocDocletOptions
-    opts.links("https://docs.oracle.com/en/java/javase/11/docs/api/")
+tasks.named<Jar>("jar") {
 
+    clonerModules.forEach {
+        dependsOn(it.tasks.named<Jar>("jar"))
+        from(it.sourceSets.main.get().output)
+        manifest {
+            attributes(it.tasks.jar.get().manifest.attributes)
+        }
+    }
+
+}
+
+tasks.withType<Javadoc> {
+    javadocTool.set(
+        javaToolchains.javadocToolFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    )
+    enabled = true
+    val opts = options as StandardJavadocDocletOptions
+    opts.links(
+        "https://docs.oracle.com/en/java/javase/17/docs/api/",
+    )
     clonerModules.forEach {
         source(it.sourceSets.main.get().allSource)
     }

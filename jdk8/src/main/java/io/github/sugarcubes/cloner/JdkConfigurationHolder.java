@@ -15,8 +15,6 @@
  */
 package io.github.sugarcubes.cloner;
 
-import static io.github.sugarcubes.cloner.ReflectionUtils.isClassAvailable;
-
 /**
  * JDK configuration loader and holder.
  *
@@ -32,10 +30,20 @@ class JdkConfigurationHolder {
         String packageName = JdkConfigurationHolder.class.getPackage().getName();
         for (int version = JdkVersion.CURRENT.version; version >= JdkVersion.MINIMAL.version; version--) {
             String configurationClassName = String.format("%s.Jdk%dConfigurationImpl", packageName, version);
-            if (isClassAvailable(configurationClassName)) {
-                configuration = ReflectionUtils.newInstance(configurationClassName);
-                break;
+            Class<JdkConfiguration> configurationClass;
+            try {
+                configurationClass = (Class<JdkConfiguration>) Class.forName(configurationClassName);
             }
+            catch (ClassNotFoundException e) {
+                continue;
+            }
+            try {
+                configuration = configurationClass.getDeclaredConstructor().newInstance();
+            }
+            catch (Exception e) {
+                throw new ClonerException("Cannot instantiate configuration.", e);
+            }
+            break;
         }
 
         if (configuration == null) {
@@ -43,6 +51,8 @@ class JdkConfigurationHolder {
         }
 
         CONFIGURATION = configuration;
+
+        configuration.initialize();
     }
 
 }

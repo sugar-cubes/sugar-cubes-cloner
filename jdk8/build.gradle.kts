@@ -1,5 +1,6 @@
 plugins {
-    id("build-logic.build-commons")
+    id("java-conventions")
+    id("checkstyle-conventions")
     id("java-test-fixtures")
 }
 
@@ -17,7 +18,17 @@ dependencies {
 
 }
 
-tasks.withType<JavaCompile> {
-    sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-    targetCompatibility = JavaVersion.VERSION_1_8.toString()
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+tasks.named<Jar>("jar") {
+    manifest.attributes(
+        mapOf(
+            "Premain-Class" to "io.github.sugarcubes.cloner.ClonerAgent",
+            "Agent-Class" to "io.github.sugarcubes.cloner.ClonerAgent",
+        )
+    )
 }

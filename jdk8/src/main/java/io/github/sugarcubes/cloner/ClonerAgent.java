@@ -15,23 +15,27 @@
  */
 package io.github.sugarcubes.cloner;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.lang.instrument.Instrumentation;
 
 /**
- * Implementation of {@link JdkConfiguration} for JDK 15+.
+ * Java agent which gives access to {@link Instrumentation} for cloner module.
  *
  * @author Maxim Butov
  */
-class Jdk15ConfigurationImpl extends Jdk9ConfigurationImpl {
+class ClonerAgent {
 
-    @Override
-    public void initialize() {
-        super.initialize();
-        Class<?> immutableCollectionsClass = ReflectionUtils.classForName("java.util.ImmutableCollections");
-        Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, "archivedObjects");
-        Object[] archivedObjects = (Object[]) ClonerExceptionUtils.replaceException(() -> archivedObjectsField.get(null));
-        systemWideSingletons.addAll(Arrays.asList(archivedObjects));
+    private static Instrumentation instrumentation;
+
+    public static void premain(String agentArgs, Instrumentation instrumentation) {
+        ClonerAgent.instrumentation = instrumentation;
+    }
+
+    public static void agentmain(String agentArgs, Instrumentation instrumentation) {
+        ClonerAgent.instrumentation = instrumentation;
+    }
+
+    static Instrumentation getInstrumentation() {
+        return instrumentation;
     }
 
 }

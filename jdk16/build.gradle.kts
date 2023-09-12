@@ -1,5 +1,7 @@
 plugins {
-    id("build-logic.build-commons")
+    id("java-conventions")
+    id("checkstyle-conventions")
+    id("build-utils")
 }
 
 dependencies {
@@ -13,13 +15,8 @@ dependencies {
 
 }
 
-tasks.withType<JavaCompile> {
-    targetCompatibility = JavaVersion.VERSION_16.toString()
-    sourceCompatibility = JavaVersion.VERSION_16.toString()
-
-    options.compilerArgs.addAll(utils.modulesJvmArgs("--add-exports"))
-}
-
-tasks.named<Test>("test") {
-    jvmArgs = utils.modulesJvmArgs("--add-opens")
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(16))
+    }
 }

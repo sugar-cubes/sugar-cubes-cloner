@@ -17,8 +17,12 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: |
+            8
+            9
+            16
+            17
+          distribution: 'adopt'
           cache: 'gradle'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -26,4 +30,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          arguments: clean build
+          arguments: |
+            -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_9_X64,JAVA_HOME_16_X64,JAVA_HOME_17_X64 
+            clean 
+            build

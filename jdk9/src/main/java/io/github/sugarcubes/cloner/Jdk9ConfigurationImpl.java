@@ -15,6 +15,7 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,13 @@ import java.util.Set;
  */
 class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
 
-    Jdk9ConfigurationImpl() {
+    private Instrumentation instrumentation;
+
+    @Override
+    public void initialize() {
+        super.initialize();
         systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
+        instrumentation = ClonerAgent.getInstrumentation();
     }
 
     @Override
@@ -39,6 +45,22 @@ class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
         catch (Exception e) {
             // fallback to the classics
             return super.getUnsafeImpl();
+        }
+    }
+
+    private final Module clonerModule = Jdk9ConfigurationImpl.class.getModule();
+
+    @Override
+    public void makeAccessible(Class<?> type) {
+        if (instrumentation != null) {
+            Module module = type.getModule();
+            if (module != clonerModule) {
+                String packageName = type.getPackageName();
+                if (!module.isOpen(packageName, clonerModule)) {
+                    instrumentation.redefineModule(module, Set.of(), Map.of(),
+                        Map.of(packageName, Set.of(clonerModule)), Set.of(), Map.of());
+                }
+            }
         }
     }
 

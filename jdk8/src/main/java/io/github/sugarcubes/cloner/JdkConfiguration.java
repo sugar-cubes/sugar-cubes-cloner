@@ -25,6 +25,11 @@ import java.util.Set;
 interface JdkConfiguration {
 
     /**
+     * Initializes configuration.
+     */
+    void initialize();
+
+    /**
      * Returns immutable types.
      *
      * @return set of immutable types
@@ -46,6 +51,14 @@ interface JdkConfiguration {
     Set<Object> getSystemWideSingletons();
 
     /**
+     * Returns custom copier for type.
+     *
+     * @param type type
+     * @return custom copier
+     */
+    ObjectCopier<?> getCopier(Class<?> type);
+
+    /**
      * Returns Unsafe adapter.
      *
      * @return Unsafe adapter
@@ -53,11 +66,10 @@ interface JdkConfiguration {
     UnsafeBridge getUnsafe();
 
     /**
-     * Returns custom copier for type.
+     * Tries to make class accessible from cloner.
      *
-     * @param type type
-     * @return custom copier
+     * @param type type to make accessible
      */
-    ObjectCopier<?> getCopier(Class<?> type);
+    void makeAccessible(Class<?> type);
 
 }
