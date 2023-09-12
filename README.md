@@ -17,13 +17,13 @@ Maven:
 <dependency>
     <groupId>io.github.sugar-cubes</groupId>
     <artifactId>sugar-cubes-cloner</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
 </dependency>
 ```
 
 Gradle:
 ```groovy
-implementation "io.github.sugar-cubes:sugar-cubes-cloner:1.2.2"
+implementation "io.github.sugar-cubes:sugar-cubes-cloner:1.2.3"
 ```
 
 It is recommended also to include [Objenesis](https://github.com/easymock/objenesis) library into your application.  
@@ -227,7 +227,7 @@ Java 9+ restricts access to objects members via Reflection API. To solve this on
 - use `--illegal-access=permit` JVM argument (works on Java below 17);
 - if you add the cloner into classpath, use `--add-opens` JVM arguments, e.g. `--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED`;
 - if you have an application with the modules which are properly configured, then use cloner's module name, i.e. `--add-opens java.base/java.lang=io.github.sugarcubes.cloner --add-opens java.base/java.lang.invoke=io.github.sugarcubes.cloner --add-opens java.base/java.util=io.github.sugarcubes.cloner --add-opens java.base/java.util.concurrent=io.github.sugarcubes.cloner`;
-- the library also contains a Java agent which opens modules for the cloner, just run java with argument `-javaagent:/path/to/sugar-cubes-cloner-1.2.2.jar`.
+- the library also contains a Java agent which opens modules for the cloner, just run java with argument `-javaagent:/path/to/sugar-cubes-cloner-1.2.3.jar`.
 
 ### Versioning
 
