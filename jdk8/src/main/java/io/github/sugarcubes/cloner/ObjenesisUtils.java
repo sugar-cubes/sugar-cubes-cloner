@@ -28,7 +28,7 @@ public class ObjenesisUtils {
      * @return true, if Objenesis library is present in classpath
      */
     public static boolean isObjenesisAvailable() {
-        return ReflectionUtils.isClassAvailable("org.objenesis.ObjenesisStd");
+        return ClassUtils.isClassAvailable("org.objenesis.ObjenesisStd");
     }
 
     /**

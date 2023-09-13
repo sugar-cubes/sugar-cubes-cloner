@@ -21,7 +21,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 
 import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 
@@ -33,51 +32,6 @@ import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 public class ReflectionUtils {
 
     /**
-     * Checks the availability of the class in current class loader.
-     *
-     * @param className name of the class
-     * @return {@code true} if class is available
-     */
-    public static boolean isClassAvailable(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        }
-        catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Checks the availability of the method in the class.
-     *
-     * @param type class
-     * @param methodName name of the method
-     * @param parameterTypes parameter types
-     * @return {@code true} if the method is available
-     */
-    public static boolean isMethodAvailable(Class<?> type, String methodName, Class<?>... parameterTypes) {
-        try {
-            type.getDeclaredMethod(methodName, parameterTypes);
-            return true;
-        }
-        catch (NoSuchMethodException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Version of {@link Class#forName(String)} with unchecked exception.
-     *
-     * @param className class name
-     * @param <T> type
-     * @return {@link Class} instance
-     */
-    public static <T> Class<T> classForName(String className) {
-        return (Class<T>) replaceException(() -> Class.forName(className));
-    }
-
-    /**
      * Returns accessible declared fields of the class.
      * Same as {@link Class#getDeclaredFields()}.
      *
@@ -85,9 +39,7 @@ public class ReflectionUtils {
      * @return declared fields
      */
     public static Field[] getDeclaredFields(Class<?> type) {
-        Field[] fields = makeAccessible(type).getDeclaredFields();
-        Arrays.stream(fields).forEach(ReflectionUtils::makeAccessible);
-        return fields;
+        return makeAccessible(type).getDeclaredFields();
     }
 
     /**
@@ -176,12 +128,11 @@ public class ReflectionUtils {
      *
      * @param <T> type
      * @param type object type
-     * @param args constructor arguments
      * @return new instance
      */
-    public static <T> T newInstance(Class<T> type, Object... args) {
+    public static <T> T newInstance(Class<T> type) {
         Constructor<T> constructor = getConstructor(type);
-        return replaceException(() -> constructor.newInstance(args));
+        return replaceException(constructor::newInstance);
     }
 
     /**
@@ -192,7 +143,7 @@ public class ReflectionUtils {
      * @return new instance
      */
     public static <T> T newInstance(String className) {
-        return newInstance(classForName(className));
+        return newInstance(ClassUtils.classForName(className));
     }
 
     /**

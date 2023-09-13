@@ -58,14 +58,14 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
         java.util.Date.class,
         java.util.GregorianCalendar.class,
         java.util.Locale.class,
-        ReflectionUtils.classForName("java.util.JumboEnumSet"),
-        ReflectionUtils.classForName("java.util.RegularEnumSet"),
+        ClassUtils.classForName("java.util.JumboEnumSet"),
+        ClassUtils.classForName("java.util.RegularEnumSet"),
         java.text.ChoiceFormat.class,
         java.text.DateFormat.class,
         java.text.DateFormatSymbols.class,
         java.text.DecimalFormat.class,
         java.text.DecimalFormatSymbols.class,
-        ReflectionUtils.classForName("java.text.DigitList"),
+        ClassUtils.classForName("java.text.DigitList"),
         java.text.MessageFormat.class,
         java.text.SimpleDateFormat.class
     ));

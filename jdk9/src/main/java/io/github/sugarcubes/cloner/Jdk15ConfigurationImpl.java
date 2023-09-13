@@ -28,7 +28,7 @@ class Jdk15ConfigurationImpl extends Jdk9ConfigurationImpl {
     @Override
     public void initialize() {
         super.initialize();
-        Class<?> immutableCollectionsClass = ReflectionUtils.classForName("java.util.ImmutableCollections");
+        Class<?> immutableCollectionsClass = ClassUtils.classForName("java.util.ImmutableCollections");
         Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, "archivedObjects");
         Object[] archivedObjects = (Object[]) ClonerExceptionUtils.replaceException(() -> archivedObjectsField.get(null));
         systemWideSingletons.addAll(Arrays.asList(archivedObjects));

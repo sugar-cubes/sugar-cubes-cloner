@@ -25,6 +25,11 @@ import java.lang.reflect.Field;
 public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFactory {
 
     @Override
+    public FieldCopier getFieldCopier(Field field, CopyAction action) {
+        return super.getFieldCopier(ReflectionUtils.makeAccessible(field), action);
+    }
+
+    @Override
     protected FieldCopier getPrimitiveFieldCopier(Field field) {
         switch (field.getType().getName()) {
             case "boolean":

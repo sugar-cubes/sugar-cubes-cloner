@@ -18,9 +18,9 @@ package io.github.sugarcubes.cloner;
 import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 
-import static io.github.sugarcubes.cloner.ReflectionUtils.classForName;
-import static io.github.sugarcubes.cloner.ReflectionUtils.isClassAvailable;
-import static io.github.sugarcubes.cloner.ReflectionUtils.isMethodAvailable;
+import static io.github.sugarcubes.cloner.ClassUtils.classForName;
+import static io.github.sugarcubes.cloner.ClassUtils.isClassAvailable;
+import static io.github.sugarcubes.cloner.ClassUtils.isMethodAvailable;
 
 /**
  * JDK version enum.

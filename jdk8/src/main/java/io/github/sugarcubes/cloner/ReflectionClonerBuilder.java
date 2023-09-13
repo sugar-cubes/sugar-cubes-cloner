@@ -286,7 +286,7 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder typeAction(String type, CopyAction action) {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(action, "Action");
-        return typeAction(ReflectionUtils.classForName(type), action);
+        return typeAction(ClassUtils.classForName(type), action);
     }
 
     /**
