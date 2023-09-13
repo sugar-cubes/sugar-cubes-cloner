@@ -111,7 +111,7 @@ SomeObject clone = cloner.clone(original);
 
 Here the instances of NonCloneableType in the original's object tree will be copied by reference into the clone.
 
-The same thing can also bew done with annotations:
+The same thing can also be done with annotations:
 
 ```java
 @TypePolicy(CopyAction.NULL)
