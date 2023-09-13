@@ -30,13 +30,10 @@ import java.util.WeakHashMap;
  */
 class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
 
-    private Instrumentation instrumentation;
-
     @Override
     public void initialize() {
         super.initialize();
         systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
-        instrumentation = ClonerAgent.getInstrumentation();
     }
 
     @Override
@@ -50,6 +47,7 @@ class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
         }
     }
 
+    private final Instrumentation instrumentation = ClonerAgent.getInstrumentation();
     private final Module clonerModule = Jdk9ConfigurationImpl.class.getModule();
     private final Set<Class<?>> accessible = Collections.newSetFromMap(new WeakHashMap<>());
 
