@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.sugar-cubes:sugar-cubes-cloner:${extra["clonerVersion"]}")
+    implementation("io.github.sugar-cubes:sugar-cubes-cloner:1.2.4-SNAPSHOT")
     implementation("org.objenesis:objenesis:3.3")
 }
 
