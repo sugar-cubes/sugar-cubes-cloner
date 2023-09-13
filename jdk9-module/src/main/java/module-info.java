@@ -22,8 +22,18 @@
  * @author Maxim Butov
  */
 module io.github.sugarcubes.cloner {
+
+    exports io.github.sugarcubes.cloner;
+
     requires static java.instrument;
     requires static jdk.unsupported;
+
+    requires static io.github.toolfactory.jvm;
+    requires static io.github.toolfactory.narcissus;
+
     requires static org.objenesis;
-    exports io.github.sugarcubes.cloner;
+
+    requires static org.burningwave.core;
+    requires static org.burningwave.jvm;
+    requires static org.burningwave.reflection;
 }

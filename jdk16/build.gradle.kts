@@ -1,5 +1,6 @@
 plugins {
     id("java-conventions")
+    id("optional-dependencies")
     id("checkstyle-conventions")
     id("build-utils")
 }

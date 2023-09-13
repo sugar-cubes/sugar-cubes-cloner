@@ -1,9 +1,6 @@
 plugins {
     id("java-conventions")
-}
-
-dependencies {
-    compileOnly("org.objenesis:objenesis:3.3")
+    id("optional-dependencies")
 }
 
 java {

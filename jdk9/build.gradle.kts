@@ -1,5 +1,6 @@
 plugins {
     id("java-conventions")
+    id("optional-dependencies")
     id("checkstyle-conventions")
     id("build-utils")
     id("me.champeau.jmh") version "0.6.6"

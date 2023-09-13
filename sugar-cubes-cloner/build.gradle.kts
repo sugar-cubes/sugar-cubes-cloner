@@ -14,10 +14,6 @@ val clonerModules = listOf(
     project(":jdk16"),
 )
 
-dependencies {
-    api("org.objenesis:objenesis:3.3")
-}
-
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
