@@ -73,9 +73,18 @@ tasks.withType<Javadoc> {
     opts.links(
         "https://docs.oracle.com/en/java/javase/17/docs/api/",
     )
-    clonerModules.forEach {
-        source(it.sourceSets.main.get().allSource)
+
+    val modulePaths = mutableSetOf<File>()
+    clonerModules.forEach { module ->
+        source(module.sourceSets.main.get().allSource)
+        modulePaths.addAll(module.configurations.compileClasspath.get())
     }
+    modulePaths.removeIf { file ->
+        file.path.startsWith(project.rootDir.path)
+    }
+    opts.modulePath(modulePaths.toCollection(mutableListOf()))
+
+//    opts.addBooleanOption("J--add-exports=java.base/jdk.internal.misc=io.github.sugarcubes.cloner", true)
 
     // exclude placeholder
     exclude("**/_*.*")
