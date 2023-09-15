@@ -20,7 +20,7 @@ package io.github.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
+public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T>, ObjectAllocator<T> {
 
     @Override
     public T copy(T original, CopyContext context) throws Exception {
@@ -42,6 +42,7 @@ public abstract class TwoPhaseObjectCopier<T> implements ObjectCopier<T> {
      * @return clone
      * @throws Exception if something went wrong
      */
+    @Override
     public abstract T allocate(T original) throws Exception;
 
     /**

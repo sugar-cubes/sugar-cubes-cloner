@@ -5,11 +5,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public class Jdk8ReflectionAdapterImpl implements ReflectionAdapter {
+public class ReflectionAdapterImpl implements ReflectionAdapter {
 
     @Override
     public <T> T instantiateClass(Class<T> type) throws Exception {
-        return type.newInstance();
+        Constructor<T> constructor = getConstructor(type);
+        makeAccessible(constructor);
+        return constructor.newInstance();
     }
 
     @Override
