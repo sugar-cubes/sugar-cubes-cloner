@@ -16,10 +16,8 @@
 package io.github.sugarcubes.cloner;
 
 /**
- * Placeholder for package. module-info.java requires non-empty package.
- *
- * @author Maxim Butov
+ * Actual JDK configuration.
  */
-class _The_pencil_thought_it_was_the_sharpest_in_the {
+final class JdkConfigurationImpl extends JdkConfigurationImpl$Jdk8 {
 
 }

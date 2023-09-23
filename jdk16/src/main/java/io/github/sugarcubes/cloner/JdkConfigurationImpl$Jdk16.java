@@ -20,7 +20,7 @@ package io.github.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-class Jdk16ConfigurationImpl extends Jdk15ConfigurationImpl {
+class JdkConfigurationImpl$Jdk16 extends JdkConfigurationImpl$Jdk15 {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})

@@ -11,6 +11,7 @@ val clonerModules = listOf(
     project(":jdk8"),
     project(":jdk9"),
     project(":jdk9-module"),
+    project(":jdk15"),
     project(":jdk16"),
 )
 
@@ -34,6 +35,7 @@ jarTasks.forEach {
             mapOf(
                 "Implementation-Title" to project.name,
                 "Implementation-Version" to project.version,
+                "Multi-Release" to true,
                 "Automatic-Module-Name" to "io.github.sugarcubes.cloner",
                 "Created-By" to
                         System.getProperty("java.version") + " " + System.getProperty("java.specification.vendor"),
@@ -41,7 +43,6 @@ jarTasks.forEach {
         )
 
         clonerModules.forEach {
-            from(it.sourceSets.main.get().output)
             manifest {
                 attributes(it.tasks.jar.get().manifest.attributes)
             }
@@ -52,9 +53,26 @@ jarTasks.forEach {
 
 tasks.named<Jar>("jar") {
 
+    from(project(":jdk8").sourceSets.main.get().output)
+
+    into("META-INF/versions/9") {
+        from(project(":jdk9").sourceSets.main.get().output)
+        from(project(":jdk9-module").sourceSets.main.get().output) {
+            // exclude placeholder
+            exclude("**/$$$.*")
+        }
+    }
+
+    into("META-INF/versions/15") {
+        from(project(":jdk15").sourceSets.main.get().output)
+    }
+
+    into("META-INF/versions/16") {
+        from(project(":jdk16").sourceSets.main.get().output)
+    }
+
     clonerModules.forEach {
         dependsOn(it.tasks.named<Jar>("jar"))
-        from(it.sourceSets.main.get().output)
         manifest {
             attributes(it.tasks.jar.get().manifest.attributes)
         }
@@ -87,7 +105,7 @@ tasks.withType<Javadoc> {
 //    opts.addBooleanOption("J--add-exports=java.base/jdk.internal.misc=io.github.sugarcubes.cloner", true)
 
     // exclude placeholder
-    exclude("**/_*.*")
+    exclude("**/$$$.*")
 
     exclude("**/JdkInternalMiscUnsafeBridge.*")
 }
@@ -97,10 +115,10 @@ tasks.named<Jar>("sourcesJar") {
         from(it.sourceSets.main.get().allSource)
     }
 
-    exclude("**/*.class")
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     // exclude placeholder
-    exclude("**/_*.*")
+    exclude("**/$$$.*")
 }
 
 publishing {

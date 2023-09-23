@@ -3,6 +3,7 @@ rootProject.name = "sugar-cubes-cloner"
 include("jdk8")
 include("jdk9")
 include("jdk9-module")
+include("jdk15")
 include("jdk16")
 include("sugar-cubes-cloner")
 

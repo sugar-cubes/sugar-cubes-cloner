@@ -16,16 +16,8 @@
 package io.github.sugarcubes.cloner;
 
 /**
- * JDK configuration loader and holder.
- *
- * @author Maxim Butov
+ * Actual JDK configuration.
  */
-class JdkConfigurationHolder {
-
-    static final JdkConfiguration CONFIGURATION = new JdkConfigurationImpl();
-
-    static {
-        CONFIGURATION.initialize();
-    }
+final class JdkConfigurationImpl extends JdkConfigurationImpl$Jdk15 {
 
 }

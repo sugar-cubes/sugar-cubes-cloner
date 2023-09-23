@@ -20,6 +20,7 @@ jobs:
           java-version: |
             8
             9
+            15
             16
             17
           distribution: 'adopt'
@@ -31,6 +32,6 @@ jobs:
         with:
           gradle-version: wrapper
           arguments: |
-            -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_9_X64,JAVA_HOME_16_X64,JAVA_HOME_17_X64 
+            -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_9_X64,JAVA_HOME_15_X64,JAVA_HOME_16_X64,JAVA_HOME_17_X64 
             clean 
             build

@@ -27,7 +27,7 @@ import java.util.Spliterators;
  *
  * @author Maxim Butov
  */
-class Jdk8ConfigurationImpl implements JdkConfiguration {
+class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
 
     /**
      * JDK immutable types.
@@ -77,8 +77,7 @@ class Jdk8ConfigurationImpl implements JdkConfiguration {
 
     private UnsafeBridge unsafe;
 
-    @Override
-    public void initialize() {
+    public JdkConfigurationImpl$Jdk8() {
         systemWideSingletons.addAll(Arrays.asList(
             Collections.emptyEnumeration(),
             Collections.emptyIterator(),

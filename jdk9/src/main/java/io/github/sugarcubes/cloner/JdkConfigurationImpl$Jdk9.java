@@ -28,11 +28,9 @@ import java.util.WeakHashMap;
  *
  * @author Maxim Butov
  */
-class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
+class JdkConfigurationImpl$Jdk9 extends JdkConfigurationImpl$Jdk8 {
 
-    @Override
-    public void initialize() {
-        super.initialize();
+    public JdkConfigurationImpl$Jdk9() {
         systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
     }
 
@@ -48,7 +46,7 @@ class Jdk9ConfigurationImpl extends Jdk8ConfigurationImpl {
     }
 
     private final Instrumentation instrumentation = ClonerAgent.getInstrumentation();
-    private final Module clonerModule = Jdk9ConfigurationImpl.class.getModule();
+    private final Module clonerModule = JdkConfigurationImpl$Jdk9.class.getModule();
     private final Set<Class<?>> accessible = Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override

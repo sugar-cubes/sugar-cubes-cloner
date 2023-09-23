@@ -27,7 +27,8 @@ interface JdkConfiguration {
     /**
      * Initializes configuration.
      */
-    void initialize();
+    default void initialize() {
+    }
 
     /**
      * Returns immutable types.
