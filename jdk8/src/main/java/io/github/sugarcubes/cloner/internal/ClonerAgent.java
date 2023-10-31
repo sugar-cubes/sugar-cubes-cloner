@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
 
 import java.lang.instrument.Instrumentation;
 
@@ -22,19 +22,25 @@ import java.lang.instrument.Instrumentation;
  *
  * @author Maxim Butov
  */
-class ClonerAgent {
+public class ClonerAgent {
 
     private static Instrumentation instrumentation;
 
     public static void premain(String agentArgs, Instrumentation instrumentation) {
-        ClonerAgent.instrumentation = instrumentation;
+        initialize(instrumentation);
     }
 
     public static void agentmain(String agentArgs, Instrumentation instrumentation) {
-        ClonerAgent.instrumentation = instrumentation;
+        initialize(instrumentation);
     }
 
-    static Instrumentation getInstrumentation() {
+    private static void initialize(Instrumentation instrumentation) {
+        if (ClonerAgent.instrumentation == null) {
+            ClonerAgent.instrumentation = instrumentation;
+        }
+    }
+
+    public static Instrumentation getInstrumentation() {
         return instrumentation;
     }
 

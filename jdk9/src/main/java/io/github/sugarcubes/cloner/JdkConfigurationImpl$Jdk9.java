@@ -15,13 +15,13 @@
  */
 package io.github.sugarcubes.cloner;
 
-import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
+
+import io.github.sugarcubes.cloner.internal.Environment;
+import io.github.sugarcubes.cloner.internal.UnsafeBridge;
 
 /**
  * Implementation of {@link JdkConfiguration} for JDK 9+.
@@ -36,31 +36,12 @@ class JdkConfigurationImpl$Jdk9 extends JdkConfigurationImpl$Jdk8 {
 
     @Override
     protected UnsafeBridge getUnsafeImpl() {
-        try {
-            return new JdkInternalMiscUnsafeBridge();
-        }
-        catch (Exception e) {
-            // fallback to the classics
-            return super.getUnsafeImpl();
-        }
+        return null;
     }
-
-    private final Instrumentation instrumentation = ClonerAgent.getInstrumentation();
-    private final Module clonerModule = JdkConfigurationImpl$Jdk9.class.getModule();
-    private final Set<Class<?>> accessible = Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override
     public void makeAccessible(Class<?> type) {
-        if (instrumentation != null && accessible.add(type)) {
-            Module module = type.getModule();
-            if (module != clonerModule) {
-                String packageName = type.getPackageName();
-                if (!module.isOpen(packageName, clonerModule)) {
-                    instrumentation.redefineModule(module, Set.of(), Map.of(),
-                        Map.of(packageName, Set.of(clonerModule)), Set.of(), Map.of());
-                }
-            }
-        }
+        Environment.getEnvironment().getOpener().open(type);
     }
 
 }

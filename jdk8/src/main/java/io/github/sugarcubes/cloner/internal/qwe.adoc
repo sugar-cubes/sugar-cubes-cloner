@@ -1,0 +1,10 @@
+
+|===
+||allocate|introspect|access|open
+|#|3|1|2|0
+|reflection|+|+|+|-
+|objenesis|+|-|-|-
+|unsafe|+|-|+|-
+|agent|-|-|-|+
+|narcissus|+|+|+|+
+|===

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
 
 /**
  * Factory for objects of the specific type.
  *
  * @author Maxim Butov
  */
-public interface ObjectFactory<T> {
+public interface InstanceAllocator<T> {
 
     /**
      * Creates an object instance. Instance may be not initialized.

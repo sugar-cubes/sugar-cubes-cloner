@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
+import io.github.sugarcubes.cloner.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.MethodHandlesLookupUtils;
+
 /**
- * Object factory provider using {@link MethodHandle} to invoke constructor.
+ * Instance allocator factory using {@link MethodHandle} to invoke constructor.
  *
  * @author Maxim Butov
  */
-public class MethodHandleObjectFactoryProvider implements ObjectFactoryProvider {
+public class MethodHandleInstanceAllocatorFactory implements InstanceAllocatorFactory {
 
     /**
      * Trusted {@link MethodHandles.Lookup} instance.
@@ -37,7 +40,7 @@ public class MethodHandleObjectFactoryProvider implements ObjectFactoryProvider 
     private static final MethodType VOID_METHOD_TYPE = MethodType.methodType(void.class);
 
     @Override
-    public <T> ObjectFactory<T> getFactory(Class<T> type) {
+    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
         MethodHandle constructor = ClonerExceptionUtils.replaceException(() -> LOOKUP.findConstructor(type, VOID_METHOD_TYPE));
         return () -> (T) ClonerExceptionUtils.replaceException(constructor::invoke);
     }

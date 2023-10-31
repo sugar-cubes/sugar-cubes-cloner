@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
+import sun.misc.Unsafe;
+
 /**
- * Implementation of {@link UnsafeBridge} which calls {@link jdk.internal.misc.Unsafe}.
+ * Implementation of {@link UnsafeBridge} which calls {@link sun.misc.Unsafe}.
  *
  * @author Maxim Butov
  */
-class JdkInternalMiscUnsafeBridge implements UnsafeBridge {
+public class SunMiscUnsafeBridge implements UnsafeBridge {
 
-    private final jdk.internal.misc.Unsafe unsafe = jdk.internal.misc.Unsafe.getUnsafe();
+    /**
+     * The {@link sun.misc.Unsafe} instance.
+     */
+    private final sun.misc.Unsafe unsafe;
 
-    public JdkInternalMiscUnsafeBridge() {
-        // check it works
-        ClonerExceptionUtils.replaceException(() -> allocateInstance(Object.class));
+    public SunMiscUnsafeBridge(Unsafe unsafe) {
+        this.unsafe = unsafe;
+    }
+
+    @Override
+    public Object getUnsafe() {
+        return unsafe;
     }
 
     @Override

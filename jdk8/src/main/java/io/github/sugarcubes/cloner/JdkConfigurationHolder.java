@@ -20,9 +20,9 @@ package io.github.sugarcubes.cloner;
  *
  * @author Maxim Butov
  */
-class JdkConfigurationHolder {
+public class JdkConfigurationHolder {
 
-    static final JdkConfiguration CONFIGURATION = new JdkConfigurationImpl();
+    public static final JdkConfiguration CONFIGURATION = new JdkConfigurationImpl();
 
     static {
         CONFIGURATION.initialize();

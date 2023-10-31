@@ -17,17 +17,21 @@ package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Constructor;
 
+import io.github.sugarcubes.cloner.internal.InstanceAllocator;
+import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
+
 /**
- * Object factory provider which uses no-arg constructor to create object.
+ * Instance allocator factory which uses no-arg constructor to create object.
  *
- * @see ObjenesisObjectFactoryProvider
+ * @see ObjenesisInstanceAllocatorFactory
  *
  * @author Maxim Butov
  */
-public class ReflectionObjectFactoryProvider implements ObjectFactoryProvider {
+public class ReflectionInstanceAllocatorFactory implements InstanceAllocatorFactory {
 
     @Override
-    public <T> ObjectFactory<T> getFactory(Class<T> type) {
+    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
         Constructor<T> constructor;
         try {
             constructor = ReflectionUtils.getConstructor(type);

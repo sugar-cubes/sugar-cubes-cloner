@@ -17,12 +17,14 @@ package io.github.sugarcubes.cloner;
 
 import java.util.Set;
 
+import io.github.sugarcubes.cloner.internal.UnsafeBridge;
+
 /**
  * Interface for obtaining specific classes/objects from JDK implementation.
  *
  * @author Maxim Butov
  */
-interface JdkConfiguration {
+public interface JdkConfiguration {
 
     /**
      * Initializes configuration.

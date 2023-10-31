@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.github.sugarcubes.cloner.internal;
 
 /**
- * Java Reflection Cloner library module. See {@link io.github.sugarcubes.cloner} package description.
- *
- * @see io.github.sugarcubes.cloner
+ * Generic allocator.
  *
  * @author Maxim Butov
  */
-module io.github.sugarcubes.cloner {
+public interface TypeAllocator {
 
-    exports io.github.sugarcubes.cloner;
-
-    requires static java.instrument;
-    requires static jdk.unsupported;
-
-    requires static io.github.toolfactory.narcissus;
-
-    requires static org.objenesis;
+    /**
+     * Creates an object instance.
+     *
+     * @return new object instance
+     * @throws Exception if something went wrong
+     */
+    <T> T allocateInstance(Class<T> type) throws Exception;
 
 }

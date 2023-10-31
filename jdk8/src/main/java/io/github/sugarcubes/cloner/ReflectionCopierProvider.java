@@ -23,12 +23,21 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.internal.Reflection;
+
 /**
  * Copier provider implementation.
  *
  * @author Maxim Butov
  */
 public class ReflectionCopierProvider implements CopierProvider {
+
+    private final Toolset toolset;
+    /**
+     * Reflection API.
+     */
+    private final Reflection reflection;
 
     /**
      * Object policy.
@@ -48,7 +57,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Object allocator.
      */
-    private final ObjectFactoryProvider allocator;
+    private final InstanceAllocatorFactory allocator;
 
     /**
      * Field copier factory.
@@ -73,6 +82,8 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Constructor.
      *
+     * @param toolset reflection tool set
+     * @param reflection Reflection API
      * @param objectPolicy object policy
      * @param typePolicy type policy
      * @param fieldPolicy field policy
@@ -81,9 +92,11 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @param shallows shallow-mode types
      * @param fieldCopierFactory field copier factory
      */
-    public ReflectionCopierProvider(CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
-        CopyPolicy<Field> fieldPolicy, ObjectFactoryProvider allocator, Map<Class<?>, ObjectCopier<?>> copiers,
+    public ReflectionCopierProvider(Toolset toolset, Reflection reflection, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
+        CopyPolicy<Field> fieldPolicy, InstanceAllocatorFactory allocator, Map<Class<?>, ObjectCopier<?>> copiers,
         Set<Class<?>> shallows, FieldCopierFactory fieldCopierFactory) {
+        this.toolset = toolset;
+        this.reflection = reflection;
         this.objectPolicy = objectPolicy;
         this.typePolicy = typePolicy;
         this.fieldPolicy = fieldPolicy;
@@ -182,7 +195,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (NoopCopier.class.equals(copierClass)) {
             return ObjectCopier.NOOP;
         }
-        return ReflectionUtils.newInstance(copierClass);
+        return ClonerExceptionUtils.replaceException(() -> copierClass.getDeclaredConstructor().newInstance());
     }
 
     /**
@@ -197,7 +210,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
             ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType, shallow) : null;
-            copier = new ReflectionCopier<>(fieldPolicy, allocator, type, fieldCopierFactory, parent, shallow);
+            copier = new ReflectionCopier<>(parent, toolset, type, fieldPolicy, shallow);
             reflectionCopiers.put(key, copier);
         }
         return copier;

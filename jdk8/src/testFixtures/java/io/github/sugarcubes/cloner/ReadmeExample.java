@@ -17,6 +17,8 @@ package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Modifier;
 
+import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
+
 class ReadmeExample {
 
     private final SomeObject original = new SomeObject();
@@ -52,7 +54,7 @@ class ReadmeExample {
             // new builder instance
             Cloners.builder()
                 // custom allocator
-                .objectFactoryProvider(new ObjenesisObjectFactoryProvider())
+                .allocator(new ObjenesisInstanceAllocatorFactory())
                 // copy thread locals by reference
                 .typeAction(Predicates.subclass(ThreadLocal.class), CopyAction.ORIGINAL)
                 // do not clone closeables

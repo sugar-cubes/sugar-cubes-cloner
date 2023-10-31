@@ -35,7 +35,7 @@ class ProfilingTest {
     private final Cloner unsafe = Cloners.builder().unsafe().build();
     private final Cloner parallel = Cloners.builder().mode(CloningMode.PARALLEL).build();
     private final Cloner recursive = Cloners.builder().mode(CloningMode.RECURSIVE).build();
-    private final Cloner varhandle = Cloners.builder().fieldCopierFactory(new VarHandleFieldCopierFactory()).build();
+    private final Cloner varhandle = Cloners.builder().fieldCopier(new VarHandleFieldCopierFactory()).build();
 
     private final Kryo kryo = new Kryo();
     private final com.rits.cloning.Cloner kk = new com.rits.cloning.Cloner();
