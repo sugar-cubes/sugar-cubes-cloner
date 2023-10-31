@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
 
 import sun.misc.Unsafe;
 
 /**
- * Object factory provider which uses {@link Unsafe} to create object instance.
+ * Instance allocator factory which uses {@link Unsafe} to create object instance.
  *
  * @author Maxim Butov
  */
-public class UnsafeObjectFactoryProvider implements ObjectFactoryProvider {
+public class UnsafeAllocatorFactory implements InstanceAllocatorFactory {
 
     /**
      * {@link UnsafeBridge} instance.
      */
-    private final UnsafeBridge unsafe = JdkConfigurationHolder.CONFIGURATION.getUnsafe();
+    private final Unsafe unsafe = Environment.getEnvironment().getUnsafe();
 
     @Override
-    public <T> ObjectFactory<T> getFactory(Class<T> type) {
-        return () -> unsafe.allocateInstance(type);
+    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
+        return () -> (T) unsafe.allocateInstance(type);
     }
 
 }

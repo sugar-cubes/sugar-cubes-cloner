@@ -18,7 +18,7 @@ package io.github.sugarcubes.cloner;
 class VarHandleReflectionClonerTest extends AbstractClonerTests {
 
     public VarHandleReflectionClonerTest() {
-        super(Cloners.builder().fieldCopierFactory(new VarHandleFieldCopierFactory()).build());
+        super(Cloners.builder().fieldCopier(new VarHandleFieldCopierFactory()).build());
     }
 
 }

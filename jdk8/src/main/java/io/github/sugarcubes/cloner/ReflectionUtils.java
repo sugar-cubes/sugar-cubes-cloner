@@ -23,12 +23,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+import io.github.sugarcubes.cloner.internal.Environment;
 
 /**
  * Shortcuts for Java Reflection API.
  *
  * @author Maxim Butov
  */
+@Deprecated
 public class ReflectionUtils {
 
     /**
@@ -88,8 +90,7 @@ public class ReflectionUtils {
      * @return same type
      */
     public static <T> Class<T> makeAccessible(Class<T> type) {
-        JdkConfigurationHolder.CONFIGURATION.makeAccessible(type);
-        return type;
+        return Environment.getEnvironment().getOpener().open(type);
     }
 
     /**

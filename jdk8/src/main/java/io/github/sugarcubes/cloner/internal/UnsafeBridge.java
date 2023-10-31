@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
@@ -21,10 +21,13 @@ import java.lang.reflect.Field;
  * Bridge to Java Unsafe implementation.
  *
  * @see SunMiscUnsafeBridge
+ * @see JdkInternalMiscUnsafeBridge
  *
  * @author Maxim Butov
  */
-interface UnsafeBridge {
+public interface UnsafeBridge {
+
+    Object getUnsafe();
 
     int getInt(Object o, long offset);
 

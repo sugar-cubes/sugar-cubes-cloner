@@ -29,6 +29,12 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
+import io.github.sugarcubes.cloner.internal.FieldAdapterFieldCopierFactory;
+import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.internal.UnsafeAllocatorFactory;
+import io.github.sugarcubes.cloner.internal.Reflection;
+
 /**
  * Builder for reflection cloners.
  *
@@ -65,10 +71,14 @@ public final class ReflectionClonerBuilder {
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }
 
+    private Toolset toolset = Toolset.failsafe();
+
+    private Reflection reflection;
+
     /**
-     * Object factory provider.
+     * Instance allocator factory.
      */
-    private ObjectFactoryProvider objectFactoryProvider;
+    private InstanceAllocatorFactory allocator;
 
     /**
      * Field copier factory.
@@ -154,12 +164,22 @@ public final class ReflectionClonerBuilder {
     /**
      * Sets object allocator.
      *
-     * @param objectFactoryProvider object factory provider
+     * @param objectFactoryProvider Instance allocator factory
      * @return same builder instance
      */
-    public ReflectionClonerBuilder objectFactoryProvider(ObjectFactoryProvider objectFactoryProvider) {
-        this.objectFactoryProvider = check(objectFactoryProvider, this.objectFactoryProvider, "Object factory provider");
+    public ReflectionClonerBuilder allocator(InstanceAllocatorFactory objectFactoryProvider) {
+        this.allocator = check(objectFactoryProvider, this.allocator, "Instance allocator factory");
         return this;
+    }
+
+    /**
+     * Sets field adapter factory.
+     *
+     * @param fieldAdapterFactory field adapter factory
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder fieldCopier(FieldAdapterFactory fieldAdapterFactory) {
+        return fieldCopier(new FieldAdapterFieldCopierFactory(fieldAdapterFactory));
     }
 
     /**
@@ -168,7 +188,7 @@ public final class ReflectionClonerBuilder {
      * @param fieldCopierFactory field copier factory
      * @return same builder instance
      */
-    public ReflectionClonerBuilder fieldCopierFactory(FieldCopierFactory fieldCopierFactory) {
+    public ReflectionClonerBuilder fieldCopier(FieldCopierFactory fieldCopierFactory) {
         this.fieldCopierFactory = check(fieldCopierFactory, this.fieldCopierFactory, "Field copier factory");
         return this;
     }
@@ -179,7 +199,7 @@ public final class ReflectionClonerBuilder {
      * @return same builder instance
      */
     public ReflectionClonerBuilder unsafe() {
-        return objectFactoryProvider(new UnsafeObjectFactoryProvider()).fieldCopierFactory(new UnsafeFieldCopierFactory());
+        return allocator(new UnsafeAllocatorFactory()).fieldCopier(new UnsafeFieldCopierFactory());
     }
 
     /**
@@ -350,7 +370,7 @@ public final class ReflectionClonerBuilder {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(field, "Field");
         Checks.argNotNull(action, "Action");
-        return fieldAction(ReflectionUtils.getField(type, field), action);
+        return fieldAction(ClonerExceptionUtils.replaceException(() -> type.getDeclaredField(field)), action);
     }
 
     /**
@@ -512,10 +532,10 @@ public final class ReflectionClonerBuilder {
 
         CopyPolicy<Field> fieldPolicy = compound(this.fieldPolicy, fieldActions, fieldPredicateActions, new AnnotatedFieldCopyPolicy());
 
-        ObjectFactoryProvider objectFactoryProvider = createIfNull(this.objectFactoryProvider, ObjectFactoryProvider::defaultInstance);
+        InstanceAllocatorFactory objectFactoryProvider = createIfNull(this.allocator, InstanceAllocatorFactory::defaultInstance);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider =
-            new ReflectionCopierProvider(objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, shallows, fieldCopierFactory);
+            new ReflectionCopierProvider(toolset, reflection, objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, shallows, fieldCopierFactory);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;

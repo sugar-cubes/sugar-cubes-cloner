@@ -21,13 +21,15 @@ import java.util.concurrent.Callable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ObjenesisObjectFactoryTest {
+import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
+
+public class ObjenesisInstanceAllocatorTest {
 
     public static class TestCase implements Callable {
 
         @Override
         public Object call() throws Exception {
-            return new ObjenesisObjectFactoryProvider();
+            return new ObjenesisInstanceAllocatorFactory();
         }
 
     }
@@ -46,7 +48,7 @@ public class ObjenesisObjectFactoryTest {
 
     @Test
     public void testObjenesis() throws Throwable {
-        new ObjenesisObjectFactoryProvider().getFactory(Integer.class).newInstance();
+        new ObjenesisInstanceAllocatorFactory().newAllocator(Integer.class).newInstance();
     }
 
 }

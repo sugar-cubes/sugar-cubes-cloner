@@ -13,17 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
 
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
+import io.github.sugarcubes.cloner.ClassUtils;
+
 /**
- * Object factory provider which uses Objenesis library to create objects.
+ * Instance allocator factory which uses Objenesis library to create objects.
  *
  * @author Maxim Butov
  */
-public class ObjenesisObjectFactoryProvider implements ObjectFactoryProvider {
+public class ObjenesisInstanceAllocatorFactory implements InstanceAllocatorFactory {
+
+    /**
+     * Availability of Objenesis.
+     *
+     * @return true, if Objenesis library is present in classpath
+     */
+    public static boolean isAvailable() {
+        return ClassUtils.isClassAvailable("org.objenesis.ObjenesisStd");
+    }
 
     /**
      * Objenesis instance.
@@ -33,7 +44,7 @@ public class ObjenesisObjectFactoryProvider implements ObjectFactoryProvider {
     /**
      * Default constructor.
      */
-    public ObjenesisObjectFactoryProvider() {
+    public ObjenesisInstanceAllocatorFactory() {
         this(new ObjenesisStd());
     }
 
@@ -42,12 +53,12 @@ public class ObjenesisObjectFactoryProvider implements ObjectFactoryProvider {
      *
      * @param objenesis {@link Objenesis} instance
      */
-    public ObjenesisObjectFactoryProvider(Objenesis objenesis) {
+    public ObjenesisInstanceAllocatorFactory(Objenesis objenesis) {
         this.objenesis = objenesis;
     }
 
     @Override
-    public <T> ObjectFactory<T> getFactory(Class<T> type) {
+    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
         return objenesis.getInstantiatorOf(type)::newInstance;
     }
 

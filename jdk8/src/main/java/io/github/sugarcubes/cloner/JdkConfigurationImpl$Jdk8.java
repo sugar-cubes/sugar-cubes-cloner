@@ -22,6 +22,10 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.Spliterators;
 
+import io.github.sugarcubes.cloner.internal.Environment;
+import io.github.sugarcubes.cloner.internal.SunMiscUnsafeBridge;
+import io.github.sugarcubes.cloner.internal.UnsafeBridge;
+
 /**
  * Implementation of {@link JdkConfiguration} for JDK 8+.
  *
@@ -122,7 +126,7 @@ class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
     }
 
     protected UnsafeBridge getUnsafeImpl() {
-        return new SunMiscUnsafeBridge();
+        return null;
     }
 
     @Override
