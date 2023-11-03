@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.internal;
+package io.github.sugarcubes.cloner;
 
-/**
- * todo
- */
-public abstract class AbstractModuleOpener extends AbstractTypeOpener {
+import org.jeasy.random.EasyRandom;
+import org.jeasy.random.EasyRandomParameters;
+import org.jeasy.random.ObjenesisObjectFactory;
+import org.junit.jupiter.api.Test;
 
-    private final Module thisModule = AbstractModuleOpener.class.getModule();
+public class RandomObjectTest {
 
-    @Override
-    protected void openImpl(Class<?> type) throws Exception {
-        String packageName = type.getPackageName();
-        Module module = type.getModule();
-        if (!module.isOpen(packageName, thisModule)) {
-            openModule(module, packageName, thisModule);
-        }
+    @Test
+    void testRandomObject() {
+        EasyRandomParameters parameters = new EasyRandomParameters();
+        parameters.setObjectFactory(new ObjenesisObjectFactory());
+        Object random = new EasyRandom(parameters).nextObject(Object[].class);
+        System.out.println("random = " + random);
     }
-
-    protected abstract void openModule(Module module, String packageName, Module thisModule) throws Exception;
 
 }

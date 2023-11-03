@@ -22,8 +22,6 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.Spliterators;
 
-import io.github.sugarcubes.cloner.internal.Environment;
-import io.github.sugarcubes.cloner.internal.SunMiscUnsafeBridge;
 import io.github.sugarcubes.cloner.internal.UnsafeBridge;
 
 /**

@@ -15,6 +15,10 @@ dependencies {
     testImplementation("org.hamcrest:hamcrest:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
 
+    testImplementation("org.jeasy:easy-random:5.0.0")
+    testImplementation("org.jeasy:easy-random-core:5.0.0")
+
+
 }
 
 java {

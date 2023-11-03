@@ -32,8 +32,8 @@ import java.util.function.Supplier;
 import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.internal.FieldAdapterFieldCopierFactory;
 import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.UnsafeAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.Reflection;
+import io.github.sugarcubes.cloner.internal.UnsafeAllocatorFactory;
 
 /**
  * Builder for reflection cloners.
@@ -535,7 +535,8 @@ public final class ReflectionClonerBuilder {
         InstanceAllocatorFactory objectFactoryProvider = createIfNull(this.allocator, InstanceAllocatorFactory::defaultInstance);
         FieldCopierFactory fieldCopierFactory = createIfNull(this.fieldCopierFactory, ReflectionFieldCopierFactory::new);
         ReflectionCopierProvider provider =
-            new ReflectionCopierProvider(toolset, reflection, objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider, copiers, shallows, fieldCopierFactory);
+            new ReflectionCopierProvider(toolset, reflection, objectPolicy, typePolicy, fieldPolicy, objectFactoryProvider,
+                copiers, shallows, fieldCopierFactory);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
