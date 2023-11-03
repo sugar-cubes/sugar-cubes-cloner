@@ -22,8 +22,8 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 import io.github.sugarcubes.cloner.internal.Environment;
+import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 
 /**
  * Shortcuts for Java Reflection API.
