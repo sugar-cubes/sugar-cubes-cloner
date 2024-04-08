@@ -39,7 +39,7 @@ class JdkConfigurationImpl$Jdk9 extends JdkConfigurationImpl$Jdk8 {
         try {
             return new JdkInternalMiscUnsafeBridge();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             // fallback to the classics
             return super.getUnsafeImpl();
         }
