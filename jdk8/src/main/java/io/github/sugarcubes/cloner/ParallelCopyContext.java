@@ -66,13 +66,6 @@ public class ParallelCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
-        synchronized (original) {
-            return super.doClone(original, copier);
-        }
-    }
-
-    @Override
     public void complete() throws Throwable {
         Queue<Future<?>> futures = this.futures;
         for (Future<?> future; (future = futures.poll()) != null; ) {
