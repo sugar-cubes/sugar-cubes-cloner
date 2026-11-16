@@ -18,55 +18,78 @@ package io.github.sugarcubes.cloner;
 import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.internal.FieldAdapterFieldCopierFactory;
 import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.Reflection;
-import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
-import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.UnsafeBridge;
 
 /**
- * todo
+ * Set of low-level tools used by the reflection cloner: reflection, instance allocator and field copier.
+ *
+ * @author Maxim Butov
+ * @see ToolsetBuilder
  */
 public class Toolset {
 
+    /**
+     * Creates toolset which works on any JVM without additional permissions.
+     *
+     * @return failsafe toolset
+     */
     public static Toolset failsafe() {
-        ReflectionImpl$Jdk8 reflection = new ReflectionImpl$Jdk8();
-
-        InstanceAllocatorFactory allocatorFactory = ObjenesisInstanceAllocatorFactory.isAvailable()
-            ? new ObjenesisInstanceAllocatorFactory()
-            : new ReflectionInstanceAllocatorFactory(reflection);
-
-        return new Toolset(reflection, allocatorFactory, new ReflectionFieldCopierFactory());
+        return new ToolsetBuilder().build();
     }
 
     private final Reflection reflection;
     private final InstanceAllocatorFactory allocatorFactory;
     private final FieldCopierFactory fieldCopierFactory;
 
+    /**
+     * Constructor.
+     *
+     * @param reflection reflection
+     * @param allocatorFactory instance allocator factory
+     * @param fieldCopierFactory field copier factory
+     */
     public Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldCopierFactory fieldCopierFactory) {
         this.reflection = reflection;
         this.allocatorFactory = allocatorFactory;
         this.fieldCopierFactory = fieldCopierFactory;
     }
 
+    /**
+     * Constructor with field copier factory which uses field adapters.
+     *
+     * @param reflection reflection
+     * @param allocatorFactory instance allocator factory
+     * @param fieldAdapterFactory field adapter factory
+     */
     public Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldAdapterFactory fieldAdapterFactory) {
         this(reflection, allocatorFactory, new FieldAdapterFieldCopierFactory(fieldAdapterFactory));
     }
 
+    /**
+     * Returns reflection.
+     *
+     * @return reflection
+     */
     public Reflection getReflection() {
         return reflection;
     }
 
+    /**
+     * Returns instance allocator factory.
+     *
+     * @return instance allocator factory
+     */
     public InstanceAllocatorFactory getAllocatorFactory() {
         return allocatorFactory;
     }
 
+    /**
+     * Returns field copier factory.
+     *
+     * @return field copier factory
+     */
     public FieldCopierFactory getFieldCopierFactory() {
         return fieldCopierFactory;
-    }
-
-    public UnsafeBridge getUnsafe() {
-        return null;
     }
 
 }

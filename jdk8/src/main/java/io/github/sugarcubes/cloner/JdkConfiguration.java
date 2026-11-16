@@ -17,8 +17,6 @@ package io.github.sugarcubes.cloner;
 
 import java.util.Set;
 
-import io.github.sugarcubes.cloner.internal.UnsafeBridge;
-
 /**
  * Interface for obtaining specific classes/objects from JDK implementation.
  *
@@ -60,13 +58,6 @@ public interface JdkConfiguration {
      * @return custom copier
      */
     ObjectCopier<?> getCopier(Class<?> type);
-
-    /**
-     * Returns Unsafe adapter.
-     *
-     * @return Unsafe adapter
-     */
-    UnsafeBridge getUnsafe();
 
     /**
      * Tries to make class accessible from cloner.
