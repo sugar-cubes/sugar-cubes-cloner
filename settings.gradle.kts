@@ -1,3 +1,8 @@
+plugins {
+    // downloads JDK toolchains (8, 9, 15, 16, 17) which are not installed locally
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}
+
 rootProject.name = "sugar-cubes-cloner"
 
 include("jdk8")
