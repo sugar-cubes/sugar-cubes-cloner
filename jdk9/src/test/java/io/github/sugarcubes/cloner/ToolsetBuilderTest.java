@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner;
 
 import java.util.Date;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -47,20 +48,18 @@ class ToolsetBuilderTest {
     }
 
     @Test
-    void severalAllocatorsFallBackToWorkingOne() throws Exception {
-        InstanceAllocatorFactory failing = new InstanceAllocatorFactory() {
+    void severalAllocatorsUseFirstSupportingOne() throws Exception {
+        InstanceAllocatorFactory unsupporting = new InstanceAllocatorFactory() {
             @Override
-            public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
-                return () -> {
-                    throw new InstantiationException(type.getName());
-                };
+            public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+                return Optional.empty();
             }
         };
 
-        Toolset toolset = new ToolsetBuilder().allocators(failing, new ObjenesisInstanceAllocatorFactory()).build();
+        Toolset toolset = new ToolsetBuilder().allocators(unsupporting, new ObjenesisInstanceAllocatorFactory()).build();
 
         Assertions.assertInstanceOf(CompoundInstanceAllocatorFactory.class, toolset.getAllocatorFactory());
-        Assertions.assertInstanceOf(Date.class, toolset.getAllocatorFactory().newAllocator(Date.class).newInstance());
+        Assertions.assertInstanceOf(Date.class, toolset.getAllocatorFactory().newAllocator(Date.class).get().newInstance());
     }
 
     @Test

@@ -30,7 +30,7 @@ import io.github.sugarcubes.cloner.internal.InstanceAllocator;
 public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
 
     /**
-     * Object allocator of the type.
+     * Object allocator of the type, throws {@link ClonerException} if no allocator supports the type.
      */
     private final InstanceAllocator<T> allocator;
 
@@ -55,7 +55,10 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
      */
     @SuppressWarnings("unchecked")
     public ReflectionCopier(ReflectionCopier<?> parent, Toolset toolset, Class<T> type, CopyPolicy<Field> policy, boolean shallow) {
-        this.allocator = toolset.getAllocatorFactory().newAllocator(type);
+        // abstract superclasses and classes without suitable allocator fail only if somebody tries to create them
+        this.allocator = toolset.getAllocatorFactory().newAllocator(type).orElseGet(() -> () -> {
+            throw new ClonerException(String.format("No instance allocator supports %s.", type.getName()));
+        });
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?
             parent.parent : parent);
         CopyPolicy<Field> fieldPolicy = shallow

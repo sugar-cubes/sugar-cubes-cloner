@@ -18,12 +18,15 @@ package io.github.sugarcubes.cloner.internal;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Optional;
 
+import io.github.sugarcubes.cloner.ClassUtils;
 import io.github.sugarcubes.cloner.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.MethodHandlesLookupUtils;
 
 /**
- * Instance allocator factory using {@link MethodHandle} to invoke constructor.
+ * Instance allocator factory using {@link MethodHandle} to invoke constructor without parameters.
+ * Supports only types which declare such constructor.
  *
  * @author Maxim Butov
  */
@@ -40,9 +43,12 @@ public class MethodHandleInstanceAllocatorFactory implements InstanceAllocatorFa
     private static final MethodType VOID_METHOD_TYPE = MethodType.methodType(void.class);
 
     @Override
-    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
+    public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+        if (!ClassUtils.isInstantiable(type) || !ClassUtils.hasNoArgConstructor(type)) {
+            return Optional.empty();
+        }
         MethodHandle constructor = ClonerExceptionUtils.replaceException(() -> LOOKUP.findConstructor(type, VOID_METHOD_TYPE));
-        return () -> (T) ClonerExceptionUtils.replaceException(constructor::invoke);
+        return Optional.of(() -> (T) ClonerExceptionUtils.replaceException(constructor::invoke));
     }
 
 }

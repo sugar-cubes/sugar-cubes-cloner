@@ -15,6 +15,9 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
+import java.util.Optional;
+
+import io.github.sugarcubes.cloner.ClassUtils;
 import sun.misc.Unsafe;
 
 /**
@@ -29,13 +32,21 @@ public class UnsafeAllocatorFactory implements InstanceAllocatorFactory {
      */
     private final UnsafeBridge unsafe;
 
+    /**
+     * Constructor.
+     *
+     * @param unsafe {@link UnsafeBridge} instance
+     */
     public UnsafeAllocatorFactory(UnsafeBridge unsafe) {
         this.unsafe = unsafe;
     }
 
     @Override
-    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
-        return () -> (T) unsafe.allocateInstance(type);
+    public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+        if (!ClassUtils.isInstantiable(type)) {
+            return Optional.empty();
+        }
+        return Optional.of(() -> unsafe.allocateInstance(type));
     }
 
 }

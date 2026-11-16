@@ -17,65 +17,50 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import io.github.sugarcubes.cloner.Checks;
-import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.ConcurrentLazyCache;
 
+/**
+ * Instance allocator factory which uses for every type the first factory supporting it.
+ *
+ * @author Maxim Butov
+ */
 public class CompoundInstanceAllocatorFactory implements InstanceAllocatorFactory {
 
-    private final List<InstanceAllocatorFactory> allocators;
-    private final ConcurrentLazyCache<Class<?>, InstanceAllocator<?>> cache = new ConcurrentLazyCache<>(this::newAllocatorUntyped);
+    private final List<InstanceAllocatorFactory> factories;
 
-    public CompoundInstanceAllocatorFactory(List<InstanceAllocatorFactory> allocators) {
-        Checks.illegalArg(allocators.isEmpty(), "Must be at least one allocator.");
-        this.allocators = new ArrayList<>(allocators);
+    private final ConcurrentLazyCache<Class<?>, Optional<?>> cache = new ConcurrentLazyCache<>(this::findAllocator);
+
+    /**
+     * Constructor.
+     *
+     * @param factories instance allocator factories in order of preference
+     */
+    public CompoundInstanceAllocatorFactory(List<InstanceAllocatorFactory> factories) {
+        Checks.illegalArg(factories.isEmpty(), "Must be at least one allocator.");
+        this.factories = new ArrayList<>(factories);
     }
 
-    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
-        return (InstanceAllocator<T>) cache.get(type);
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+        return (Optional<InstanceAllocator<T>>) cache.get(type);
     }
 
-    private InstanceAllocator<?> newAllocatorUntyped(Class<?> type) {
-        return newAllocatorTyped(type);
+    private Optional<?> findAllocator(Class<?> type) {
+        return findTypedAllocator(type);
     }
 
-    private <T> InstanceAllocator<T> newAllocatorTyped(Class<T> type) {
-        return new InstanceAllocator<T>() {
-
-            private volatile InstanceAllocator<T> working;
-
-            @Override
-            public T newInstance() throws Exception {
-                if (working != null) {
-                    return working.newInstance();
-                }
-
-                synchronized (this) {
-
-                    if (working != null) {
-                        return working.newInstance();
-                    }
-
-                    List<Exception> errors = new ArrayList<>();
-                    for (InstanceAllocatorFactory allocator : allocators) {
-                        InstanceAllocator<T> ia = allocator.newAllocator(type);
-                        try {
-                            T instance = ia.newInstance();
-                            working = ia;
-                            return instance;
-                        }
-                        catch (Exception e) {
-                            errors.add(e);
-                        }
-                    }
-                    ClonerException error = new ClonerException(String.format("Cannot instantiate %s.", type.getName()));
-                    errors.forEach(error::addSuppressed);
-                    throw error;
-                }
-
+    private <T> Optional<InstanceAllocator<T>> findTypedAllocator(Class<T> type) {
+        for (InstanceAllocatorFactory factory : factories) {
+            Optional<InstanceAllocator<T>> allocator = factory.newAllocator(type);
+            if (allocator.isPresent()) {
+                return allocator;
             }
-        };
+        }
+        return Optional.empty();
     }
 
 }
