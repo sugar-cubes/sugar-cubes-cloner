@@ -22,8 +22,6 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.Spliterators;
 
-import io.github.sugarcubes.cloner.internal.UnsafeBridge;
-
 /**
  * Implementation of {@link JdkConfiguration} for JDK 8+.
  *
@@ -77,8 +75,6 @@ class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
      */
     protected final Set<Object> systemWideSingletons = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private UnsafeBridge unsafe;
-
     public JdkConfigurationImpl$Jdk8() {
         systemWideSingletons.addAll(Arrays.asList(
             Collections.emptyEnumeration(),
@@ -115,15 +111,6 @@ class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
 
     @Override
     public ObjectCopier<?> getCopier(Class<?> type) {
-        return null;
-    }
-
-    @Override
-    public UnsafeBridge getUnsafe() {
-        return unsafe != null ? unsafe : (unsafe = getUnsafeImpl());
-    }
-
-    protected UnsafeBridge getUnsafeImpl() {
         return null;
     }
 

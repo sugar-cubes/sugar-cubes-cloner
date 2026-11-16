@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.sugarcubes.cloner.internal.UnsafeBridge;
-
 /**
  * Implementation of {@link JdkConfiguration} for JDK 9+.
  *
@@ -31,11 +29,6 @@ class JdkConfigurationImpl$Jdk9 extends JdkConfigurationImpl$Jdk8 {
 
     public JdkConfigurationImpl$Jdk9() {
         systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
-    }
-
-    @Override
-    protected UnsafeBridge getUnsafeImpl() {
-        return null;
     }
 
     @Override
