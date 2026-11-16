@@ -51,6 +51,24 @@ class RecordComponentsTest {
     record Node(String name, List<Object> items) {
     }
 
+    record CopyingNode(List<Object> items) {
+
+        CopyingNode {
+            items = new ArrayList<>(items);
+        }
+
+    }
+
+    record ValidatedNode(List<Object> items) {
+
+        ValidatedNode {
+            if (items.isEmpty()) {
+                throw new IllegalArgumentException("items must not be empty");
+            }
+        }
+
+    }
+
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     @ParameterizedTest
@@ -75,13 +93,43 @@ class RecordComponentsTest {
 
     @ParameterizedTest
     @EnumSource(CloningMode.class)
-    void recordInReferenceCycleIsReported(CloningMode mode) {
+    void recordInReferenceCycle(CloningMode mode) {
         Node original = new Node("a", new ArrayList<>());
+        original.items().add("first");
+        original.items().add(original);
+
+        Node clone = cloner(mode).clone(original);
+
+        Assertions.assertNotSame(original, clone);
+        Assertions.assertNotSame(original.items(), clone.items());
+        Assertions.assertEquals(2, clone.items().size());
+        Assertions.assertEquals("first", clone.items().get(0));
+        Assertions.assertSame(clone, clone.items().get(1));
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
+    void recordInReferenceCycleWithDefensiveCopyIsReported(CloningMode mode) {
+        List<Object> items = new ArrayList<>();
+        CopyingNode original = new CopyingNode(items);
+        // the record keeps its own copy, so the cycle goes through it
         original.items().add(original);
 
         ClonerException error = Assertions.assertThrows(ClonerException.class, () -> cloner(mode).clone(original));
 
-        Assertions.assertTrue(error.getMessage().contains("reference cycle"), error.getMessage());
+        Assertions.assertTrue(error.getMessage().contains("replaces the component 'items'"), error.getMessage());
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
+    void recordInReferenceCycleWithValidationIsReported(CloningMode mode) {
+        ValidatedNode original = new ValidatedNode(new ArrayList<>(List.of("first")));
+        original.items().add(original);
+
+        ClonerException error = Assertions.assertThrows(ClonerException.class, () -> cloner(mode).clone(original));
+
+        Assertions.assertTrue(error.getMessage().contains("constructor fails"), error.getMessage());
+        Assertions.assertInstanceOf(IllegalArgumentException.class, error.getCause());
     }
 
     @Test
@@ -98,8 +146,23 @@ class RecordComponentsTest {
     }
 
     @Test
-    void sharedRecordCycleInParallelBranchesDoesNotHang() {
+    void sharedRecordCycleInParallelBranches() {
         Node shared = new Node("a", new ArrayList<>());
+        shared.items().add(shared);
+        List<List<Object>> original = branches(shared);
+
+        List<List<Object>> clone = Assertions.assertTimeoutPreemptively(TIMEOUT,
+            () -> cloner(CloningMode.PARALLEL).clone(original));
+
+        Node sharedClone = (Node) clone.get(0).get(0);
+        Assertions.assertNotSame(shared, sharedClone);
+        Assertions.assertSame(sharedClone, sharedClone.items().get(0));
+        clone.forEach(branch -> Assertions.assertSame(sharedClone, branch.get(0)));
+    }
+
+    @Test
+    void sharedRecordCycleWithDefensiveCopyInParallelBranchesDoesNotHang() {
+        CopyingNode shared = new CopyingNode(new ArrayList<>());
         shared.items().add(shared);
         List<List<Object>> original = branches(shared);
 

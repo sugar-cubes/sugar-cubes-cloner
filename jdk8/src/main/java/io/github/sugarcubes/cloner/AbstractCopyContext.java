@@ -163,10 +163,17 @@ public abstract class AbstractCopyContext implements CopyContext {
         CloneSlot slot = clones.get(new IdentityReference<>(original));
         while (!slot.isCompleted()) {
             if (!runSecondPhase(slot) && !await(slot, original, CloneSlot::isCompleted)) {
-                throw cycle(original);
+                // waits for an object being created by the current thread
+                return clone;
             }
         }
         return clone;
+    }
+
+    @Override
+    public boolean isComplete(Object original) {
+        CloneSlot slot = original != null ? clones.get(new IdentityReference<>(original)) : null;
+        return slot == null || slot.isCompleted();
     }
 
     /**
@@ -393,6 +400,11 @@ public abstract class AbstractCopyContext implements CopyContext {
         @Override
         public <T> T copyComplete(T original) throws Exception {
             return AbstractCopyContext.this.copyComplete(original);
+        }
+
+        @Override
+        public boolean isComplete(Object original) {
+            return AbstractCopyContext.this.isComplete(original);
         }
 
         @Override

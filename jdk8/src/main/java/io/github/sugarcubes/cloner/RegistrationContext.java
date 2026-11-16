@@ -86,6 +86,11 @@ public final class RegistrationContext implements CopyContext {
     }
 
     @Override
+    public boolean isComplete(Object original) {
+        return context.isComplete(original);
+    }
+
+    @Override
     public void thenInvoke(Callable<?> task) throws Exception {
         context.thenInvoke(task);
     }

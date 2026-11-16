@@ -78,8 +78,9 @@ public interface CopyContext {
     /**
      * Returns the copy of the object with its own state already copied (for a two-phase copier the second phase is
      * done, its referenced objects may still be incomplete). Needed by copiers which create the clone from copied
-     * values, e.g. canonical constructors of records. If the object is part of a reference cycle with the caller's
-     * object, the clone cannot be completed before the caller's clone exists, and {@link ClonerException} is thrown.
+     * values, e.g. canonical constructors of records. If the object is part of a reference cycle with an object being
+     * created by the current thread, its clone cannot be completed before that object's clone exists: then the clone
+     * is returned incomplete, see {@link #isComplete(Object)}.
      *
      * @param <T> object type
      * @param original original
@@ -87,6 +88,16 @@ public interface CopyContext {
      * @throws Exception if something went wrong
      */
     <T> T copyComplete(T original) throws Exception;
+
+    /**
+     * Tells whether the clone of the object has its own state copied. A copier which has got an incomplete clone from
+     * {@link #copyComplete(Object)} must keep exactly this clone in its own clone: it will be completed after the
+     * own clone is registered.
+     *
+     * @param original original
+     * @return {@code true} if the clone is complete or the object needs no copying
+     */
+    boolean isComplete(Object original);
 
     /**
      * Invokes task. It can be invoked immediately or later depending on the context implementation.
