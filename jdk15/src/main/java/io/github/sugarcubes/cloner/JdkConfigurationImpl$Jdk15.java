@@ -34,4 +34,16 @@ class JdkConfigurationImpl$Jdk15 extends JdkConfigurationImpl$Jdk9 {
         systemWideSingletons.addAll(Arrays.asList(archivedObjects));
     }
 
+    /**
+     * Since JDK 15 lambda classes are hidden classes. Other hidden classes cannot be cloned field by field either:
+     * they are not accessible by name and their final fields are not writable.
+     *
+     * @param type type
+     * @return {@code true} if the type is a hidden class
+     */
+    @Override
+    protected boolean isHiddenOrLambda(Class<?> type) {
+        return type.isHidden();
+    }
+
 }
