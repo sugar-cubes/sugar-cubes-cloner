@@ -15,27 +15,24 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
+import java.util.Optional;
+
 /**
  * Instance allocator factory interface.
  *
  * @author Maxim Butov
  */
-public interface InstanceAllocatorFactory extends TypeAllocator {
+@FunctionalInterface
+public interface InstanceAllocatorFactory {
 
     /**
-     * Creates an object factory for the type.
+     * Prepares an allocator for the type. Whether the factory supports the type is decided here, so the allocator
+     * fails only because of the environment or the object itself.
      *
      * @param <T> object type
      * @param type type
-     * @return object factory
+     * @return allocator, or empty if the factory cannot create instances of the type
      */
-    default <T> InstanceAllocator<T> newAllocator(Class<T> type) {
-        return () -> allocateInstance(type);
-    }
+    <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type);
 
-    @Override
-    default <T> T allocateInstance(Class<T> type) throws Exception {
-        return newAllocator(type).newInstance();
-    }
-    
 }

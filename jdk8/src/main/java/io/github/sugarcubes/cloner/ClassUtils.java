@@ -15,6 +15,9 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+
 import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 
 /**
@@ -56,6 +59,27 @@ public class ClassUtils {
         catch (NoSuchMethodException e) {
             return false;
         }
+    }
+
+    /**
+     * Checks whether the type may have own instances, i.e. it is not an interface, an abstract class, an array or
+     * a primitive.
+     *
+     * @param type class
+     * @return {@code true} if the type may have own instances
+     */
+    public static boolean isInstantiable(Class<?> type) {
+        return !type.isArray() && !type.isPrimitive() && !Modifier.isAbstract(type.getModifiers());
+    }
+
+    /**
+     * Checks whether the class declares a constructor without parameters.
+     *
+     * @param type class
+     * @return {@code true} if there is a constructor without parameters
+     */
+    public static boolean hasNoArgConstructor(Class<?> type) {
+        return Arrays.stream(type.getDeclaredConstructors()).anyMatch(constructor -> constructor.getParameterCount() == 0);
     }
 
     /**

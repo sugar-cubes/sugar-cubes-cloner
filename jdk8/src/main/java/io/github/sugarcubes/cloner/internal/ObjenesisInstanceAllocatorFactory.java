@@ -15,6 +15,8 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
+import java.util.Optional;
+
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
@@ -58,8 +60,11 @@ public class ObjenesisInstanceAllocatorFactory implements InstanceAllocatorFacto
     }
 
     @Override
-    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
-        return objenesis.getInstantiatorOf(type)::newInstance;
+    public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+        if (!ClassUtils.isInstantiable(type)) {
+            return Optional.empty();
+        }
+        return Optional.of(objenesis.getInstantiatorOf(type)::newInstance);
     }
 
 }

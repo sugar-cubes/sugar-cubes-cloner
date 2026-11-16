@@ -48,7 +48,7 @@ public class ObjenesisInstanceAllocatorTest {
 
     @Test
     public void testObjenesis() throws Throwable {
-        new ObjenesisInstanceAllocatorFactory().newAllocator(Integer.class).newInstance();
+        new ObjenesisInstanceAllocatorFactory().newAllocator(Integer.class).get().newInstance();
     }
 
 }

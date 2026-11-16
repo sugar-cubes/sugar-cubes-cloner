@@ -15,17 +15,35 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
+import java.util.Optional;
+
+import io.github.sugarcubes.cloner.ClassUtils;
+
+/**
+ * Instance allocator factory which calls the constructor without parameters via reflection.
+ * Supports only types which declare such constructor.
+ *
+ * @author Maxim Butov
+ */
 public class ReflectionInstanceAllocatorFactory implements InstanceAllocatorFactory {
 
     private final Reflection reflection;
 
+    /**
+     * Constructor.
+     *
+     * @param reflection reflection to access constructors
+     */
     public ReflectionInstanceAllocatorFactory(Reflection reflection) {
         this.reflection = reflection;
     }
 
     @Override
-    public <T> InstanceAllocator<T> newAllocator(Class<T> type) {
-        return reflection.makeAccessible(reflection.getDeclaredConstructor(type))::newInstance;
+    public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+        if (!ClassUtils.isInstantiable(type) || !ClassUtils.hasNoArgConstructor(type)) {
+            return Optional.empty();
+        }
+        return Optional.of(reflection.makeAccessible(reflection.getDeclaredConstructor(type))::newInstance);
     }
 
 }
