@@ -30,19 +30,21 @@ import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
 class ToolsetBuilderTest {
 
     @Test
-    void defaultsAreFailsafe() {
+    void defaultsAreFailsafe() throws Exception {
         Toolset toolset = new ToolsetBuilder().build();
 
         Assertions.assertInstanceOf(ReflectionImpl$Jdk8.class, toolset.getReflection());
-        Assertions.assertInstanceOf(ObjenesisInstanceAllocatorFactory.class, toolset.getAllocatorFactory());
         Assertions.assertInstanceOf(ReflectionFieldCopierFactory.class, toolset.getFieldCopierFactory());
+        // Objenesis first, constructor is only a fallback: Date() would set the current time
+        Assertions.assertTrue(toolset.getAllocatorFactory().invokesConstructor());
+        Assertions.assertEquals(0, toolset.getAllocatorFactory().newAllocator(Date.class).get().newInstance().getTime());
     }
 
     @Test
     void singleAllocatorIsUsedAsIs() {
         InstanceAllocatorFactory allocator = new ObjenesisInstanceAllocatorFactory();
 
-        Toolset toolset = new ToolsetBuilder().allocator(allocator).build();
+        Toolset toolset = new ToolsetBuilder().allocator(allocator).noConstructorFallback().build();
 
         Assertions.assertSame(allocator, toolset.getAllocatorFactory());
     }
@@ -56,7 +58,10 @@ class ToolsetBuilderTest {
             }
         };
 
-        Toolset toolset = new ToolsetBuilder().allocators(unsupporting, new ObjenesisInstanceAllocatorFactory()).build();
+        Toolset toolset = new ToolsetBuilder()
+            .allocators(unsupporting, new ObjenesisInstanceAllocatorFactory())
+            .noConstructorFallback()
+            .build();
 
         Assertions.assertInstanceOf(CompoundInstanceAllocatorFactory.class, toolset.getAllocatorFactory());
         Assertions.assertInstanceOf(Date.class, toolset.getAllocatorFactory().newAllocator(Date.class).get().newInstance());

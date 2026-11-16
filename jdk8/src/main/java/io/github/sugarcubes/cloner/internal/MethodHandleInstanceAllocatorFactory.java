@@ -51,4 +51,9 @@ public class MethodHandleInstanceAllocatorFactory implements InstanceAllocatorFa
         return Optional.of(() -> (T) ClonerExceptionUtils.replaceException(constructor::invoke));
     }
 
+    @Override
+    public boolean invokesConstructor() {
+        return true;
+    }
+
 }

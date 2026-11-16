@@ -49,6 +49,11 @@ public class CompoundInstanceAllocatorFactory implements InstanceAllocatorFactor
         return (Optional<InstanceAllocator<T>>) cache.get(type);
     }
 
+    @Override
+    public boolean invokesConstructor() {
+        return factories.stream().anyMatch(InstanceAllocatorFactory::invokesConstructor);
+    }
+
     private Optional<?> findAllocator(Class<?> type) {
         return findTypedAllocator(type);
     }
