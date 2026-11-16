@@ -35,4 +35,14 @@ public interface InstanceAllocatorFactory {
      */
     <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type);
 
+    /**
+     * Tells whether allocators of this factory call a constructor of the type. Constructors may have side effects
+     * which a clone should not repeat.
+     *
+     * @return {@code true} if allocators call constructors, {@code false} if they only allocate objects
+     */
+    default boolean invokesConstructor() {
+        return false;
+    }
+
 }

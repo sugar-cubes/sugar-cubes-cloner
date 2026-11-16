@@ -46,4 +46,9 @@ public class ReflectionInstanceAllocatorFactory implements InstanceAllocatorFact
         return Optional.of(reflection.makeAccessible(reflection.getDeclaredConstructor(type))::newInstance);
     }
 
+    @Override
+    public boolean invokesConstructor() {
+        return true;
+    }
+
 }

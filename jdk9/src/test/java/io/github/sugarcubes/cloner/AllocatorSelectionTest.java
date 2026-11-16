@@ -15,9 +15,15 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.github.sugarcubes.cloner.internal.InstanceAllocator;
+import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.internal.MethodHandleInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl;
 import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
@@ -43,21 +49,70 @@ class AllocatorSelectionTest {
 
     }
 
+    static class Counted {
+
+        static final AtomicInteger CONSTRUCTED = new AtomicInteger();
+
+        int value;
+
+        Counted() {
+            CONSTRUCTED.incrementAndGet();
+        }
+
+    }
+
+    private static final InstanceAllocatorFactory NOTHING_SUPPORTED = new InstanceAllocatorFactory() {
+        @Override
+        public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+            return Optional.empty();
+        }
+    };
+
     private final ReflectionInstanceAllocatorFactory constructorAllocator =
         new ReflectionInstanceAllocatorFactory(new ReflectionImpl(TypeOpener.NOOP));
 
     @Test
-    void compoundSkipsAllocatorWhichDoesNotSupportType() {
-        Cloner cloner = cloner(new ToolsetBuilder().allocators(constructorAllocator, new ObjenesisInstanceAllocatorFactory()));
+    void allocatorDoesNotCallConstructor() {
+        Cloner cloner = cloner(new ToolsetBuilder().allocator(new ObjenesisInstanceAllocatorFactory()));
+        Counted original = new Counted();
+        original.value = 7;
+        int constructed = Counted.CONSTRUCTED.get();
 
-        NoDefaultConstructor clone = cloner.clone(new NoDefaultConstructor(7));
+        Counted clone = cloner.clone(original);
 
         Assertions.assertEquals(7, clone.value);
+        Assertions.assertEquals(constructed, Counted.CONSTRUCTED.get());
+    }
+
+    @Test
+    void constructorFallbackIsUsedForTypesNotSupportedByAllocators() {
+        Cloner cloner = cloner(new ToolsetBuilder().allocator(NOTHING_SUPPORTED).constructorFallback(constructorAllocator));
+        int constructed = Counted.CONSTRUCTED.get();
+
+        cloner.clone(new Counted());
+
+        Assertions.assertEquals(constructed + 2, Counted.CONSTRUCTED.get());
+    }
+
+    @Test
+    void allocatorsMustNotCallConstructors() {
+        ToolsetBuilder builder = new ToolsetBuilder();
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> builder.allocator(constructorAllocator));
+        Assertions.assertThrows(IllegalArgumentException.class,
+            () -> builder.allocators(new ObjenesisInstanceAllocatorFactory(), new MethodHandleInstanceAllocatorFactory()));
+    }
+
+    @Test
+    void noAllocatorsAndNoFallbackIsMisconfiguration() {
+        ToolsetBuilder builder = new ToolsetBuilder().allocators().noConstructorFallback();
+
+        Assertions.assertThrows(IllegalStateException.class, builder::build);
     }
 
     @Test
     void superclassWithoutDefaultConstructorDoesNotNeedAllocator() {
-        Cloner cloner = cloner(new ToolsetBuilder().allocator(constructorAllocator));
+        Cloner cloner = cloner(new ToolsetBuilder().allocators().constructorFallback(constructorAllocator));
 
         Child clone = cloner.clone(new Child());
 
@@ -66,7 +121,7 @@ class AllocatorSelectionTest {
 
     @Test
     void unsupportedTypeFailsOnCloning() {
-        Cloner cloner = cloner(new ToolsetBuilder().allocator(constructorAllocator));
+        Cloner cloner = cloner(new ToolsetBuilder().allocators().constructorFallback(constructorAllocator));
 
         ClonerException error =
             Assertions.assertThrows(ClonerException.class, () -> cloner.clone(new NoDefaultConstructor(7)));

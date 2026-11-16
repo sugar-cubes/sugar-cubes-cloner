@@ -15,8 +15,8 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
@@ -30,14 +30,21 @@ import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
 
 /**
  * Builder for {@link Toolset}. Tools which are not set get failsafe defaults: plain reflection, Objenesis (if
- * available) or constructor allocator, reflection field copier.
+ * available) as instance allocator, constructor without parameters as fallback, reflection field copier.
+ *
+ * <p>Instance allocators create objects without calling constructors, as {@link Object#clone()} does. Constructors
+ * may have side effects (registration, counters, validation) which a clone should not repeat, so allocators calling
+ * constructors are accepted only as an explicit {@link #constructorFallback(InstanceAllocatorFactory) fallback}
+ * for types which no allocator supports.</p>
  *
  * @author Maxim Butov
  */
 public class ToolsetBuilder {
 
     private Reflection reflection;
-    private List<InstanceAllocatorFactory> allocators = Collections.emptyList();
+    private List<InstanceAllocatorFactory> allocators;
+    private InstanceAllocatorFactory constructorFallback;
+    private boolean constructorFallbackDisabled;
     private FieldCopierFactory fieldCopier;
 
     /**
@@ -52,24 +59,52 @@ public class ToolsetBuilder {
     }
 
     /**
-     * Sets instance allocator factory.
+     * Sets instance allocator factory, which must not call constructors.
      *
      * @param allocator instance allocator factory
      * @return same builder instance
      */
     public ToolsetBuilder allocator(InstanceAllocatorFactory allocator) {
-        this.allocators = Collections.singletonList(allocator);
+        return allocators(allocator);
+    }
+
+    /**
+     * Sets instance allocator factories, which must not call constructors. For every type the first factory
+     * supporting it is used.
+     *
+     * @param allocators instance allocator factories in order of preference
+     * @return same builder instance
+     */
+    public ToolsetBuilder allocators(InstanceAllocatorFactory... allocators) {
+        for (InstanceAllocatorFactory allocator : allocators) {
+            Checks.argNotNull(allocator, "Instance allocator factory");
+            Checks.illegalArg(allocator.invokesConstructor(),
+                "%s calls constructors, set it as constructor fallback.", allocator);
+        }
+        this.allocators = Arrays.asList(allocators);
         return this;
     }
 
     /**
-     * Sets instance allocator factories. For every type the first allocator which succeeds is used.
+     * Sets instance allocator factory for types which no allocator supports. It may call constructors.
      *
-     * @param allocator instance allocator factories in order of preference
+     * @param constructorFallback instance allocator factory
      * @return same builder instance
      */
-    public ToolsetBuilder allocators(InstanceAllocatorFactory... allocator) {
-        this.allocators = Arrays.asList(allocator);
+    public ToolsetBuilder constructorFallback(InstanceAllocatorFactory constructorFallback) {
+        this.constructorFallback = Checks.argNotNull(constructorFallback, "Constructor fallback");
+        this.constructorFallbackDisabled = false;
+        return this;
+    }
+
+    /**
+     * Disables constructor fallback: types which no allocator supports cannot be cloned.
+     *
+     * @return same builder instance
+     */
+    public ToolsetBuilder noConstructorFallback() {
+        this.constructorFallback = null;
+        this.constructorFallbackDisabled = true;
         return this;
     }
 
@@ -107,15 +142,21 @@ public class ToolsetBuilder {
     }
 
     private InstanceAllocatorFactory buildAllocatorFactory(Reflection reflection) {
-        if (allocators.isEmpty()) {
-            return ObjenesisInstanceAllocatorFactory.isAvailable()
-                ? new ObjenesisInstanceAllocatorFactory()
-                : new ReflectionInstanceAllocatorFactory(reflection);
+        List<InstanceAllocatorFactory> factories = new ArrayList<>();
+        if (allocators != null) {
+            factories.addAll(allocators);
         }
-        if (allocators.size() == 1) {
-            return allocators.get(0);
+        else if (ObjenesisInstanceAllocatorFactory.isAvailable()) {
+            factories.add(new ObjenesisInstanceAllocatorFactory());
         }
-        return new CompoundInstanceAllocatorFactory(allocators);
+        if (!constructorFallbackDisabled) {
+            factories.add(
+                constructorFallback != null ? constructorFallback : new ReflectionInstanceAllocatorFactory(reflection));
+        }
+        if (factories.isEmpty()) {
+            throw new IllegalStateException("No instance allocators: set allocators or enable constructor fallback.");
+        }
+        return factories.size() == 1 ? factories.get(0) : new CompoundInstanceAllocatorFactory(factories);
     }
 
 }
