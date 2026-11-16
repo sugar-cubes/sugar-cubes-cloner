@@ -68,7 +68,7 @@ public class FieldAdapterFieldCopierFactory extends AbstractFieldCopierFactory {
                 return (original, clone, context) -> fieldAdapter.setObject(clone, fieldAdapter.getObject(original));
             case DEFAULT:
                 return (original, clone, context) ->
-                    fieldAdapter.setObject(clone, context.copy(fieldAdapter.getObject(original)));
+                    context.copy(fieldAdapter.getObject(original), value -> fieldAdapter.setObject(clone, value));
             default:
                 throw Checks.mustNotHappen();
         }

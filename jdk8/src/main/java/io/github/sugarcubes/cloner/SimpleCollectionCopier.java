@@ -17,6 +17,7 @@ package io.github.sugarcubes.cloner;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
 /**
@@ -49,10 +50,22 @@ public class SimpleCollectionCopier<T extends Collection<Object>> extends TwoPha
     @Override
     public void deepCopy(T original, T clone, CopyContext context) throws Exception {
         Object[] array = original.toArray();
+        // elements are added in order when all of them are known, some may be copied later (reference cycles)
+        AtomicInteger unknown = new AtomicInteger(array.length + 1);
         for (int k = 0, length = array.length; k < length; k++) {
-            array[k] = context.copy(array[k]);
+            int index = k;
+            context.copy(array[k], element -> {
+                array[index] = element;
+                addAllIfKnown(clone, array, unknown);
+            });
         }
-        clone.addAll(Arrays.asList(array));
+        addAllIfKnown(clone, array, unknown);
+    }
+
+    private static <T extends Collection<Object>> void addAllIfKnown(T clone, Object[] array, AtomicInteger unknown) {
+        if (unknown.decrementAndGet() == 0) {
+            clone.addAll(Arrays.asList(array));
+        }
     }
 
 }
