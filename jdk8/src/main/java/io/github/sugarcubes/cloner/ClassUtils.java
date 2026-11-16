@@ -62,13 +62,14 @@ public class ClassUtils {
     }
 
     /**
-     * Checks whether the type may have own instances, i.e. it is not an interface, an abstract class, an array or
-     * a primitive.
+     * Checks whether an instance of the type can be allocated without arguments, as instance allocators do.
+     * Interfaces, abstract classes and primitives have no own instances. Arrays have, but an array is created
+     * with its length, so arrays are copied by separate copiers and never reach instance allocators.
      *
      * @param type class
-     * @return {@code true} if the type may have own instances
+     * @return {@code true} if an instance of the type can be allocated without arguments
      */
-    public static boolean isInstantiable(Class<?> type) {
+    public static boolean isAllocatable(Class<?> type) {
         return !type.isArray() && !type.isPrimitive() && !Modifier.isAbstract(type.getModifiers());
     }
 
