@@ -94,7 +94,7 @@ tasks.withType<Javadoc> {
 
     val modulePaths = mutableSetOf<File>()
     clonerModules.forEach { module ->
-        source(module.sourceSets.main.get().allSource)
+        source(module.sourceSets.main.get().allJava)
         modulePaths.addAll(module.configurations.compileClasspath.get())
     }
     modulePaths.removeIf { file ->
@@ -107,7 +107,7 @@ tasks.withType<Javadoc> {
     // exclude placeholder
     exclude("**/$$$.*")
 
-    exclude("**/JdkInternalMiscUnsafeBridge.*")
+    exclude("**/JdkInternalMiscUnsafeBridge*")
 }
 
 tasks.named<Jar>("sourcesJar") {
