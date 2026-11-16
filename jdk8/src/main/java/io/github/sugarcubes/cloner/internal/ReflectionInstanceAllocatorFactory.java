@@ -40,7 +40,7 @@ public class ReflectionInstanceAllocatorFactory implements InstanceAllocatorFact
 
     @Override
     public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
-        if (!ClassUtils.isInstantiable(type) || !ClassUtils.hasNoArgConstructor(type)) {
+        if (!ClassUtils.isAllocatable(type) || !ClassUtils.hasNoArgConstructor(type)) {
             return Optional.empty();
         }
         return Optional.of(reflection.makeAccessible(reflection.getDeclaredConstructor(type))::newInstance);

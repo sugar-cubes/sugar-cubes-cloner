@@ -61,7 +61,7 @@ public class ObjenesisInstanceAllocatorFactory implements InstanceAllocatorFacto
 
     @Override
     public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
-        if (!ClassUtils.isInstantiable(type)) {
+        if (!ClassUtils.isAllocatable(type)) {
             return Optional.empty();
         }
         return Optional.of(objenesis.getInstantiatorOf(type)::newInstance);

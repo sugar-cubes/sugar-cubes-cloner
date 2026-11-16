@@ -44,7 +44,7 @@ public class MethodHandleInstanceAllocatorFactory implements InstanceAllocatorFa
 
     @Override
     public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
-        if (!ClassUtils.isInstantiable(type) || !ClassUtils.hasNoArgConstructor(type)) {
+        if (!ClassUtils.isAllocatable(type) || !ClassUtils.hasNoArgConstructor(type)) {
             return Optional.empty();
         }
         MethodHandle constructor = ClonerExceptionUtils.replaceException(() -> LOOKUP.findConstructor(type, VOID_METHOD_TYPE));
