@@ -1,7 +1,3 @@
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.tasks.testing.Test
-import org.gradle.kotlin.dsl.named
-import org.gradle.kotlin.dsl.withType
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
@@ -41,5 +37,5 @@ tasks.withType<JavaCompile> {
 }
 
 tasks.withType<Test> {
-    jvmArgs = jvmArgs + utils.modulesJvmArgs("--add-opens")
+    jvmArgs = (jvmArgs ?: listOf()) + utils.modulesJvmArgs("--add-opens")
 }

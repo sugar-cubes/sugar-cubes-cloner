@@ -27,7 +27,11 @@ public class UnsafeAllocatorFactory implements InstanceAllocatorFactory {
     /**
      * {@link UnsafeBridge} instance.
      */
-    private final Unsafe unsafe = Environment.getEnvironment().getUnsafe();
+    private final UnsafeBridge unsafe;
+
+    public UnsafeAllocatorFactory(UnsafeBridge unsafe) {
+        this.unsafe = unsafe;
+    }
 
     @Override
     public <T> InstanceAllocator<T> newAllocator(Class<T> type) {

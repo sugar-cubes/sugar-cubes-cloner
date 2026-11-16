@@ -15,6 +15,21 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-final class EnvironmentImpl extends EnvironmentImpl$Jdk9 {
+/**
+ * Implementation of {@link UnsafeBridge} which calls {@link jdk.internal.misc.Unsafe}.
+ *
+ * @author Maxim Butov
+ */
+class JdkInternalMiscUnsafeBridge$Jdk15 extends JdkInternalMiscUnsafeBridge$Jdk9 {
+
+    @Override
+    public Object getObject(Object o, long offset) {
+        return unsafe.getReference(o, offset);
+    }
+
+    @Override
+    public void putObject(Object o, long offset, Object x) {
+        unsafe.putReference(o, offset, x);
+    }
 
 }

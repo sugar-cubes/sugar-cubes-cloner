@@ -18,6 +18,7 @@ package io.github.sugarcubes.cloner.internal;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
 public interface Reflection {
@@ -70,6 +71,6 @@ public interface Reflection {
      * @param member field or method or constructor
      * @return same object
      */
-    <T extends AccessibleObject> T makeAccessible(T member);
+    <T extends AccessibleObject & Member> T makeAccessible(T member);
 
 }

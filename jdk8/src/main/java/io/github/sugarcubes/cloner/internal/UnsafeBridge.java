@@ -27,6 +27,10 @@ import java.lang.reflect.Field;
  */
 public interface UnsafeBridge {
 
+    static UnsafeBridge getInstance(Reflection reflection) {
+        return new SunMiscUnsafeBridge(reflection);
+    }
+
     Object getUnsafe();
 
     int getInt(Object o, long offset);

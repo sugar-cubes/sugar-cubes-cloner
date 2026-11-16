@@ -18,6 +18,7 @@ package io.github.sugarcubes.cloner.internal;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -46,7 +47,7 @@ public abstract class AbstractReflection implements Reflection {
     }
 
     @Override
-    public final <T extends AccessibleObject> T makeAccessible(T member) {
+    public final <T extends AccessibleObject & Member> T makeAccessible(T member) {
         return replaceException(() -> makeAccessibleImpl(member));
     }
 
@@ -63,6 +64,6 @@ public abstract class AbstractReflection implements Reflection {
 
     protected abstract <T> Constructor<T> getDeclaredConstructorImpl(Class<T> type, Class<?>... parameterTypes) throws Exception;
 
-    protected abstract <T extends AccessibleObject> T makeAccessibleImpl(T member);
+    protected abstract <T extends AccessibleObject & Member> T makeAccessibleImpl(T member);
 
 }

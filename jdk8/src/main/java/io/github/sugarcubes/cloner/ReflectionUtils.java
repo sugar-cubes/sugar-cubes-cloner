@@ -22,7 +22,6 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import io.github.sugarcubes.cloner.internal.Environment;
 import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
 
 /**
@@ -90,7 +89,7 @@ public class ReflectionUtils {
      * @return same type
      */
     public static <T> Class<T> makeAccessible(Class<T> type) {
-        return Environment.getEnvironment().getOpener().open(type);
+        return type;
     }
 
     /**

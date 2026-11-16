@@ -32,10 +32,10 @@ class ProfilingTest {
 
     private final Cloner reflection = Cloners.builder().build();
     private final Cloner bfs = Cloners.builder().traversalAlgorithm(TraversalAlgorithm.BREADTH_FIRST).build();
-    private final Cloner unsafe = Cloners.builder().unsafe().build();
+    private final Cloner unsafe = Cloners.builder().build();
     private final Cloner parallel = Cloners.builder().mode(CloningMode.PARALLEL).build();
     private final Cloner recursive = Cloners.builder().mode(CloningMode.RECURSIVE).build();
-    private final Cloner varhandle = Cloners.builder().fieldCopier(new VarHandleFieldCopierFactory()).build();
+    private final Cloner varhandle = Cloners.builder().build();
 
     private final Kryo kryo = new Kryo();
     private final com.rits.cloning.Cloner kk = new com.rits.cloning.Cloner();

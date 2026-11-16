@@ -16,26 +16,10 @@
 package io.github.sugarcubes.cloner.internal;
 
 /**
- * todo
+ * Implementation of {@link UnsafeBridge} which calls {@link jdk.internal.misc.Unsafe}.
+ *
+ * @author Maxim Butov
  */
-public interface Environment {
-
-    class Holder {
-
-        private static final Environment INSTANCE = new EnvironmentImpl();
-
-    }
-
-    static Environment getEnvironment() {
-        return Holder.INSTANCE;
-    }
-
-    TypeOpener getOpener();
-
-    sun.misc.Unsafe getUnsafe();
-
-    Reflection getReflection();
-
-    InstanceAllocatorFactory getAllocator();
+class JdkInternalMiscUnsafeBridge extends JdkInternalMiscUnsafeBridge$Jdk15 {
 
 }

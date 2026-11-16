@@ -15,7 +15,7 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-class ReflectionInstanceAllocatorFactory implements InstanceAllocatorFactory {
+public class ReflectionInstanceAllocatorFactory implements InstanceAllocatorFactory {
 
     private final Reflection reflection;
 
