@@ -15,7 +15,13 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -26,12 +32,18 @@ import java.util.stream.Collectors;
  * Abstract copy context. Contains common code for the context implementations.
  *
  * <p>Every original object gets a {@link CloneSlot} which tracks whether its clone is created and completed and
- * which thread works on it. A thread which needs a clone being created or completed by itself has found a reference
- * cycle which cannot be copied; in parallel mode the same is detected through the chain of waiting threads.</p>
+ * which thread works on it. A second phase which meets an object being created right now subscribes to its clone
+ * instead of waiting. A thread which has to wait for something which in turn waits for this thread (through busy
+ * threads, holes and waiting threads) has found a reference cycle which cannot be copied.</p>
  *
  * @author Maxim Butov
  */
 public abstract class AbstractCopyContext implements CopyContext {
+
+    /**
+     * Maximal time of a single wait, after which the waiting thread checks for a reference cycle again.
+     */
+    private static final long CYCLE_CHECK_INTERVAL_MILLIS = 100;
 
     /**
      * Copier provider.
@@ -101,6 +113,48 @@ public abstract class AbstractCopyContext implements CopyContext {
     }
 
     @Override
+    public <T> void copy(T original, CloneSetter<? super T> setter) throws Exception {
+        setter.set(copy(original));
+    }
+
+    /**
+     * Copies the object for the second phase of the owner: if the object is being created right now, the setter is
+     * called later and the owner gets a hole until then.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> void copy(T original, CloneSetter<? super T> setter, CloneSlot owner) throws Exception {
+        if (original == null) {
+            setter.set(null);
+            return;
+        }
+        ObjectCopier<T> copier = copierProvider.getCopier(original);
+        if (copier == ObjectCopier.NOOP) {
+            setter.set(original);
+            return;
+        }
+        if (copier == ObjectCopier.NULL) {
+            setter.set(null);
+            return;
+        }
+        CloneSlot slot = clones.computeIfAbsent(new IdentityReference<>(original), key -> new CloneSlot());
+        Object existing = slot.getClone();
+        if (existing != null) {
+            setter.set((T) existing);
+            return;
+        }
+        if (slot.start()) {
+            setter.set(create(original, copier, slot));
+            return;
+        }
+        owner.addHole(slot);
+        Object clone = slot.subscribe(new CloneSlot.Subscription(owner, (CloneSetter<Object>) setter));
+        if (clone != null) {
+            setter.set((T) clone);
+            owner.holeFilled(slot);
+        }
+    }
+
+    @Override
     public <T> T copyComplete(T original) throws Exception {
         T clone = copy(original);
         if (clone == null || clone == original) {
@@ -108,8 +162,8 @@ public abstract class AbstractCopyContext implements CopyContext {
         }
         CloneSlot slot = clones.get(new IdentityReference<>(original));
         while (!slot.isCompleted()) {
-            if (!runSecondPhase(slot)) {
-                await(slot, original, CloneSlot::isCompleted);
+            if (!runSecondPhase(slot) && !await(slot, original, CloneSlot::isCompleted)) {
+                throw cycle(original);
             }
         }
         return clone;
@@ -131,26 +185,36 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (existing != null) {
             return (T) existing;
         }
-        if (!slot.start()) {
-            await(slot, original, CloneSlot::isCreated);
-            return (T) slot.getClone();
+        if (slot.start()) {
+            return create(original, copier, slot);
         }
+        if (!await(slot, original, CloneSlot::isCreated)) {
+            throw cycle(original);
+        }
+        return (T) slot.getClone();
+    }
+
+    /**
+     * Creates the clone in the current thread, which has started the slot.
+     */
+    private <T> T create(T original, ObjectCopier<T> copier, CloneSlot slot) throws Exception {
         try {
             return copier instanceof TwoPhaseObjectCopier
                 ? createTwoPhase(original, (TwoPhaseObjectCopier<T>) copier, slot)
                 : createSinglePhase(original, copier, slot);
         }
         finally {
-            slot.release(false);
+            failSubscriptions(slot.release(false));
         }
     }
 
     private <T> T createTwoPhase(T original, TwoPhaseObjectCopier<T> copier, CloneSlot slot) throws Exception {
         T clone = checkClone(original, copier.allocate(original));
-        slot.created(clone, () -> {
-            copier.deepCopy(original, clone, this);
+        CopyContext secondPhaseContext = new SecondPhaseContext(slot);
+        notifySubscriptions(slot, clone, slot.created(clone, () -> {
+            copier.deepCopy(original, clone, secondPhaseContext);
             return null;
-        });
+        }));
         thenInvoke(() -> runSecondPhase(slot));
         return clone;
     }
@@ -171,6 +235,45 @@ public abstract class AbstractCopyContext implements CopyContext {
     }
 
     /**
+     * Registers the clone created by a single-phase copier, see {@link RegistrationContext}.
+     *
+     * @param slot slot
+     * @param clone clone
+     * @return {@code false} if the clone is already registered
+     * @throws Exception if a subscriber fails
+     */
+    boolean register(CloneSlot slot, Object clone) throws Exception {
+        List<CloneSlot.Subscription> subscriptions = slot.register(clone);
+        if (subscriptions == null) {
+            return false;
+        }
+        notifySubscriptions(slot, clone, subscriptions);
+        return true;
+    }
+
+    /**
+     * Passes the clone to the subscribers; subscribers which have not got it because of an exception fail.
+     */
+    private static void notifySubscriptions(CloneSlot slot, Object clone, List<CloneSlot.Subscription> subscriptions)
+        throws Exception {
+        int notified = 0;
+        try {
+            for (CloneSlot.Subscription subscription : subscriptions) {
+                subscription.setter.set(clone);
+                subscription.owner.holeFilled(slot);
+                notified++;
+            }
+        }
+        finally {
+            failSubscriptions(subscriptions.subList(notified, subscriptions.size()));
+        }
+    }
+
+    private static void failSubscriptions(List<CloneSlot.Subscription> subscriptions) {
+        subscriptions.forEach(subscription -> subscription.owner.fail());
+    }
+
+    /**
      * Runs the second phase of the copying in the current thread unless another thread has taken it.
      *
      * @param slot slot
@@ -184,7 +287,7 @@ public abstract class AbstractCopyContext implements CopyContext {
         }
         try {
             secondPhase.call();
-            slot.completed();
+            slot.secondPhaseDone();
         }
         finally {
             slot.release(false);
@@ -193,53 +296,59 @@ public abstract class AbstractCopyContext implements CopyContext {
     }
 
     /**
-     * Waits until the slot is ready. Waiting for itself or a cycle of waiting threads means a reference cycle which
-     * cannot be copied.
+     * Waits until the slot is ready or its second phase can be claimed.
+     *
+     * @return {@code false} if waiting would never end because of a reference cycle
      */
-    private void await(CloneSlot slot, Object original, Predicate<CloneSlot> ready) throws InterruptedException {
+    private boolean await(CloneSlot slot, Object original, Predicate<CloneSlot> ready) throws InterruptedException {
         Thread current = Thread.currentThread();
-        slot.lock();
+        waits.put(current, slot);
         try {
             while (!ready.test(slot)) {
                 if (slot.isFailed()) {
                     throw new ClonerException(String.format("Copying of %s failed.", describe(original)));
                 }
-                Thread busy = slot.getBusyThread();
-                if (busy == null) {
-                    // the second phase is waiting to be claimed
-                    return;
+                if (slot.isClaimable()) {
+                    return true;
                 }
-                if (busy == current) {
-                    throw cycle(original);
+                if (dependsOn(slot, current)) {
+                    return false;
                 }
-                waits.put(current, slot);
-                try {
-                    if (isWaitingForItself(current, slot)) {
-                        throw cycle(original);
-                    }
-                    slot.awaitChange();
-                }
-                finally {
-                    waits.remove(current);
-                }
+                slot.awaitChange(ready, CYCLE_CHECK_INTERVAL_MILLIS);
             }
+            return true;
         }
         finally {
-            slot.unlock();
+            waits.remove(current);
         }
     }
 
-    private boolean isWaitingForItself(Thread current, CloneSlot slot) {
-        Thread thread = slot.getBusyThread();
-        for (int k = 0; thread != null && k <= waits.size(); k++) {
-            if (thread == current) {
+    /**
+     * Tells whether the slot waits, directly or transitively, for the given thread: through the thread busy with a
+     * slot, the holes of a slot and the slot a thread waits for.
+     */
+    private boolean dependsOn(CloneSlot start, Thread thread) {
+        Set<CloneSlot> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+        Deque<CloneSlot> pending = new ArrayDeque<>();
+        pending.push(start);
+        while (!pending.isEmpty()) {
+            CloneSlot slot = pending.pop();
+            if (!visited.add(slot)) {
+                continue;
+            }
+            Thread busy = slot.getBusyThread();
+            if (busy == thread) {
                 return true;
             }
-            CloneSlot next = waits.get(thread);
-            if (next == null) {
-                return false;
+            if (busy != null) {
+                CloneSlot awaited = waits.get(busy);
+                if (awaited != null) {
+                    pending.push(awaited);
+                }
             }
-            thread = next.getBusyThread();
+            for (CloneSlot blocker : slot.getBlockers()) {
+                pending.push(blocker);
+            }
         }
         return false;
     }
@@ -252,6 +361,45 @@ public abstract class AbstractCopyContext implements CopyContext {
 
     private static String describe(Object original) {
         return String.format("%s@%x", original.getClass().getName(), System.identityHashCode(original));
+    }
+
+    /**
+     * Context of the second phase of a two-phase copier: referenced objects being created right now become holes
+     * of the slot instead of being waited for.
+     */
+    private final class SecondPhaseContext implements CopyContext {
+
+        private final CloneSlot slot;
+
+        SecondPhaseContext(CloneSlot slot) {
+            this.slot = slot;
+        }
+
+        @Override
+        public <T> T register(T clone) {
+            return AbstractCopyContext.this.register(clone);
+        }
+
+        @Override
+        public <T> T copy(T original) throws Exception {
+            return AbstractCopyContext.this.copy(original);
+        }
+
+        @Override
+        public <T> void copy(T original, CloneSetter<? super T> setter) throws Exception {
+            AbstractCopyContext.this.copy(original, setter, slot);
+        }
+
+        @Override
+        public <T> T copyComplete(T original) throws Exception {
+            return AbstractCopyContext.this.copyComplete(original);
+        }
+
+        @Override
+        public void thenInvoke(Callable<?> task) throws Exception {
+            AbstractCopyContext.this.thenInvoke(task);
+        }
+
     }
 
     /**

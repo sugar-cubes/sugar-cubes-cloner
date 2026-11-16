@@ -27,7 +27,7 @@ public final class RegistrationContext implements CopyContext {
     /**
      * Initial copy context.
      */
-    private final CopyContext context;
+    private final AbstractCopyContext context;
 
     /**
      * Original object.
@@ -46,7 +46,7 @@ public final class RegistrationContext implements CopyContext {
      * @param original original
      * @param slot copying state of the original
      */
-    RegistrationContext(CopyContext context, Object original, CloneSlot slot) {
+    RegistrationContext(AbstractCopyContext context, Object original, CloneSlot slot) {
         this.context = context;
         this.original = original;
         this.slot = slot;
@@ -64,7 +64,7 @@ public final class RegistrationContext implements CopyContext {
 
     @Override
     public <T> T register(T clone) {
-        if (clone == null || !slot.register(clone)) {
+        if (clone == null || !ClonerExceptionUtils.replaceException(() -> context.register(slot, clone))) {
             registrationMismatch();
         }
         return clone;
@@ -73,6 +73,11 @@ public final class RegistrationContext implements CopyContext {
     @Override
     public <T> T copy(T original) throws Exception {
         return context.copy(original);
+    }
+
+    @Override
+    public <T> void copy(T original, CloneSetter<? super T> setter) throws Exception {
+        context.copy(original, setter);
     }
 
     @Override

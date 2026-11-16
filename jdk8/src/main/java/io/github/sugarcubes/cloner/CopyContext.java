@@ -25,6 +25,24 @@ import java.util.concurrent.Callable;
 public interface CopyContext {
 
     /**
+     * Receives a clone.
+     *
+     * @param <T> object type
+     */
+    @FunctionalInterface
+    interface CloneSetter<T> {
+
+        /**
+         * Receives the clone, e.g. sets it into a field.
+         *
+         * @param clone clone
+         * @throws Exception if something went wrong
+         */
+        void set(T clone) throws Exception;
+
+    }
+
+    /**
      * Registers clone in the context.
      *
      * @param <T> object type
@@ -43,6 +61,19 @@ public interface CopyContext {
      * @throws Exception if something went wrong
      */
     <T> T copy(T original) throws Exception;
+
+    /**
+     * Copies the object and passes the clone to the setter: immediately if the clone exists or can be created now,
+     * or later, when the clone of the object being created right now (a reference cycle through a single-phase
+     * copier, or another thread) is registered. Until then the object copied by the current second phase is not
+     * complete. Outside a second phase of a two-phase copier works as {@link #copy(Object)}.
+     *
+     * @param <T> object type
+     * @param original original
+     * @param setter receiver of the clone
+     * @throws Exception if something went wrong
+     */
+    <T> void copy(T original, CloneSetter<? super T> setter) throws Exception;
 
     /**
      * Returns the copy of the object with its own state already copied (for a two-phase copier the second phase is

@@ -16,7 +16,7 @@
 package io.github.sugarcubes.cloner;
 
 import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Copier for {@link IdentityHashMap}. {@link ReflectionCopier} is not suitable for {@link IdentityHashMap} because the result's
@@ -35,8 +35,30 @@ public class IdentityHashMapCopier extends TwoPhaseObjectCopier<IdentityHashMap<
     @Override
     public void deepCopy(IdentityHashMap<Object, Object> original, IdentityHashMap<Object, Object> clone, CopyContext context)
         throws Exception {
-        for (Map.Entry<Object, Object> entry : original.entrySet()) {
-            clone.put(context.copy(entry.getKey()), context.copy(entry.getValue()));
+        Object[] keys = original.keySet().toArray();
+        Object[] values = original.values().toArray();
+        // entries are put when all keys and values are known, some may be copied later (reference cycles)
+        AtomicInteger unknown = new AtomicInteger(keys.length + values.length + 1);
+        for (int k = 0; k < keys.length; k++) {
+            int index = k;
+            context.copy(keys[k], key -> {
+                keys[index] = key;
+                putAllIfKnown(clone, keys, values, unknown);
+            });
+            context.copy(values[k], value -> {
+                values[index] = value;
+                putAllIfKnown(clone, keys, values, unknown);
+            });
+        }
+        putAllIfKnown(clone, keys, values, unknown);
+    }
+
+    private static void putAllIfKnown(IdentityHashMap<Object, Object> clone, Object[] keys, Object[] values,
+        AtomicInteger unknown) {
+        if (unknown.decrementAndGet() == 0) {
+            for (int k = 0; k < keys.length; k++) {
+                clone.put(keys[k], values[k]);
+            }
         }
     }
 

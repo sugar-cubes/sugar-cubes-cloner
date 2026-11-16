@@ -34,7 +34,8 @@ public class ObjectArrayCopier extends TwoPhaseObjectCopier<Object[]> {
     @Override
     public void deepCopy(Object[] original, Object[] clone, CopyContext context) throws Exception {
         for (int k = 0, length = original.length; k < length; k++) {
-            clone[k] = context.copy(original[k]);
+            int index = k;
+            context.copy(original[k], element -> clone[index] = element);
         }
     }
 

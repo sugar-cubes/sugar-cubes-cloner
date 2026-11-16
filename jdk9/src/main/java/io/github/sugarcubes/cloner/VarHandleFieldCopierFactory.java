@@ -47,7 +47,7 @@ public final class VarHandleFieldCopierFactory implements FieldCopierFactory {
             case ORIGINAL:
                 return (original, clone, context) -> handle.set(clone, handle.get(original));
             case DEFAULT:
-                return (original, clone, context) -> handle.set(clone, context.copy(handle.get(original)));
+                return (original, clone, context) -> context.copy(handle.get(original), value -> handle.set(clone, value));
             default:
                 throw Checks.mustNotHappen();
         }
