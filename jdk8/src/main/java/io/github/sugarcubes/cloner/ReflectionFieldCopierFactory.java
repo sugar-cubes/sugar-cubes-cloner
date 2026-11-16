@@ -17,6 +17,9 @@ package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 
+import io.github.sugarcubes.cloner.internal.Reflection;
+import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
+
 /**
  * Field copiers factory which uses reflection for getting/setting field values.
  *
@@ -24,9 +27,27 @@ import java.lang.reflect.Field;
  */
 public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFactory {
 
+    private final Reflection reflection;
+
+    /**
+     * Creates factory which makes fields accessible with plain {@link Field#setAccessible(boolean)}.
+     */
+    public ReflectionFieldCopierFactory() {
+        this(new ReflectionImpl$Jdk8());
+    }
+
+    /**
+     * Creates factory which makes fields accessible with the reflection.
+     *
+     * @param reflection reflection to make fields accessible
+     */
+    public ReflectionFieldCopierFactory(Reflection reflection) {
+        this.reflection = reflection;
+    }
+
     @Override
     public FieldCopier getFieldCopier(Field field, CopyAction action) {
-        return super.getFieldCopier(ReflectionUtils.makeAccessible(field), action);
+        return super.getFieldCopier(reflection.makeAccessible(field), action);
     }
 
     @Override

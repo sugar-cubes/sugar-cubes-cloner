@@ -101,7 +101,8 @@ public class ToolsetBuilder {
      */
     public Toolset build() {
         Reflection reflection = this.reflection != null ? this.reflection : new ReflectionImpl$Jdk8();
-        FieldCopierFactory fieldCopier = this.fieldCopier != null ? this.fieldCopier : new ReflectionFieldCopierFactory();
+        FieldCopierFactory fieldCopier =
+            this.fieldCopier != null ? this.fieldCopier : new ReflectionFieldCopierFactory(reflection);
         return new Toolset(reflection, buildAllocatorFactory(reflection), fieldCopier);
     }
 
