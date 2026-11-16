@@ -35,21 +35,21 @@ public final class RegistrationContext implements CopyContext {
     private final Object original;
 
     /**
-     * Cached clone reference.
+     * Copying state of the original.
      */
-    private final Object[] cached;
+    private final CloneSlot slot;
 
     /**
      * Creates registration context wrapper.
      *
      * @param context initial context
      * @param original original
-     * @param cached cached clone reference
+     * @param slot copying state of the original
      */
-    public RegistrationContext(CopyContext context, Object original, Object[] cached) {
+    RegistrationContext(CopyContext context, Object original, CloneSlot slot) {
         this.context = context;
         this.original = original;
-        this.cached = cached;
+        this.slot = slot;
     }
 
     /**
@@ -64,16 +64,20 @@ public final class RegistrationContext implements CopyContext {
 
     @Override
     public <T> T register(T clone) {
-        if (clone == null || cached[0] != null) {
+        if (clone == null || !slot.register(clone)) {
             registrationMismatch();
         }
-        cached[0] = clone;
         return clone;
     }
 
     @Override
     public <T> T copy(T original) throws Exception {
         return context.copy(original);
+    }
+
+    @Override
+    public <T> T copyComplete(T original) throws Exception {
+        return context.copyComplete(original);
     }
 
     @Override
@@ -87,7 +91,7 @@ public final class RegistrationContext implements CopyContext {
      * @param clone clone
      */
     public void check(Object clone) {
-        if (cached[0] != clone) {
+        if (slot.getClone() != clone) {
             registrationMismatch();
         }
     }

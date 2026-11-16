@@ -59,7 +59,7 @@ public class RecordCopier<T extends Record> implements ObjectCopier<T> {
     public T copy(T original, CopyContext context) throws Exception {
         Object[] values = new Object[accessors.length];
         for (int k = 0; k < values.length; k++) {
-            values[k] = context.copy(accessors[k].invoke(original));
+            values[k] = context.copyComplete(accessors[k].invoke(original));
         }
         return context.register(constructor.newInstance(values));
     }

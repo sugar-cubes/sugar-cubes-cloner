@@ -45,6 +45,19 @@ public interface CopyContext {
     <T> T copy(T original) throws Exception;
 
     /**
+     * Returns the copy of the object with its own state already copied (for a two-phase copier the second phase is
+     * done, its referenced objects may still be incomplete). Needed by copiers which create the clone from copied
+     * values, e.g. canonical constructors of records. If the object is part of a reference cycle with the caller's
+     * object, the clone cannot be completed before the caller's clone exists, and {@link ClonerException} is thrown.
+     *
+     * @param <T> object type
+     * @param original original
+     * @return clone
+     * @throws Exception if something went wrong
+     */
+    <T> T copyComplete(T original) throws Exception;
+
+    /**
      * Invokes task. It can be invoked immediately or later depending on the context implementation.
      * The result of callable is ignored.
      *
