@@ -16,6 +16,8 @@
 package io.github.sugarcubes.cloner;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * State of copying of one original object.
@@ -27,6 +29,13 @@ import java.util.concurrent.Callable;
  * @author Maxim Butov
  */
 final class CloneSlot {
+
+    private final ReentrantLock lock = new ReentrantLock();
+
+    /**
+     * Signalled on every change of the state.
+     */
+    private final Condition changed = lock.newCondition();
 
     private Object clone;
 
@@ -57,20 +66,61 @@ final class CloneSlot {
         this.completed = true;
     }
 
-    synchronized Object getClone() {
-        return clone;
+    /**
+     * Acquires the lock of the slot, e.g. to check the state and wait for its change atomically.
+     */
+    void lock() {
+        lock.lock();
     }
 
-    synchronized boolean isCreated() {
-        return clone != null;
+    /**
+     * Releases the lock of the slot.
+     */
+    void unlock() {
+        lock.unlock();
     }
 
-    synchronized boolean isCompleted() {
-        return completed;
+    /**
+     * Waits for a change of the state. The current thread must hold the lock.
+     *
+     * @throws InterruptedException if the current thread is interrupted
+     */
+    void awaitChange() throws InterruptedException {
+        changed.await();
     }
 
-    synchronized boolean isFailed() {
-        return failed;
+    Object getClone() {
+        lock.lock();
+        try {
+            return clone;
+        }
+        finally {
+            lock.unlock();
+        }
+    }
+
+    boolean isCreated() {
+        return getClone() != null;
+    }
+
+    boolean isCompleted() {
+        lock.lock();
+        try {
+            return completed;
+        }
+        finally {
+            lock.unlock();
+        }
+    }
+
+    boolean isFailed() {
+        lock.lock();
+        try {
+            return failed;
+        }
+        finally {
+            lock.unlock();
+        }
     }
 
     Thread getBusyThread() {
@@ -82,12 +132,18 @@ final class CloneSlot {
      *
      * @return {@code true} if the current thread must copy the object
      */
-    synchronized boolean start() {
-        if (clone != null || failed || busyThread != null) {
-            return false;
+    boolean start() {
+        lock.lock();
+        try {
+            if (clone != null || failed || busyThread != null) {
+                return false;
+            }
+            busyThread = Thread.currentThread();
+            return true;
         }
-        busyThread = Thread.currentThread();
-        return true;
+        finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -96,13 +152,19 @@ final class CloneSlot {
      * @param clone clone
      * @return {@code false} if the clone is already registered
      */
-    synchronized boolean register(Object clone) {
-        if (this.clone != null) {
-            return false;
+    boolean register(Object clone) {
+        lock.lock();
+        try {
+            if (this.clone != null) {
+                return false;
+            }
+            this.clone = clone;
+            changed.signalAll();
+            return true;
         }
-        this.clone = clone;
-        notifyAll();
-        return true;
+        finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -111,11 +173,17 @@ final class CloneSlot {
      * @param clone clone
      * @param secondPhase second phase
      */
-    synchronized void created(Object clone, Callable<?> secondPhase) {
-        this.clone = clone;
-        this.secondPhase = secondPhase;
-        this.busyThread = null;
-        notifyAll();
+    void created(Object clone, Callable<?> secondPhase) {
+        lock.lock();
+        try {
+            this.clone = clone;
+            this.secondPhase = secondPhase;
+            this.busyThread = null;
+            changed.signalAll();
+        }
+        finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -123,22 +191,34 @@ final class CloneSlot {
      *
      * @return second phase or {@code null} if it is already taken or there is no second phase
      */
-    synchronized Callable<?> claimSecondPhase() {
-        Callable<?> task = secondPhase;
-        if (task != null) {
-            secondPhase = null;
-            busyThread = Thread.currentThread();
+    Callable<?> claimSecondPhase() {
+        lock.lock();
+        try {
+            Callable<?> task = secondPhase;
+            if (task != null) {
+                secondPhase = null;
+                busyThread = Thread.currentThread();
+            }
+            return task;
         }
-        return task;
+        finally {
+            lock.unlock();
+        }
     }
 
     /**
      * Marks the clone completed.
      */
-    synchronized void completed() {
-        completed = true;
-        busyThread = null;
-        notifyAll();
+    void completed() {
+        lock.lock();
+        try {
+            completed = true;
+            busyThread = null;
+            changed.signalAll();
+        }
+        finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -146,13 +226,19 @@ final class CloneSlot {
      *
      * @param done whether the work is done
      */
-    synchronized void release(boolean done) {
-        if (busyThread == Thread.currentThread()) {
-            busyThread = null;
-            if (!done) {
-                failed = true;
+    void release(boolean done) {
+        lock.lock();
+        try {
+            if (busyThread == Thread.currentThread()) {
+                busyThread = null;
+                if (!done) {
+                    failed = true;
+                }
+                changed.signalAll();
             }
-            notifyAll();
+        }
+        finally {
+            lock.unlock();
         }
     }
 

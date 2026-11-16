@@ -198,7 +198,8 @@ public abstract class AbstractCopyContext implements CopyContext {
      */
     private void await(CloneSlot slot, Object original, Predicate<CloneSlot> ready) throws InterruptedException {
         Thread current = Thread.currentThread();
-        synchronized (slot) {
+        slot.lock();
+        try {
             while (!ready.test(slot)) {
                 if (slot.isFailed()) {
                     throw new ClonerException(String.format("Copying of %s failed.", describe(original)));
@@ -216,12 +217,15 @@ public abstract class AbstractCopyContext implements CopyContext {
                     if (isWaitingForItself(current, slot)) {
                         throw cycle(original);
                     }
-                    slot.wait();
+                    slot.awaitChange();
                 }
                 finally {
                     waits.remove(current);
                 }
             }
+        }
+        finally {
+            slot.unlock();
         }
     }
 
