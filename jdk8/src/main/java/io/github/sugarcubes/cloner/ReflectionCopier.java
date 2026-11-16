@@ -22,7 +22,7 @@ import java.util.Arrays;
 import io.github.sugarcubes.cloner.internal.InstanceAllocator;
 
 /**
- * Copier which creates object with {@link #factory}, when copying, enumerates fields,
+ * Copier which creates object with {@link #allocator}, when copying, enumerates fields,
  * filters by policy and copies via reflection.
  *
  * @author Maxim Butov
@@ -30,9 +30,9 @@ import io.github.sugarcubes.cloner.internal.InstanceAllocator;
 public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
 
     /**
-     * Object factory of the type.
+     * Object allocator of the type.
      */
-    private final InstanceAllocator<T> factory;
+    private final InstanceAllocator<T> allocator;
 
     /**
      * Super type cloner, nullable.
@@ -55,7 +55,7 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
      */
     @SuppressWarnings("unchecked")
     public ReflectionCopier(ReflectionCopier<?> parent, Toolset toolset, Class<T> type, CopyPolicy<Field> policy, boolean shallow) {
-        this.factory = toolset.getAllocator().newAllocator(type);
+        this.allocator = toolset.getAllocatorFactory().newAllocator(type);
         this.parent = (ReflectionCopier<? super T>) (parent != null && parent.fieldCopiers.length == 0 ?
             parent.parent : parent);
         CopyPolicy<Field> fieldPolicy = shallow
@@ -63,14 +63,14 @@ public class ReflectionCopier<T> extends TwoPhaseObjectCopier<T> {
             : policy;
         this.fieldCopiers = Arrays.stream(toolset.getReflection().getDeclaredFields(type))
             .filter(field -> !Modifier.isStatic(field.getModifiers()))
-            .map(field -> toolset.getFieldCopier().getFieldCopier(field, fieldPolicy.getAction(field)))
+            .map(field -> toolset.getFieldCopierFactory().getFieldCopier(field, fieldPolicy.getAction(field)))
             .filter(copier -> copier != FieldCopier.NOOP)
             .toArray(FieldCopier[]::new);
     }
 
     @Override
     public T allocate(T original) throws Exception {
-        return factory.newInstance();
+        return allocator.newInstance();
     }
 
     @Override

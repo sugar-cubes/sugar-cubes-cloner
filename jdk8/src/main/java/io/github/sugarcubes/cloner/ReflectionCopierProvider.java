@@ -23,9 +23,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.Reflection;
-
 /**
  * Copier provider implementation.
  *
@@ -33,11 +30,10 @@ import io.github.sugarcubes.cloner.internal.Reflection;
  */
 public class ReflectionCopierProvider implements CopierProvider {
 
-    private final Toolset toolset;
     /**
-     * Reflection API.
+     * Toolset.
      */
-    private final Reflection reflection;
+    private final Toolset toolset;
 
     /**
      * Object policy.
@@ -53,16 +49,6 @@ public class ReflectionCopierProvider implements CopierProvider {
      * Field policy.
      */
     private final CopyPolicy<Field> fieldPolicy;
-
-    /**
-     * Object allocator.
-     */
-    private final InstanceAllocatorFactory allocator;
-
-    /**
-     * Field copier factory.
-     */
-    private final FieldCopierFactory fieldCopierFactory;
 
     /**
      * Cache of copiers.
@@ -83,25 +69,18 @@ public class ReflectionCopierProvider implements CopierProvider {
      * Constructor.
      *
      * @param toolset reflection tool set
-     * @param reflection Reflection API
      * @param objectPolicy object policy
      * @param typePolicy type policy
      * @param fieldPolicy field policy
-     * @param allocator object allocator
      * @param copiers predefined copiers
      * @param shallows shallow-mode types
-     * @param fieldCopierFactory field copier factory
      */
-    public ReflectionCopierProvider(Toolset toolset, Reflection reflection, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
-        CopyPolicy<Field> fieldPolicy, InstanceAllocatorFactory allocator, Map<Class<?>, ObjectCopier<?>> copiers,
-        Set<Class<?>> shallows, FieldCopierFactory fieldCopierFactory) {
+    public ReflectionCopierProvider(Toolset toolset, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
+        CopyPolicy<Field> fieldPolicy, Map<Class<?>, ObjectCopier<?>> copiers, Set<Class<?>> shallows) {
         this.toolset = toolset;
-        this.reflection = reflection;
         this.objectPolicy = objectPolicy;
         this.typePolicy = typePolicy;
         this.fieldPolicy = fieldPolicy;
-        this.allocator = allocator;
-        this.fieldCopierFactory = fieldCopierFactory;
         this.copiers.putAll(copiers);
         this.shallows = shallows;
     }

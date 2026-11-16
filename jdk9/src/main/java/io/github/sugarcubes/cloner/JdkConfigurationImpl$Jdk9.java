@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.sugarcubes.cloner.internal.Environment;
 import io.github.sugarcubes.cloner.internal.UnsafeBridge;
 
 /**
@@ -41,7 +40,6 @@ class JdkConfigurationImpl$Jdk9 extends JdkConfigurationImpl$Jdk8 {
 
     @Override
     public void makeAccessible(Class<?> type) {
-        Environment.getEnvironment().getOpener().open(type);
     }
 
 }

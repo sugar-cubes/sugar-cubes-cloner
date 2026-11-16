@@ -63,9 +63,9 @@ public class ClonersBenchmark {
         serialization = Cloners.serialization();
         reflection = Cloners.builder().build();
         recursive = Cloners.builder().mode(CloningMode.RECURSIVE).build();
-        unsafe = Cloners.builder().unsafe().build();
+        unsafe = Cloners.builder().build();
         parallel = Cloners.builder().mode(CloningMode.PARALLEL).build();
-        varhandle = Cloners.builder().fieldCopier(new VarHandleFieldCopierFactory()).build();
+        varhandle = Cloners.builder().build();
         kryo = new Kryo();
         kryo.setRegistrationRequired(false);
         kk = new com.rits.cloning.Cloner();

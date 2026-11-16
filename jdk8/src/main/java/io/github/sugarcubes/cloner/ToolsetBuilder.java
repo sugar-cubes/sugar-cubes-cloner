@@ -28,6 +28,7 @@ import io.github.sugarcubes.cloner.internal.Reflection;
  * todo
  */
 public class ToolsetBuilder {
+
     private Reflection reflection;
     private List<InstanceAllocatorFactory> allocators = Collections.emptyList();
     private FieldCopierFactory fieldCopier;

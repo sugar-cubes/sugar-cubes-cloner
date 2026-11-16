@@ -15,25 +15,12 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-import io.github.sugarcubes.cloner.ObjenesisUtils;
-import io.github.sugarcubes.cloner.ReflectionInstanceAllocatorFactory;
-
 /**
  * Instance allocator factory interface.
  *
  * @author Maxim Butov
  */
 public interface InstanceAllocatorFactory extends TypeAllocator {
-
-    /**
-     * Creates default instance allocator factory. It will be {@link InstanceAllocatorFactory} if the Objenesis library available or
-     * {@link ReflectionInstanceAllocatorFactory} otherwise.
-     *
-     * @return default allocator
-     */
-    static InstanceAllocatorFactory defaultInstance() {
-        return ObjenesisUtils.isObjenesisAvailable() ? new ObjenesisInstanceAllocatorFactory() : new ReflectionInstanceAllocatorFactory();
-    }
 
     /**
      * Creates an object factory for the type.

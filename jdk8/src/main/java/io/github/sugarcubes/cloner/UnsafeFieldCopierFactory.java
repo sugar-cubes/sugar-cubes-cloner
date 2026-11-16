@@ -17,7 +17,6 @@ package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
 
-import io.github.sugarcubes.cloner.internal.Environment;
 import io.github.sugarcubes.cloner.internal.UnsafeBridge;
 import sun.misc.Unsafe;
 
@@ -33,7 +32,11 @@ public final class UnsafeFieldCopierFactory extends AbstractFieldCopierFactory {
     /**
      * {@link UnsafeBridge} instance.
      */
-    private final Unsafe unsafe = Environment.getEnvironment().getUnsafe();
+    private final UnsafeBridge unsafe;
+
+    public UnsafeFieldCopierFactory(UnsafeBridge unsafe) {
+        this.unsafe = unsafe;
+    }
 
     @Override
     protected FieldCopier getPrimitiveFieldCopier(Field field) {

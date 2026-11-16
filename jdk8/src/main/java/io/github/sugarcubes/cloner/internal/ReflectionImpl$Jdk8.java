@@ -18,6 +18,7 @@ package io.github.sugarcubes.cloner.internal;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
 public class ReflectionImpl$Jdk8 extends AbstractReflection {
@@ -43,7 +44,7 @@ public class ReflectionImpl$Jdk8 extends AbstractReflection {
     }
 
     @Override
-    protected <T extends AccessibleObject> T makeAccessibleImpl(T member) {
+    protected <T extends AccessibleObject & Member> T makeAccessibleImpl(T member) {
         member.setAccessible(true);
         return member;
     }

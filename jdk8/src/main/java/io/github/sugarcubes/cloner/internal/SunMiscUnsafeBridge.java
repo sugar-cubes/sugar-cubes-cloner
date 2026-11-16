@@ -17,6 +17,7 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
+import io.github.sugarcubes.cloner.ClonerExceptionUtils;
 import sun.misc.Unsafe;
 
 /**
@@ -31,8 +32,9 @@ public class SunMiscUnsafeBridge implements UnsafeBridge {
      */
     private final sun.misc.Unsafe unsafe;
 
-    public SunMiscUnsafeBridge(Unsafe unsafe) {
-        this.unsafe = unsafe;
+    public SunMiscUnsafeBridge(Reflection reflection) {
+        Field theUnsafe = reflection.getDeclaredField(Unsafe.class, "theUnsafe");
+        this.unsafe = (sun.misc.Unsafe) ClonerExceptionUtils.replaceException(() -> theUnsafe.get(null));
     }
 
     @Override

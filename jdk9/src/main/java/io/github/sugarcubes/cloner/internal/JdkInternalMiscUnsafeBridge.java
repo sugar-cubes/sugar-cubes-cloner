@@ -15,6 +15,11 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-final class EnvironmentImpl extends EnvironmentImpl$Jdk8 {
+/**
+ * Implementation of {@link UnsafeBridge} which calls {@link jdk.internal.misc.Unsafe}.
+ *
+ * @author Maxim Butov
+ */
+class JdkInternalMiscUnsafeBridge extends JdkInternalMiscUnsafeBridge$Jdk9 {
 
 }
