@@ -109,25 +109,4 @@ class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
         return Collections.unmodifiableSet(systemWideSingletons);
     }
 
-    @Override
-    public ObjectCopier<?> getCopier(Class<?> type) {
-        return isHiddenOrLambda(type) ? ObjectCopier.NOOP : null;
-    }
-
-    /**
-     * Lambda classes can neither be instantiated by name nor have their final fields written, so lambdas are copied
-     * by reference. On JDK 8..14 they are synthetic VM anonymous classes, their names contain {@code $$Lambda}.
-     *
-     * @param type type
-     * @return {@code true} if the type is a lambda or hidden class
-     */
-    protected boolean isHiddenOrLambda(Class<?> type) {
-        return type.isSynthetic() && type.getName().contains("$$Lambda");
-    }
-
-    @Override
-    public void makeAccessible(Class<?> type) {
-        // good old Java 8, nothing to do
-    }
-
 }

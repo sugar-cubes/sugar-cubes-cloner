@@ -31,8 +31,4 @@ class JdkConfigurationImpl$Jdk9 extends JdkConfigurationImpl$Jdk8 {
         systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
     }
 
-    @Override
-    public void makeAccessible(Class<?> type) {
-    }
-
 }

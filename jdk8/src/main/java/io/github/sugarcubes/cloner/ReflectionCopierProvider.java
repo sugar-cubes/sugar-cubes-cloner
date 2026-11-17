@@ -151,8 +151,11 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (Copyable.class.isAssignableFrom(type)) {
             return ObjectCopier.COPYABLE;
         }
-        ObjectCopier<?> copier = JdkConfigurationHolder.CONFIGURATION.getCopier(type);
-        return copier != null ? copier : findModelCopier(type);
+        if (toolset.isHidden(type)) {
+            // instances of hidden classes (e.g. lambdas) can be neither created nor written, they are shared
+            return ObjectCopier.NOOP;
+        }
+        return findModelCopier(type);
     }
 
     /**
