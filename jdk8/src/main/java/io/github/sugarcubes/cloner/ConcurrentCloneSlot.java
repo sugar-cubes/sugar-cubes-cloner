@@ -70,11 +70,6 @@ final class ConcurrentCloneSlot extends CloneSlot {
     }
 
     @Override
-    synchronized Object getOriginal() {
-        return super.getOriginal();
-    }
-
-    @Override
     synchronized TwoPhaseObjectCopier<Object> getCopier() {
         return super.getCopier();
     }
@@ -90,8 +85,8 @@ final class ConcurrentCloneSlot extends CloneSlot {
     }
 
     @Override
-    synchronized List<Subscription> created(Object original, Object clone, TwoPhaseObjectCopier<Object> copier) {
-        return super.created(original, clone, copier);
+    synchronized List<Subscription> created(Object clone, TwoPhaseObjectCopier<Object> copier) {
+        return super.created(clone, copier);
     }
 
     @Override

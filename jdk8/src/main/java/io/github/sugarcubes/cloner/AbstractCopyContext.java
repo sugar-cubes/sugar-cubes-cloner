@@ -182,7 +182,7 @@ public abstract class AbstractCopyContext implements CopyContext {
         }
         CloneSlot slot = clones.get(new IdentityReference<>(original));
         while (!slot.isCompleted()) {
-            if (!runSecondPhase(slot) && !await(slot, original, CloneSlot::isCompleted)) {
+            if (!runSecondPhase(slot, original) && !await(slot, original, CloneSlot::isCompleted)) {
                 // waits for an object being created by the current thread
                 return clone;
             }
@@ -238,8 +238,8 @@ public abstract class AbstractCopyContext implements CopyContext {
     @SuppressWarnings("unchecked")
     private <T> T createTwoPhase(T original, TwoPhaseObjectCopier<T> copier, CloneSlot slot) throws Exception {
         T clone = checkClone(original, copier.allocate(original));
-        notifySubscriptions(slot, clone, slot.created(original, clone, (TwoPhaseObjectCopier<Object>) copier));
-        thenInvoke(() -> runSecondPhase(slot));
+        notifySubscriptions(slot, clone, slot.created(clone, (TwoPhaseObjectCopier<Object>) copier));
+        thenInvoke(() -> runSecondPhase(slot, original));
         return clone;
     }
 
@@ -309,17 +309,18 @@ public abstract class AbstractCopyContext implements CopyContext {
      * Runs the second phase of the copying in the current thread unless another thread has taken it.
      *
      * @param slot slot
+     * @param original original object of the slot
      * @return {@code true} if the second phase has been run by the current thread
      * @throws Exception if something went wrong
      */
-    private boolean runSecondPhase(CloneSlot slot) throws Exception {
+    private boolean runSecondPhase(CloneSlot slot, Object original) throws Exception {
         if (!slot.claimSecondPhase()) {
             return false;
         }
         CloneSlot owner = getOwner();
         setOwner(slot);
         try {
-            slot.getCopier().deepCopy(slot.getOriginal(), slot.getClone(), this);
+            slot.getCopier().deepCopy(original, slot.getClone(), this);
             slot.secondPhaseDone();
         }
         finally {
