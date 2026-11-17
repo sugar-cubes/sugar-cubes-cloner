@@ -63,7 +63,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Cache of reflection copiers.
      */
-    private final Map<Map.Entry<Class<?>, Boolean>, ReflectionCopier<?>> reflectionCopiers = new ConcurrentHashMap<>();
+    private final Map<Map.Entry<Class<?>, Boolean>, FieldsCopier<?>> fieldsCopiers = new ConcurrentHashMap<>();
 
     /**
      * Constructor.
@@ -157,7 +157,7 @@ public class ReflectionCopierProvider implements CopierProvider {
             return ObjectCopier.COPYABLE;
         }
         ObjectCopier<?> copier = JdkConfigurationHolder.CONFIGURATION.getCopier(type);
-        return copier != null ? copier : findReflectionCopier(type, shallows.contains(type));
+        return copier != null ? copier : findFieldsCopier(type, shallows.contains(type));
     }
 
     /**
@@ -178,19 +178,19 @@ public class ReflectionCopierProvider implements CopierProvider {
     }
 
     /**
-     * Returns {@link ReflectionCopier} instance for the type.
+     * Returns {@link FieldsCopier} instance for the type.
      *
      * @param type object type
      * @return copier instance
      */
-    private ReflectionCopier<?> findReflectionCopier(Class<?> type, boolean shallow) {
+    private FieldsCopier<?> findFieldsCopier(Class<?> type, boolean shallow) {
         Map.Entry<Class<?>, Boolean> key = (Map.Entry) Collections.singletonMap(type, shallow).entrySet().iterator().next();
-        ReflectionCopier<?> copier = reflectionCopiers.get(key);
+        FieldsCopier<?> copier = fieldsCopiers.get(key);
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
-            ReflectionCopier<?> parent = superType != null ? findReflectionCopier(superType, shallow) : null;
-            copier = new ReflectionCopier<>(parent, toolset, type, fieldPolicy, shallow);
-            reflectionCopiers.put(key, copier);
+            FieldsCopier<?> parent = superType != null ? findFieldsCopier(superType, shallow) : null;
+            copier = new FieldsCopier<>(parent, toolset.fieldsModel(type), fieldPolicy, shallow);
+            fieldsCopiers.put(key, copier);
         }
         return copier;
     }

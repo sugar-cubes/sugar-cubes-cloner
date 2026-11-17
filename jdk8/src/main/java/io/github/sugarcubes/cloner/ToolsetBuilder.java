@@ -21,16 +21,16 @@ import java.util.List;
 
 import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
-import io.github.sugarcubes.cloner.internal.FieldAdapterFieldCopierFactory;
 import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.Reflection;
+import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
 import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
 
 /**
  * Builder for {@link Toolset}. Tools which are not set get failsafe defaults: plain reflection, Objenesis (if
- * available) as instance allocator, constructor without parameters as fallback, reflection field copier.
+ * available) as instance allocator, constructor without parameters as fallback, reflection field adapters.
  *
  * <p>Instance allocators create objects without calling constructors, as {@link Object#clone()} does. Constructors
  * may have side effects (registration, counters, validation) which a clone should not repeat, so allocators calling
@@ -45,7 +45,7 @@ public class ToolsetBuilder {
     private List<InstanceAllocatorFactory> allocators;
     private InstanceAllocatorFactory constructorFallback;
     private boolean constructorFallbackDisabled;
-    private FieldCopierFactory fieldCopier;
+    private FieldAdapterFactory fieldAdapter;
 
     /**
      * Sets reflection.
@@ -109,24 +109,14 @@ public class ToolsetBuilder {
     }
 
     /**
-     * Sets field copier factory.
-     *
-     * @param fieldCopier field copier factory
-     * @return same builder instance
-     */
-    public ToolsetBuilder fieldCopier(FieldCopierFactory fieldCopier) {
-        this.fieldCopier = fieldCopier;
-        return this;
-    }
-
-    /**
-     * Sets field copier factory which uses field adapters.
+     * Sets field adapter factory.
      *
      * @param fieldAdapter field adapter factory
      * @return same builder instance
      */
     public ToolsetBuilder fieldAdapter(FieldAdapterFactory fieldAdapter) {
-        return fieldCopier(new FieldAdapterFieldCopierFactory(fieldAdapter));
+        this.fieldAdapter = fieldAdapter;
+        return this;
     }
 
     /**
@@ -136,9 +126,9 @@ public class ToolsetBuilder {
      */
     public Toolset build() {
         Reflection reflection = this.reflection != null ? this.reflection : new ReflectionImpl$Jdk8();
-        FieldCopierFactory fieldCopier =
-            this.fieldCopier != null ? this.fieldCopier : new ReflectionFieldCopierFactory(reflection);
-        return new Toolset(reflection, buildAllocatorFactory(reflection), fieldCopier);
+        FieldAdapterFactory fieldAdapter =
+            this.fieldAdapter != null ? this.fieldAdapter : ReflectionFieldAdapterImpl.factory(reflection);
+        return new Toolset(reflection, buildAllocatorFactory(reflection), fieldAdapter);
     }
 
     private InstanceAllocatorFactory buildAllocatorFactory(Reflection reflection) {

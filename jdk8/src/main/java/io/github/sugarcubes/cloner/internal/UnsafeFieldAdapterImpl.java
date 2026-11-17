@@ -18,19 +18,35 @@ package io.github.sugarcubes.cloner.internal;
 import java.lang.reflect.Field;
 
 import io.github.sugarcubes.cloner.Checks;
-import sun.misc.Unsafe;
 
+/**
+ * Field adapter which uses {@link UnsafeBridge}: reads and writes fields by offset, without access checks.
+ *
+ * @author Maxim Butov
+ */
 public class UnsafeFieldAdapterImpl implements FieldAdapter {
 
-    public static FieldAdapterFactory getFactory(Unsafe unsafe) {
+    /**
+     * Returns factory of adapters which use the Unsafe bridge.
+     *
+     * @param unsafe Unsafe bridge
+     * @return field adapter factory
+     */
+    public static FieldAdapterFactory factory(UnsafeBridge unsafe) {
         return field -> new UnsafeFieldAdapterImpl(unsafe, field);
     }
 
-    private final Unsafe unsafe;
+    private final UnsafeBridge unsafe;
     private final Field field;
     private final long offset;
 
-    public UnsafeFieldAdapterImpl(Unsafe unsafe, Field field) {
+    /**
+     * Constructor.
+     *
+     * @param unsafe Unsafe bridge
+     * @param field field
+     */
+    public UnsafeFieldAdapterImpl(UnsafeBridge unsafe, Field field) {
         Checks.argNotNull(unsafe, "Unsafe");
         Checks.argNotNull(field, "Field");
         this.unsafe = unsafe;

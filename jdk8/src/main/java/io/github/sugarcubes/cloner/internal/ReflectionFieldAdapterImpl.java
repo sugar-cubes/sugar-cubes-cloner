@@ -20,14 +20,29 @@ import java.lang.reflect.Field;
 import io.github.sugarcubes.cloner.Checks;
 
 /**
- * todo
+ * Field adapter which uses {@link Field} methods. The field must be accessible.
+ *
+ * @author Maxim Butov
  */
 public class ReflectionFieldAdapterImpl implements FieldAdapter {
 
-    public static final FieldAdapterFactory FACTORY = ReflectionFieldAdapterImpl::new;
+    /**
+     * Returns factory of adapters for fields made accessible by the reflection.
+     *
+     * @param reflection reflection which makes fields accessible
+     * @return field adapter factory
+     */
+    public static FieldAdapterFactory factory(Reflection reflection) {
+        return field -> new ReflectionFieldAdapterImpl(reflection.makeAccessible(field));
+    }
 
     private final Field field;
 
+    /**
+     * Constructor.
+     *
+     * @param field accessible field
+     */
     public ReflectionFieldAdapterImpl(Field field) {
         Checks.argNotNull(field, "Field");
         this.field = field;
