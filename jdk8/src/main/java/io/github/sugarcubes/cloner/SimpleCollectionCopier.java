@@ -50,12 +50,32 @@ public class SimpleCollectionCopier<T extends Collection<Object>> extends TwoPha
     @Override
     public void deepCopy(T original, T clone, CopyContext context) throws Exception {
         Object[] array = original.toArray();
-        // elements are added in order when all of them are known, some may be copied later (reference cycles)
-        AtomicInteger unknown = new AtomicInteger(array.length + 1);
+        int[] pending = null;
+        int pendingCount = 0;
         for (int k = 0, length = array.length; k < length; k++) {
-            int index = k;
-            context.copy(array[k], element -> {
-                array[index] = element;
+            Object copy = context.copyNow(array[k]);
+            if (copy != CopyContext.PENDING) {
+                array[k] = copy;
+            }
+            else {
+                if (pending == null) {
+                    pending = new int[length];
+                }
+                pending[pendingCount++] = k;
+            }
+        }
+        if (pendingCount == 0) {
+            clone.addAll(Arrays.asList(array));
+            return;
+        }
+        // elements are added in order when all of them are known
+        AtomicInteger unknown = new AtomicInteger(pendingCount + 1);
+        for (int k = 0; k < pendingCount; k++) {
+            int index = pending[k];
+            Object element = array[index];
+            array[index] = null;
+            context.subscribe(element, later -> {
+                array[index] = later;
                 addAllIfKnown(clone, array, unknown);
             });
         }

@@ -74,8 +74,16 @@ public final class UnsafeFieldCopierFactory extends AbstractFieldCopierFactory {
             case ORIGINAL:
                 return (original, clone, context) -> unsafe.putObject(clone, offset, unsafe.getObject(original, offset));
             case DEFAULT:
-                return (original, clone, context) ->
-                    context.copy(unsafe.getObject(original, offset), value -> unsafe.putObject(clone, offset, value));
+                return (original, clone, context) -> {
+                    Object value = unsafe.getObject(original, offset);
+                    Object copy = context.copyNow(value);
+                    if (copy != CopyContext.PENDING) {
+                        unsafe.putObject(clone, offset, copy);
+                    }
+                    else {
+                        context.subscribe(value, later -> unsafe.putObject(clone, offset, later));
+                    }
+                };
             default:
                 throw Checks.mustNotHappen();
         }

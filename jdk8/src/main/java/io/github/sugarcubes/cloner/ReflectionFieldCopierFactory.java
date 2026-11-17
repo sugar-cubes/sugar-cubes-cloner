@@ -84,7 +84,16 @@ public final class ReflectionFieldCopierFactory extends AbstractFieldCopierFacto
             case ORIGINAL:
                 return (original, clone, context) -> field.set(clone, field.get(original));
             case DEFAULT:
-                return (original, clone, context) -> context.copy(field.get(original), value -> field.set(clone, value));
+                return (original, clone, context) -> {
+                    Object value = field.get(original);
+                    Object copy = context.copyNow(value);
+                    if (copy != CopyContext.PENDING) {
+                        field.set(clone, copy);
+                    }
+                    else {
+                        context.subscribe(value, later -> field.set(clone, later));
+                    }
+                };
             default:
                 throw Checks.mustNotHappen();
         }

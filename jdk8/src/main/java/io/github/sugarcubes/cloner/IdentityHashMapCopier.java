@@ -15,7 +15,10 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -32,33 +35,80 @@ public class IdentityHashMapCopier extends TwoPhaseObjectCopier<IdentityHashMap<
         return new IdentityHashMap<>(original.size());
     }
 
+    /**
+     * Entry whose key or value is copied later.
+     */
+    private static final class PendingEntry {
+
+        private final Object originalKey;
+
+        private final Object originalValue;
+
+        private Object key;
+
+        private Object value;
+
+        PendingEntry(Object originalKey, Object originalValue, Object key, Object value) {
+            this.originalKey = originalKey;
+            this.originalValue = originalValue;
+            this.key = key;
+            this.value = value;
+        }
+
+        int unknownCount() {
+            return (key == CopyContext.PENDING ? 1 : 0) + (value == CopyContext.PENDING ? 1 : 0);
+        }
+
+    }
+
     @Override
     public void deepCopy(IdentityHashMap<Object, Object> original, IdentityHashMap<Object, Object> clone, CopyContext context)
         throws Exception {
-        Object[] keys = original.keySet().toArray();
-        Object[] values = original.values().toArray();
-        // entries are put when all keys and values are known, some may be copied later (reference cycles)
-        AtomicInteger unknown = new AtomicInteger(keys.length + values.length + 1);
-        for (int k = 0; k < keys.length; k++) {
-            int index = k;
-            context.copy(keys[k], key -> {
-                keys[index] = key;
-                putAllIfKnown(clone, keys, values, unknown);
-            });
-            context.copy(values[k], value -> {
-                values[index] = value;
-                putAllIfKnown(clone, keys, values, unknown);
-            });
+        List<PendingEntry> pending = null;
+        for (Map.Entry<Object, Object> entry : original.entrySet()) {
+            Object key = context.copyNow(entry.getKey());
+            Object value = context.copyNow(entry.getValue());
+            if (key != CopyContext.PENDING && value != CopyContext.PENDING) {
+                clone.put(key, value);
+                continue;
+            }
+            if (pending == null) {
+                pending = new ArrayList<>();
+            }
+            pending.add(new PendingEntry(entry.getKey(), entry.getValue(), key, value));
         }
-        putAllIfKnown(clone, keys, values, unknown);
+        if (pending != null) {
+            putLater(clone, pending, context);
+        }
     }
 
-    private static void putAllIfKnown(IdentityHashMap<Object, Object> clone, Object[] keys, Object[] values,
+    /**
+     * Puts pending entries when all of them are known, after the loop of {@link #deepCopy} has finished.
+     */
+    private static void putLater(IdentityHashMap<Object, Object> clone, List<PendingEntry> pending, CopyContext context)
+        throws Exception {
+        AtomicInteger unknown = new AtomicInteger(pending.stream().mapToInt(PendingEntry::unknownCount).sum() + 1);
+        for (PendingEntry entry : pending) {
+            if (entry.key == CopyContext.PENDING) {
+                context.subscribe(entry.originalKey, later -> {
+                    entry.key = later;
+                    putAllIfKnown(clone, pending, unknown);
+                });
+            }
+            if (entry.value == CopyContext.PENDING) {
+                context.subscribe(entry.originalValue, later -> {
+                    entry.value = later;
+                    putAllIfKnown(clone, pending, unknown);
+                });
+            }
+        }
+        putAllIfKnown(clone, pending, unknown);
+    }
+
+    private static void putAllIfKnown(IdentityHashMap<Object, Object> clone, List<PendingEntry> pending,
         AtomicInteger unknown) {
         if (unknown.decrementAndGet() == 0) {
-            for (int k = 0; k < keys.length; k++) {
-                clone.put(keys[k], values[k]);
-            }
+            pending.forEach(entry -> clone.put(entry.key, entry.value));
         }
     }
 

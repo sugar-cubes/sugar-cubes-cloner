@@ -19,10 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
 
 /**
@@ -36,18 +32,14 @@ import java.util.function.Predicate;
  * single-phase copier, or another thread). Then it subscribes to that object's slot instead of waiting, and the
  * slot stays not completed until all such holes are filled.</p>
  *
+ * <p>The state machine is not synchronized; {@link SingleThreadCloneSlot} is used by single-thread contexts and for
+ * predefined clones, {@link ConcurrentCloneSlot} synchronizes it for the parallel context.</p>
+ *
  * @author Maxim Butov
  */
-final class CloneSlot {
+abstract class CloneSlot {
 
     private static final CloneSlot[] NO_SLOTS = {};
-
-    private final ReentrantLock lock = new ReentrantLock();
-
-    /**
-     * Signalled on every change of the state.
-     */
-    private final Condition changed = lock.newCondition();
 
     private Object clone;
 
@@ -55,7 +47,14 @@ final class CloneSlot {
 
     private boolean failed;
 
-    private Callable<?> secondPhase;
+    /**
+     * Original and copier of the second phase, set when the first phase is done.
+     */
+    private Object original;
+
+    private TwoPhaseObjectCopier<Object> copier;
+
+    private boolean claimable;
 
     private boolean secondPhaseDone;
 
@@ -67,12 +66,12 @@ final class CloneSlot {
     /**
      * Slots whose clones this slot waits for, one entry per hole.
      */
-    private volatile CloneSlot[] blockers = NO_SLOTS;
+    private CloneSlot[] blockers = NO_SLOTS;
 
     /**
      * Thread which creates or completes the clone, {@code null} if nobody does.
      */
-    private volatile Thread busyThread;
+    private Thread busyThread;
 
     /**
      * Subscription of a slot to the clone of another slot.
@@ -106,14 +105,33 @@ final class CloneSlot {
         this.completed = true;
     }
 
+    /**
+     * Notifies waiting threads about a change of the state.
+     */
+    protected abstract void signalChange();
+
+    /**
+     * Waits for a change of the state unless the slot is already ready, failed or claimable. The wait is limited,
+     * so the caller can check for a reference cycle again.
+     *
+     * @param ready readiness condition
+     * @param timeoutMillis maximal waiting time
+     * @throws InterruptedException if the current thread is interrupted
+     */
+    abstract void awaitChange(Predicate<CloneSlot> ready, long timeoutMillis) throws InterruptedException;
+
+    /**
+     * Tells whether waiting is needed. Must be called by {@link #awaitChange(Predicate, long)} implementations.
+     *
+     * @param ready readiness condition
+     * @return {@code true} if the slot is neither ready, nor failed, nor claimable
+     */
+    final boolean mustWait(Predicate<CloneSlot> ready) {
+        return !ready.test(this) && !failed && !claimable;
+    }
+
     Object getClone() {
-        lock.lock();
-        try {
-            return clone;
-        }
-        finally {
-            lock.unlock();
-        }
+        return clone;
     }
 
     boolean isCreated() {
@@ -121,38 +139,15 @@ final class CloneSlot {
     }
 
     boolean isCompleted() {
-        lock.lock();
-        try {
-            return completed;
-        }
-        finally {
-            lock.unlock();
-        }
+        return completed;
     }
 
     boolean isFailed() {
-        lock.lock();
-        try {
-            return failed;
-        }
-        finally {
-            lock.unlock();
-        }
+        return failed;
     }
 
-    /**
-     * Tells whether the second phase is waiting to be claimed.
-     *
-     * @return {@code true} if the second phase can be claimed
-     */
     boolean isClaimable() {
-        lock.lock();
-        try {
-            return secondPhase != null;
-        }
-        finally {
-            lock.unlock();
-        }
+        return claimable;
     }
 
     Thread getBusyThread() {
@@ -163,24 +158,12 @@ final class CloneSlot {
         return blockers;
     }
 
-    /**
-     * Waits for a change of the state unless the slot is already ready, failed or claimable. The wait is limited,
-     * so the caller can check for a reference cycle again.
-     *
-     * @param ready readiness condition
-     * @param timeoutMillis maximal waiting time
-     * @throws InterruptedException if the current thread is interrupted
-     */
-    void awaitChange(Predicate<CloneSlot> ready, long timeoutMillis) throws InterruptedException {
-        lock.lock();
-        try {
-            if (!ready.test(this) && !failed && secondPhase == null) {
-                changed.await(timeoutMillis, TimeUnit.MILLISECONDS);
-            }
-        }
-        finally {
-            lock.unlock();
-        }
+    Object getOriginal() {
+        return original;
+    }
+
+    TwoPhaseObjectCopier<Object> getCopier() {
+        return copier;
     }
 
     /**
@@ -189,17 +172,11 @@ final class CloneSlot {
      * @return {@code true} if the current thread must copy the object
      */
     boolean start() {
-        lock.lock();
-        try {
-            if (clone != null || failed || busyThread != null) {
-                return false;
-            }
-            busyThread = Thread.currentThread();
-            return true;
+        if (clone != null || failed || busyThread != null) {
+            return false;
         }
-        finally {
-            lock.unlock();
-        }
+        busyThread = Thread.currentThread();
+        return true;
     }
 
     /**
@@ -209,39 +186,30 @@ final class CloneSlot {
      * @return subscriptions to notify, or {@code null} if the clone is already registered
      */
     List<Subscription> register(Object clone) {
-        lock.lock();
-        try {
-            if (this.clone != null) {
-                return null;
-            }
-            this.clone = clone;
-            changed.signalAll();
-            return takeSubscriptions();
+        if (this.clone != null) {
+            return null;
         }
-        finally {
-            lock.unlock();
-        }
+        this.clone = clone;
+        signalChange();
+        return takeSubscriptions();
     }
 
     /**
-     * Registers the clone created by the first phase and the second phase which completes it.
+     * Registers the clone created by the first phase and the data of the second phase which completes it.
      *
+     * @param original original
      * @param clone clone
-     * @param secondPhase second phase
+     * @param copier copier which runs the second phase
      * @return subscriptions to notify
      */
-    List<Subscription> created(Object clone, Callable<?> secondPhase) {
-        lock.lock();
-        try {
-            this.clone = clone;
-            this.secondPhase = secondPhase;
-            this.busyThread = null;
-            changed.signalAll();
-            return takeSubscriptions();
-        }
-        finally {
-            lock.unlock();
-        }
+    List<Subscription> created(Object original, Object clone, TwoPhaseObjectCopier<Object> copier) {
+        this.original = original;
+        this.clone = clone;
+        this.copier = copier;
+        this.claimable = true;
+        this.busyThread = null;
+        signalChange();
+        return takeSubscriptions();
     }
 
     private List<Subscription> takeSubscriptions() {
@@ -258,73 +226,49 @@ final class CloneSlot {
      * @throws ClonerException if copying of the object has failed
      */
     Object subscribe(Subscription subscription) {
-        lock.lock();
-        try {
-            if (clone != null) {
-                return clone;
-            }
-            if (failed) {
-                throw new ClonerException("Copying of a referenced object failed.");
-            }
-            if (subscriptions == null) {
-                subscriptions = new ArrayList<>(1);
-            }
-            subscriptions.add(subscription);
-            return null;
+        if (clone != null) {
+            return clone;
         }
-        finally {
-            lock.unlock();
+        if (failed) {
+            throw new ClonerException("Copying of a referenced object failed.");
         }
+        if (subscriptions == null) {
+            subscriptions = new ArrayList<>(1);
+        }
+        subscriptions.add(subscription);
+        return null;
     }
 
     /**
      * Takes the second phase to run it in the current thread.
      *
-     * @return second phase or {@code null} if it is already taken or there is no second phase
+     * @return {@code true} if the second phase is taken by the current thread
      */
-    Callable<?> claimSecondPhase() {
-        lock.lock();
-        try {
-            Callable<?> task = secondPhase;
-            if (task != null) {
-                secondPhase = null;
-                busyThread = Thread.currentThread();
-            }
-            return task;
+    boolean claimSecondPhase() {
+        if (!claimable) {
+            return false;
         }
-        finally {
-            lock.unlock();
-        }
+        claimable = false;
+        busyThread = Thread.currentThread();
+        return true;
     }
 
     /**
      * Marks the clone of a single-phase copier completed.
      */
     void completed() {
-        lock.lock();
-        try {
-            completed = true;
-            busyThread = null;
-            changed.signalAll();
-        }
-        finally {
-            lock.unlock();
-        }
+        completed = true;
+        busyThread = null;
+        signalChange();
     }
 
     /**
      * Marks the second phase done; the clone is completed when all holes are filled.
      */
     void secondPhaseDone() {
-        lock.lock();
-        try {
-            secondPhaseDone = true;
-            busyThread = null;
-            completeIfNoHoles();
-        }
-        finally {
-            lock.unlock();
-        }
+        secondPhaseDone = true;
+        busyThread = null;
+        completeIfNoHoles();
     }
 
     /**
@@ -333,16 +277,10 @@ final class CloneSlot {
      * @param blocker slot whose clone is waited for
      */
     void addHole(CloneSlot blocker) {
-        lock.lock();
-        try {
-            CloneSlot[] current = blockers;
-            CloneSlot[] updated = Arrays.copyOf(current, current.length + 1);
-            updated[current.length] = blocker;
-            blockers = updated;
-        }
-        finally {
-            lock.unlock();
-        }
+        CloneSlot[] current = blockers;
+        CloneSlot[] updated = Arrays.copyOf(current, current.length + 1);
+        updated[current.length] = blocker;
+        blockers = updated;
     }
 
     /**
@@ -351,38 +289,25 @@ final class CloneSlot {
      * @param blocker slot whose clone has been set
      */
     void holeFilled(CloneSlot blocker) {
-        lock.lock();
-        try {
-            CloneSlot[] current = blockers;
-            List<CloneSlot> updated = new ArrayList<>(Arrays.asList(current));
-            updated.remove(blocker);
-            blockers = updated.toArray(NO_SLOTS);
-            completeIfNoHoles();
-        }
-        finally {
-            lock.unlock();
-        }
+        List<CloneSlot> updated = new ArrayList<>(Arrays.asList(blockers));
+        updated.remove(blocker);
+        blockers = updated.toArray(NO_SLOTS);
+        completeIfNoHoles();
     }
 
     private void completeIfNoHoles() {
         if (secondPhaseDone && blockers.length == 0) {
             completed = true;
         }
-        changed.signalAll();
+        signalChange();
     }
 
     /**
      * Marks the slot failed, e.g. because an object it waits for has failed.
      */
     void fail() {
-        lock.lock();
-        try {
-            failed = true;
-            changed.signalAll();
-        }
-        finally {
-            lock.unlock();
-        }
+        failed = true;
+        signalChange();
     }
 
     /**
@@ -392,23 +317,15 @@ final class CloneSlot {
      * @return subscriptions which will never get the clone, if the slot has failed
      */
     List<Subscription> release(boolean done) {
-        lock.lock();
-        try {
-            if (busyThread != Thread.currentThread()) {
-                return Collections.emptyList();
-            }
-            busyThread = null;
-            if (done) {
-                changed.signalAll();
-                return Collections.emptyList();
-            }
+        if (busyThread != Thread.currentThread()) {
+            return Collections.emptyList();
+        }
+        busyThread = null;
+        if (!done) {
             failed = true;
-            changed.signalAll();
-            return takeSubscriptions();
         }
-        finally {
-            lock.unlock();
-        }
+        signalChange();
+        return done ? Collections.emptyList() : takeSubscriptions();
     }
 
 }
