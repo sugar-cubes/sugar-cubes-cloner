@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import io.github.sugarcubes.cloner.other.HiddenRecords;
+
 /**
  * Canonical constructor of a record gets completely copied components.
  */
@@ -168,6 +170,19 @@ class RecordComponentsTest {
 
         Assertions.assertTimeoutPreemptively(TIMEOUT,
             () -> Assertions.assertThrows(ClonerException.class, () -> cloner(CloningMode.PARALLEL).clone(original)));
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
+    void recordNotAccessibleFromCloner(CloningMode mode) {
+        Object original = HiddenRecords.hidden("a", new ArrayList<>(List.of("b")));
+
+        Object clone = cloner(mode).clone(original);
+
+        Assertions.assertNotSame(original, clone);
+        Assertions.assertEquals("a", HiddenRecords.name(clone));
+        Assertions.assertEquals(List.of("b"), HiddenRecords.items(clone));
+        Assertions.assertNotSame(HiddenRecords.items(original), HiddenRecords.items(clone));
     }
 
     private static List<List<Object>> branches(Object shared) {

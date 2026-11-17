@@ -157,7 +157,13 @@ public class ReflectionCopierProvider implements CopierProvider {
             return ObjectCopier.COPYABLE;
         }
         ObjectCopier<?> copier = JdkConfigurationHolder.CONFIGURATION.getCopier(type);
-        return copier != null ? copier : findFieldsCopier(type, shallows.contains(type));
+        if (copier != null) {
+            return copier;
+        }
+        boolean shallow = shallows.contains(type);
+        return toolset.valuesModel(type)
+            .<ObjectCopier<?>>map(model -> new ValuesCopier<>(model, shallow))
+            .orElseGet(() -> findFieldsCopier(type, shallow));
     }
 
     /**
