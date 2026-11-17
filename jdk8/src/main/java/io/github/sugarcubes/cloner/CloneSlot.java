@@ -41,37 +41,52 @@ abstract class CloneSlot {
 
     private static final CloneSlot[] NO_SLOTS = {};
 
+    private static final int COMPLETED = 1;
+
+    private static final int FAILED = 2;
+
+    /**
+     * The second phase is waiting to be claimed.
+     */
+    private static final int CLAIMABLE = 4;
+
+    private static final int SECOND_PHASE_DONE = 8;
+
     private Object clone;
 
-    private boolean completed;
-
-    private boolean failed;
-
-    /**
-     * Original and copier of the second phase, set when the first phase is done.
-     */
-    private Object original;
-
-    private TwoPhaseObjectCopier<Object> copier;
-
-    private boolean claimable;
-
-    private boolean secondPhaseDone;
-
-    /**
-     * Subscriptions of other slots waiting for the clone of this slot.
-     */
-    private List<Subscription> subscriptions;
-
-    /**
-     * Slots whose clones this slot waits for, one entry per hole.
-     */
-    private CloneSlot[] blockers = NO_SLOTS;
+    private int state;
 
     /**
      * Thread which creates or completes the clone, {@code null} if nobody does.
      */
     private Thread busyThread;
+
+    /**
+     * Copier of the second phase, set when the first phase is done.
+     */
+    private TwoPhaseObjectCopier<Object> copier;
+
+    /**
+     * Data needed only for reference cycles and waiting, created on demand to keep slots small.
+     */
+    private Rare rare;
+
+    /**
+     * Rarely needed data of a slot.
+     */
+    private static final class Rare {
+
+        /**
+         * Subscriptions of other slots waiting for the clone of this slot.
+         */
+        private List<Subscription> subscriptions;
+
+        /**
+         * Slots whose clones this slot waits for, one entry per hole.
+         */
+        private CloneSlot[] blockers = NO_SLOTS;
+
+    }
 
     /**
      * Subscription of a slot to the clone of another slot.
@@ -102,7 +117,7 @@ abstract class CloneSlot {
      */
     CloneSlot(Object clone) {
         this.clone = clone;
-        this.completed = true;
+        this.state = COMPLETED;
     }
 
     /**
@@ -127,7 +142,18 @@ abstract class CloneSlot {
      * @return {@code true} if the slot is neither ready, nor failed, nor claimable
      */
     final boolean mustWait(Predicate<CloneSlot> ready) {
-        return !ready.test(this) && !failed && !claimable;
+        return !ready.test(this) && !is(FAILED) && !is(CLAIMABLE);
+    }
+
+    private boolean is(int flag) {
+        return (state & flag) != 0;
+    }
+
+    private Rare rare() {
+        if (rare == null) {
+            rare = new Rare();
+        }
+        return rare;
     }
 
     Object getClone() {
@@ -139,15 +165,15 @@ abstract class CloneSlot {
     }
 
     boolean isCompleted() {
-        return completed;
+        return is(COMPLETED);
     }
 
     boolean isFailed() {
-        return failed;
+        return is(FAILED);
     }
 
     boolean isClaimable() {
-        return claimable;
+        return is(CLAIMABLE);
     }
 
     Thread getBusyThread() {
@@ -155,11 +181,7 @@ abstract class CloneSlot {
     }
 
     CloneSlot[] getBlockers() {
-        return blockers;
-    }
-
-    Object getOriginal() {
-        return original;
+        return rare != null ? rare.blockers : NO_SLOTS;
     }
 
     TwoPhaseObjectCopier<Object> getCopier() {
@@ -172,7 +194,7 @@ abstract class CloneSlot {
      * @return {@code true} if the current thread must copy the object
      */
     boolean start() {
-        if (clone != null || failed || busyThread != null) {
+        if (clone != null || is(FAILED) || busyThread != null) {
             return false;
         }
         busyThread = Thread.currentThread();
@@ -195,26 +217,27 @@ abstract class CloneSlot {
     }
 
     /**
-     * Registers the clone created by the first phase and the data of the second phase which completes it.
+     * Registers the clone created by the first phase and the copier of the second phase which completes it.
      *
-     * @param original original
      * @param clone clone
      * @param copier copier which runs the second phase
      * @return subscriptions to notify
      */
-    List<Subscription> created(Object original, Object clone, TwoPhaseObjectCopier<Object> copier) {
-        this.original = original;
+    List<Subscription> created(Object clone, TwoPhaseObjectCopier<Object> copier) {
         this.clone = clone;
         this.copier = copier;
-        this.claimable = true;
+        this.state |= CLAIMABLE;
         this.busyThread = null;
         signalChange();
         return takeSubscriptions();
     }
 
     private List<Subscription> takeSubscriptions() {
-        List<Subscription> taken = subscriptions != null ? subscriptions : Collections.emptyList();
-        subscriptions = null;
+        if (rare == null || rare.subscriptions == null) {
+            return Collections.emptyList();
+        }
+        List<Subscription> taken = rare.subscriptions;
+        rare.subscriptions = null;
         return taken;
     }
 
@@ -229,13 +252,14 @@ abstract class CloneSlot {
         if (clone != null) {
             return clone;
         }
-        if (failed) {
+        if (is(FAILED)) {
             throw new ClonerException("Copying of a referenced object failed.");
         }
-        if (subscriptions == null) {
-            subscriptions = new ArrayList<>(1);
+        Rare rare = rare();
+        if (rare.subscriptions == null) {
+            rare.subscriptions = new ArrayList<>(1);
         }
-        subscriptions.add(subscription);
+        rare.subscriptions.add(subscription);
         return null;
     }
 
@@ -245,10 +269,10 @@ abstract class CloneSlot {
      * @return {@code true} if the second phase is taken by the current thread
      */
     boolean claimSecondPhase() {
-        if (!claimable) {
+        if (!is(CLAIMABLE)) {
             return false;
         }
-        claimable = false;
+        state &= ~CLAIMABLE;
         busyThread = Thread.currentThread();
         return true;
     }
@@ -257,7 +281,7 @@ abstract class CloneSlot {
      * Marks the clone of a single-phase copier completed.
      */
     void completed() {
-        completed = true;
+        state |= COMPLETED;
         busyThread = null;
         signalChange();
     }
@@ -266,7 +290,7 @@ abstract class CloneSlot {
      * Marks the second phase done; the clone is completed when all holes are filled.
      */
     void secondPhaseDone() {
-        secondPhaseDone = true;
+        state |= SECOND_PHASE_DONE;
         busyThread = null;
         completeIfNoHoles();
     }
@@ -277,10 +301,11 @@ abstract class CloneSlot {
      * @param blocker slot whose clone is waited for
      */
     void addHole(CloneSlot blocker) {
-        CloneSlot[] current = blockers;
+        Rare rare = rare();
+        CloneSlot[] current = rare.blockers;
         CloneSlot[] updated = Arrays.copyOf(current, current.length + 1);
         updated[current.length] = blocker;
-        blockers = updated;
+        rare.blockers = updated;
     }
 
     /**
@@ -289,15 +314,15 @@ abstract class CloneSlot {
      * @param blocker slot whose clone has been set
      */
     void holeFilled(CloneSlot blocker) {
-        List<CloneSlot> updated = new ArrayList<>(Arrays.asList(blockers));
+        List<CloneSlot> updated = new ArrayList<>(Arrays.asList(rare.blockers));
         updated.remove(blocker);
-        blockers = updated.toArray(NO_SLOTS);
+        rare.blockers = updated.toArray(NO_SLOTS);
         completeIfNoHoles();
     }
 
     private void completeIfNoHoles() {
-        if (secondPhaseDone && blockers.length == 0) {
-            completed = true;
+        if (is(SECOND_PHASE_DONE) && getBlockers().length == 0) {
+            state |= COMPLETED;
         }
         signalChange();
     }
@@ -306,7 +331,7 @@ abstract class CloneSlot {
      * Marks the slot failed, e.g. because an object it waits for has failed.
      */
     void fail() {
-        failed = true;
+        state |= FAILED;
         signalChange();
     }
 
@@ -322,7 +347,7 @@ abstract class CloneSlot {
         }
         busyThread = null;
         if (!done) {
-            failed = true;
+            state |= FAILED;
         }
         signalChange();
         return done ? Collections.emptyList() : takeSubscriptions();
