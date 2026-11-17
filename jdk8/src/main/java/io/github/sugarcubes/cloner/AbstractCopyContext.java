@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -53,6 +54,12 @@ public abstract class AbstractCopyContext implements CopyContext {
      * Copying states of the original objects.
      */
     private final Map<IdentityReference<Object>, CloneSlot> clones;
+
+    /**
+     * Creates slots for {@link Map#computeIfAbsent}; kept in a field, a lambda capturing {@code this} would be
+     * allocated for every copied object.
+     */
+    private final Function<IdentityReference<Object>, CloneSlot> slotFactory = key -> newSlot();
 
     /**
      * Slots which threads are waiting for, created on the first wait.
@@ -144,7 +151,7 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (copier == ObjectCopier.NULL) {
             return null;
         }
-        CloneSlot slot = clones.computeIfAbsent(new IdentityReference<>(original), key -> newSlot());
+        CloneSlot slot = clones.computeIfAbsent(new IdentityReference<>(original), slotFactory);
         Object existing = slot.getClone();
         if (existing != null) {
             return existing;
@@ -207,7 +214,7 @@ public abstract class AbstractCopyContext implements CopyContext {
      */
     @SuppressWarnings("unchecked")
     protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
-        CloneSlot slot = clones.computeIfAbsent(new IdentityReference<>(original), key -> newSlot());
+        CloneSlot slot = clones.computeIfAbsent(new IdentityReference<>(original), slotFactory);
         Object existing = slot.getClone();
         if (existing != null) {
             return (T) existing;
@@ -288,6 +295,9 @@ public abstract class AbstractCopyContext implements CopyContext {
      */
     private static void notifySubscriptions(CloneSlot slot, Object clone, List<CloneSlot.Subscription> subscriptions)
         throws Exception {
+        if (subscriptions.isEmpty()) {
+            return;
+        }
         int notified = 0;
         try {
             for (CloneSlot.Subscription subscription : subscriptions) {
