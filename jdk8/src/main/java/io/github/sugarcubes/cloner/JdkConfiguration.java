@@ -18,7 +18,8 @@ package io.github.sugarcubes.cloner;
 import java.util.Set;
 
 /**
- * Interface for obtaining specific classes/objects from JDK implementation.
+ * Facts about the JDK implementation: immutable types, cloneable types, system-wide singletons. Decisions how to copy
+ * them are made by the cloner.
  *
  * @author Maxim Butov
  */
@@ -50,20 +51,5 @@ public interface JdkConfiguration {
      * @return system-wide JDK singletons
      */
     Set<Object> getSystemWideSingletons();
-
-    /**
-     * Returns custom copier for type.
-     *
-     * @param type type
-     * @return custom copier
-     */
-    ObjectCopier<?> getCopier(Class<?> type);
-
-    /**
-     * Tries to make class accessible from cloner.
-     *
-     * @param type type to make accessible
-     */
-    void makeAccessible(Class<?> type);
 
 }

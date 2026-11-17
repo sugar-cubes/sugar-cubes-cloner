@@ -21,6 +21,7 @@ import io.github.sugarcubes.cloner.internal.ContainerModel;
 import io.github.sugarcubes.cloner.internal.ContainerModels;
 import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.internal.FieldsModel;
+import io.github.sugarcubes.cloner.internal.HiddenClasses;
 import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.Reflection;
 import io.github.sugarcubes.cloner.internal.ValuesModel;
@@ -49,6 +50,7 @@ public class Toolset {
     private final FieldAdapterFactory fieldAdapterFactory;
     private final ValuesModelProvider valuesModels = new ValuesModelProvider();
     private final ContainerModels containerModels;
+    private final HiddenClasses hiddenClasses = new HiddenClasses();
 
     /**
      * Constructor.
@@ -89,6 +91,17 @@ public class Toolset {
      */
     public FieldAdapterFactory getFieldAdapterFactory() {
         return fieldAdapterFactory;
+    }
+
+    /**
+     * Tells whether the class is hidden (a hidden class on JDK 15+ or a lambda class): it has no model, its instances
+     * cannot be allocated by name and their final fields are not writable.
+     *
+     * @param type class
+     * @return {@code true} if the class is hidden
+     */
+    public boolean isHidden(Class<?> type) {
+        return hiddenClasses.isHidden(type);
     }
 
     /**
