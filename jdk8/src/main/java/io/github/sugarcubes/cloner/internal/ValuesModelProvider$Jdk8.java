@@ -13,11 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.internal;
+
+import java.util.Optional;
 
 /**
- * Actual JDK configuration.
+ * Finds {@link ValuesModel} of a type on JDK 8, which has no records.
+ *
+ * @author Maxim Butov
  */
-final class JdkConfigurationImpl extends JdkConfigurationImpl$Jdk16 {
+class ValuesModelProvider$Jdk8 {
+
+    /**
+     * Returns the values model of the type.
+     *
+     * @param <T> type
+     * @param type type
+     * @param reflection reflection to access members of the type
+     * @return model or empty if instances of the type are not created from values
+     */
+    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
+        return Optional.empty();
+    }
 
 }

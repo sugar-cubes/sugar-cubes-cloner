@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.other;
+
+import java.util.List;
 
 /**
- * Implementation of {@link JdkConfiguration} for JDK 16+.
- *
- * @author Maxim Butov
+ * Records which are not accessible from the cloner package.
  */
-class JdkConfigurationImpl$Jdk16 extends JdkConfigurationImpl$Jdk15 {
+public final class HiddenRecords {
 
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public ObjectCopier<?> getCopier(Class<?> type) {
-        return type.isRecord() ? new RecordCopier(type) : super.getCopier(type);
+    record Hidden(String name, List<String> items) {
+    }
+
+    public static Object hidden(String name, List<String> items) {
+        return new Hidden(name, items);
+    }
+
+    public static String name(Object hidden) {
+        return ((Hidden) hidden).name();
+    }
+
+    public static List<String> items(Object hidden) {
+        return ((Hidden) hidden).items();
+    }
+
+    private HiddenRecords() {
     }
 
 }

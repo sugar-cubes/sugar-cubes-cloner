@@ -15,10 +15,14 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.util.Optional;
+
 import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.internal.FieldsModel;
 import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.Reflection;
+import io.github.sugarcubes.cloner.internal.ValuesModel;
+import io.github.sugarcubes.cloner.internal.ValuesModelProvider;
 
 /**
  * Low-level tools of the reflection cloner: reflection, instance allocator and field adapters. The cloner asks them
@@ -41,6 +45,7 @@ public class Toolset {
     private final Reflection reflection;
     private final InstanceAllocatorFactory allocatorFactory;
     private final FieldAdapterFactory fieldAdapterFactory;
+    private final ValuesModelProvider valuesModels = new ValuesModelProvider();
 
     /**
      * Constructor.
@@ -91,6 +96,17 @@ public class Toolset {
      */
     public <T> FieldsModel<T> fieldsModel(Class<T> type) {
         return new FieldsModel<>(type, reflection, allocatorFactory, fieldAdapterFactory);
+    }
+
+    /**
+     * Creates the low-level model of a type whose instances are created from the values of their components.
+     *
+     * @param <T> type
+     * @param type type
+     * @return model of the type, or empty if the type is not such (e.g. not a record)
+     */
+    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type) {
+        return valuesModels.valuesModel(type, reflection);
     }
 
 }
