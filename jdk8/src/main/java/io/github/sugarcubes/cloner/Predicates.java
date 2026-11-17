@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import io.github.sugarcubes.cloner.engine.PredicatePolicy;
 import io.github.sugarcubes.cloner.util.Checks;
 
 /**
