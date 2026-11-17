@@ -17,7 +17,7 @@ package io.github.sugarcubes.cloner;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.github.sugarcubes.cloner.internal.ContainerModel;
+import io.github.sugarcubes.cloner.spi.ContainerModel;
 
 /**
  * Copier of collections and maps which do not hash their keys. Gets from the low-level {@link ContainerModel} how to

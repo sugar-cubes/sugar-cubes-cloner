@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner.internal;
 
 import io.github.sugarcubes.cloner.ClonerException;
+import io.github.sugarcubes.cloner.spi.Reflection;
 
 /**
  * Creates {@link UnsafeBridge} for JDK 9+: prefers {@link jdk.internal.misc.Unsafe} and falls back to

@@ -20,6 +20,8 @@ import java.util.Optional;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
+import io.github.sugarcubes.cloner.spi.InstanceAllocator;
+import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 
 /**

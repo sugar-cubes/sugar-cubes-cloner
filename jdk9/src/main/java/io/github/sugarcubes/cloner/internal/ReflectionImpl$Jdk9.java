@@ -20,6 +20,7 @@ import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Member;
 
 import io.github.sugarcubes.cloner.ClonerException;
+import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 /**
  * Reflection for JDK 9+: before making a member accessible opens its package to the cloner.

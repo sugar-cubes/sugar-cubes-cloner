@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.internal;
+package io.github.sugarcubes.cloner.spi;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;

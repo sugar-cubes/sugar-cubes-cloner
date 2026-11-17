@@ -20,13 +20,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
-import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.Reflection;
 import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
 import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
+import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.util.Checks;
 
 /**

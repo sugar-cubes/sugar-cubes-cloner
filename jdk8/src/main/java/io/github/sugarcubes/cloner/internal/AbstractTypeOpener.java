@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 public abstract class AbstractTypeOpener implements TypeOpener {

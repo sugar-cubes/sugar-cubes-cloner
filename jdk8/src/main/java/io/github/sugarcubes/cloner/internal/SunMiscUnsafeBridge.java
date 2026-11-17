@@ -17,6 +17,7 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
+import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import sun.misc.Unsafe;
 

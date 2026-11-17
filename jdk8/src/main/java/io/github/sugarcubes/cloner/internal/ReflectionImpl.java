@@ -15,6 +15,8 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
+import io.github.sugarcubes.cloner.spi.TypeOpener;
+
 public class ReflectionImpl extends ReflectionImpl$Jdk8 {
 
     public ReflectionImpl(TypeOpener opener) {

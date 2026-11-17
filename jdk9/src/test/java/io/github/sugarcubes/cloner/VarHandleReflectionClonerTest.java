@@ -17,8 +17,8 @@ package io.github.sugarcubes.cloner;
 
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl;
-import io.github.sugarcubes.cloner.internal.TypeOpener;
 import io.github.sugarcubes.cloner.internal.VarHandleFieldAdapterImpl;
+import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 class VarHandleReflectionClonerTest extends AbstractClonerTests {
 

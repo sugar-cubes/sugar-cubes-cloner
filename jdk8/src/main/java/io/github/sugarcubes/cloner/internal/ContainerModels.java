@@ -37,6 +37,8 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 
 import io.github.sugarcubes.cloner.ClonerException;
+import io.github.sugarcubes.cloner.spi.ContainerModel;
+import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**

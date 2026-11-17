@@ -15,6 +15,8 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
+import io.github.sugarcubes.cloner.spi.Reflection;
+
 /**
  * Creates {@link UnsafeBridge} for JDK 8.
  *

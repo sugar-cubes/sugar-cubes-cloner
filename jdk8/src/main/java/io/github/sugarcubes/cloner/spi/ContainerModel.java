@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.internal;
+package io.github.sugarcubes.cloner.spi;
 
 /**
  * Low-level model of a container: a collection or a map. Knows how to create an empty container of the same kind, to

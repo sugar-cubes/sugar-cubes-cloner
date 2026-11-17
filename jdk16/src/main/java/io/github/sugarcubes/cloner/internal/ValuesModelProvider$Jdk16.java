@@ -17,6 +17,9 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.util.Optional;
 
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
+
 /**
  * Finds {@link ValuesModel} of a type on JDK 16+: records are created from the values of their components.
  *

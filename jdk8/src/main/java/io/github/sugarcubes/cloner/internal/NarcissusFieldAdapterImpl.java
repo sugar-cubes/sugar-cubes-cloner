@@ -17,6 +17,8 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
+import io.github.sugarcubes.cloner.spi.FieldAdapter;
+import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.toolfactory.narcissus.Narcissus;
 
 public class NarcissusFieldAdapterImpl implements FieldAdapter {
