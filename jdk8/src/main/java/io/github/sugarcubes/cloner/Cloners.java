@@ -15,6 +15,8 @@
  */
 package io.github.sugarcubes.cloner;
 
+import io.github.sugarcubes.cloner.engine.SerializationCloner;
+
 /**
  * Factory for creating different {@link Cloner}s.
  *

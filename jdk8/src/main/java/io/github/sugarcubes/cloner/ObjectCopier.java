@@ -15,6 +15,10 @@
  */
 package io.github.sugarcubes.cloner;
 
+import io.github.sugarcubes.cloner.engine.CloneableCopier;
+import io.github.sugarcubes.cloner.engine.CopyableCopier;
+import io.github.sugarcubes.cloner.engine.ObjectArrayCopier;
+
 /**
  * Copier for the specific object type.
  *
