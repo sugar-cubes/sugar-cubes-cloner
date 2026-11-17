@@ -47,6 +47,11 @@ public class ParallelCopyContext extends AbstractCopyContext {
     private volatile boolean running = true;
 
     /**
+     * Slot whose second phase the thread is running.
+     */
+    private final ThreadLocal<CloneSlot> owner = new ThreadLocal<>();
+
+    /**
      * Creates an instance.
      *
      * @param copierProvider copier provider
@@ -56,6 +61,26 @@ public class ParallelCopyContext extends AbstractCopyContext {
     public ParallelCopyContext(CopierProvider copierProvider, Map<Object, Object> clones, ExecutorService executor) {
         super(copierProvider, ConcurrentHashMap::new, clones);
         this.executor = executor;
+    }
+
+    @Override
+    CloneSlot newSlot() {
+        return new ConcurrentCloneSlot();
+    }
+
+    @Override
+    CloneSlot getOwner() {
+        return owner.get();
+    }
+
+    @Override
+    void setOwner(CloneSlot owner) {
+        if (owner != null) {
+            this.owner.set(owner);
+        }
+        else {
+            this.owner.remove();
+        }
     }
 
     @Override

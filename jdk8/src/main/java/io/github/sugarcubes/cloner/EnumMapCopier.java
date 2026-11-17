@@ -15,10 +15,8 @@
  */
 package io.github.sugarcubes.cloner;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
 /**
  * Copier for {@link EnumMap}.
@@ -29,34 +27,23 @@ public class EnumMapCopier<K extends Enum<K>, V> extends TwoPhaseObjectCopier<En
 
     @Override
     public EnumMap<K, V> allocate(EnumMap<K, V> original) throws Exception {
-        // keeps the key type, values are put by the second phase
-        EnumMap<K, V> clone = original.clone();
-        clone.clear();
-        return clone;
+        return original.clone();
     }
 
     @Override
-    public void deepCopy(EnumMap<K, V> original, EnumMap<K, V> clone, CopyContext context) throws Exception {
-        List<K> keys = new ArrayList<>(original.keySet());
-        Object[] values = original.values().toArray();
-        // values are put when all of them are known, some may be copied later (reference cycles)
-        AtomicInteger unknown = new AtomicInteger(values.length + 1);
-        for (int k = 0; k < values.length; k++) {
-            int index = k;
-            context.copy(values[k], value -> {
-                values[index] = value;
-                putAllIfKnown(clone, keys, values, unknown);
-            });
-        }
-        putAllIfKnown(clone, keys, values, unknown);
-    }
-
     @SuppressWarnings("unchecked")
-    private static <K extends Enum<K>, V> void putAllIfKnown(EnumMap<K, V> clone, List<K> keys, Object[] values,
-        AtomicInteger unknown) {
-        if (unknown.decrementAndGet() == 0) {
-            for (int k = 0; k < values.length; k++) {
-                clone.put(keys.get(k), (V) values[k]);
+    public void deepCopy(EnumMap<K, V> original, EnumMap<K, V> clone, CopyContext context) throws Exception {
+        for (Map.Entry<K, V> entry : clone.entrySet()) {
+            V value = entry.getValue();
+            Object copy = context.copyNow(value);
+            if (copy != CopyContext.PENDING) {
+                entry.setValue((V) copy);
+            }
+            else {
+                // keys are present, so later puts do not change the structure of the map
+                K key = entry.getKey();
+                entry.setValue(null);
+                context.subscribe(value, later -> clone.put(key, later));
             }
         }
     }

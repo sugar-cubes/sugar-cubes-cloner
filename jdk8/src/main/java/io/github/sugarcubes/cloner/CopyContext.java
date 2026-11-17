@@ -63,17 +63,58 @@ public interface CopyContext {
     <T> T copy(T original) throws Exception;
 
     /**
-     * Copies the object and passes the clone to the setter: immediately if the clone exists or can be created now,
-     * or later, when the clone of the object being created right now (a reference cycle through a single-phase
-     * copier, or another thread) is registered. Until then the object copied by the current second phase is not
-     * complete. Outside a second phase of a two-phase copier works as {@link #copy(Object)}.
+     * Marker returned by {@link #copyNow(Object)} when the clone cannot be got now.
+     */
+    Object PENDING = new Object() {
+        @Override
+        public String toString() {
+            return "PENDING";
+        }
+    };
+
+    /**
+     * Copies the object if its clone exists or can be created now. Returns {@link #PENDING} if the object is being
+     * created right now (a reference cycle through a single-phase copier, or another thread); then the caller
+     * {@link #subscribe(Object, CloneSetter) subscribes} to the clone. Outside a second phase of a two-phase copier
+     * works as {@link #copy(Object)} and never returns {@link #PENDING}.
+     *
+     * @param original original
+     * @return clone or {@link #PENDING}
+     * @throws Exception if something went wrong
+     */
+    Object copyNow(Object original) throws Exception;
+
+    /**
+     * Passes the clone of the object to the setter when it is registered, see {@link #copyNow(Object)}. Until then the
+     * object copied by the current second phase is not complete. If the clone is already available, the setter is
+     * called at once.
      *
      * @param <T> object type
      * @param original original
      * @param setter receiver of the clone
      * @throws Exception if something went wrong
      */
-    <T> void copy(T original, CloneSetter<? super T> setter) throws Exception;
+    <T> void subscribe(T original, CloneSetter<? super T> setter) throws Exception;
+
+    /**
+     * Copies the object and passes the clone to the setter, now or later, see {@link #copyNow(Object)}. Convenient,
+     * but allocates the setter for every call, copiers on hot paths should use {@link #copyNow(Object)}.
+     *
+     * @param <T> object type
+     * @param original original
+     * @param setter receiver of the clone
+     * @throws Exception if something went wrong
+     */
+    @SuppressWarnings("unchecked")
+    default <T> void copy(T original, CloneSetter<? super T> setter) throws Exception {
+        Object clone = copyNow(original);
+        if (clone != PENDING) {
+            setter.set((T) clone);
+        }
+        else {
+            subscribe(original, setter);
+        }
+    }
 
     /**
      * Returns the copy of the object with its own state already copied (for a two-phase copier the second phase is

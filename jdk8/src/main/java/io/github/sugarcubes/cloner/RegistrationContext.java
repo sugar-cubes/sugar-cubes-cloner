@@ -76,8 +76,13 @@ public final class RegistrationContext implements CopyContext {
     }
 
     @Override
-    public <T> void copy(T original, CloneSetter<? super T> setter) throws Exception {
-        context.copy(original, setter);
+    public Object copyNow(Object original) throws Exception {
+        return context.copyNow(original);
+    }
+
+    @Override
+    public <T> void subscribe(T original, CloneSetter<? super T> setter) throws Exception {
+        context.subscribe(original, setter);
     }
 
     @Override

@@ -26,6 +26,11 @@ import java.util.Map;
 public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContext {
 
     /**
+     * Slot whose second phase is running.
+     */
+    private CloneSlot owner;
+
+    /**
      * Creates context with specified copier provider and predefined cloned objects.
      *
      * @param copierProvider copier provider
@@ -33,6 +38,21 @@ public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContex
      */
     public AbstractSingleThreadCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
         super(copierProvider, HashMap::new, clones);
+    }
+
+    @Override
+    CloneSlot newSlot() {
+        return new SingleThreadCloneSlot();
+    }
+
+    @Override
+    CloneSlot getOwner() {
+        return owner;
+    }
+
+    @Override
+    void setOwner(CloneSlot owner) {
+        this.owner = owner;
     }
 
 }

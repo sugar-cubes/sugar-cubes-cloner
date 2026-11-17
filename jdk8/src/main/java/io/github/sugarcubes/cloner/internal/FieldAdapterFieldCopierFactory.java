@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import io.github.sugarcubes.cloner.AbstractFieldCopierFactory;
 import io.github.sugarcubes.cloner.Checks;
 import io.github.sugarcubes.cloner.CopyAction;
+import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.FieldCopier;
 
 public class FieldAdapterFieldCopierFactory extends AbstractFieldCopierFactory {
@@ -67,8 +68,16 @@ public class FieldAdapterFieldCopierFactory extends AbstractFieldCopierFactory {
             case ORIGINAL:
                 return (original, clone, context) -> fieldAdapter.setObject(clone, fieldAdapter.getObject(original));
             case DEFAULT:
-                return (original, clone, context) ->
-                    context.copy(fieldAdapter.getObject(original), value -> fieldAdapter.setObject(clone, value));
+                return (original, clone, context) -> {
+                    Object value = fieldAdapter.getObject(original);
+                    Object copy = context.copyNow(value);
+                    if (copy != CopyContext.PENDING) {
+                        fieldAdapter.setObject(clone, copy);
+                    }
+                    else {
+                        context.subscribe(value, later -> fieldAdapter.setObject(clone, later));
+                    }
+                };
             default:
                 throw Checks.mustNotHappen();
         }
