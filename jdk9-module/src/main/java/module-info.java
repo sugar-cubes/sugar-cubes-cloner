@@ -23,6 +23,7 @@
 module io.github.sugarcubes.cloner {
 
     exports io.github.sugarcubes.cloner;
+    exports io.github.sugarcubes.cloner.spi;
 
     requires static java.instrument;
     requires static jdk.unsupported;

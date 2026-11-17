@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import io.github.sugarcubes.cloner.spi.InstanceAllocator;
+import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.ConcurrentLazyCache;
 

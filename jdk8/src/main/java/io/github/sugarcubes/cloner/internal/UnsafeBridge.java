@@ -17,6 +17,8 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
+import io.github.sugarcubes.cloner.spi.Reflection;
+
 /**
  * Bridge to Java Unsafe implementation: {@code jdk.internal.misc.Unsafe} on JDK 9+ if it is exported to the
  * cloner, {@link sun.misc.Unsafe} otherwise.

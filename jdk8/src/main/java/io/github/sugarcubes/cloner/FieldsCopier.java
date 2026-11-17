@@ -19,9 +19,9 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Objects;
 
-import io.github.sugarcubes.cloner.internal.FieldAdapter;
-import io.github.sugarcubes.cloner.internal.FieldsModel;
-import io.github.sugarcubes.cloner.internal.InstanceAllocator;
+import io.github.sugarcubes.cloner.spi.FieldAdapter;
+import io.github.sugarcubes.cloner.spi.FieldsModel;
+import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.util.Checks;
 
 /**

@@ -22,6 +22,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import io.github.sugarcubes.cloner.spi.Reflection;
 import static io.github.sugarcubes.cloner.util.ClonerExceptionUtils.replaceException;
 
 public abstract class AbstractReflection implements Reflection {

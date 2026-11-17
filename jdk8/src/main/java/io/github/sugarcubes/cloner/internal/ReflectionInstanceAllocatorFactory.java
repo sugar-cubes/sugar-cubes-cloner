@@ -17,6 +17,9 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.util.Optional;
 
+import io.github.sugarcubes.cloner.spi.InstanceAllocator;
+import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 
 /**

@@ -22,6 +22,8 @@ import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 
 import io.github.sugarcubes.cloner.ClonerException;
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**

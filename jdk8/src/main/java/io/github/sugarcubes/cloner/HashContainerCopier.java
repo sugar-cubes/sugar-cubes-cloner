@@ -17,7 +17,7 @@ package io.github.sugarcubes.cloner;
 
 import java.util.Set;
 
-import io.github.sugarcubes.cloner.internal.ContainerModel;
+import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**

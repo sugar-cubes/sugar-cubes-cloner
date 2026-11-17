@@ -17,15 +17,15 @@ package io.github.sugarcubes.cloner;
 
 import java.util.Optional;
 
-import io.github.sugarcubes.cloner.internal.ContainerModel;
 import io.github.sugarcubes.cloner.internal.ContainerModels;
-import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
-import io.github.sugarcubes.cloner.internal.FieldsModel;
 import io.github.sugarcubes.cloner.internal.HiddenClasses;
-import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.Reflection;
-import io.github.sugarcubes.cloner.internal.ValuesModel;
 import io.github.sugarcubes.cloner.internal.ValuesModelProvider;
+import io.github.sugarcubes.cloner.spi.ContainerModel;
+import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
+import io.github.sugarcubes.cloner.spi.FieldsModel;
+import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
  * Low-level tools of the reflection cloner: reflection, instance allocator and field adapters. The cloner asks them

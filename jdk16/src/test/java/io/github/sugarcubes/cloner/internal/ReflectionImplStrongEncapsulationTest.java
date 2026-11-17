@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.ClonerException;
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 /**
  * JDK 16+ denies illegal reflective access by default, so not opened packages stay closed.

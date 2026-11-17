@@ -15,7 +15,7 @@
  */
 package io.github.sugarcubes.cloner;
 
-import io.github.sugarcubes.cloner.internal.ValuesModel;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
  * Copier of objects created from the values of their components, e.g. records. Gets from the low-level

@@ -18,6 +18,8 @@ package io.github.sugarcubes.cloner.internal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import io.github.sugarcubes.cloner.spi.TypeOpener;
+
 class UnsafeBridgeTest {
 
     @Test

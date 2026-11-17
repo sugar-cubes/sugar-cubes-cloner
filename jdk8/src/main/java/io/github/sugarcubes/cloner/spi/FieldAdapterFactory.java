@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.internal;
+package io.github.sugarcubes.cloner.spi;
 
-/**
- * Factory for objects of the specific type.
- *
- * @author Maxim Butov
- */
-public interface InstanceAllocator<T> {
+import java.lang.reflect.Field;
 
-    /**
-     * Creates an object instance. Instance may be not initialized.
-     *
-     * @return new object instance
-     * @throws Exception if something went wrong
-     */
-    T newInstance() throws Exception;
+@FunctionalInterface
+public interface FieldAdapterFactory {
+
+    FieldAdapter newAdapter(Field field);
 
 }

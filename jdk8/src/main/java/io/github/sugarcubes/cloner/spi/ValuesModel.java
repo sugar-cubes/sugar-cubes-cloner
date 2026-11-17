@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.internal;
+package io.github.sugarcubes.cloner.spi;
 
 /**
  * Low-level model of a type whose instances are created from the values of their components, e.g. a record. Knows how

@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.internal;
+package io.github.sugarcubes.cloner.spi;
 
-import io.github.sugarcubes.cloner.util.ClassUtils;
-
-public interface TypeOpener {
-
-    TypeOpener NOOP = new TypeOpener() {
-        @Override
-        public <T> Class<T> open(Class<T> type) {
-            return type;
-        }
-    };
-
-    <T> Class<T> open(Class<T> type);
-
-    default <T> Class<T> open(String type) {
-        return open(ClassUtils.classForName(type));
-    }
-
+/**
+ * Placeholder for package. module-info.java requires non-empty package.
+ *
+ * @author Maxim Butov
+ */
+class $$$ {
 }

@@ -16,11 +16,11 @@
 package io.github.sugarcubes.cloner;
 
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.Reflection;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl;
-import io.github.sugarcubes.cloner.internal.TypeOpener;
 import io.github.sugarcubes.cloner.internal.UnsafeBridge;
 import io.github.sugarcubes.cloner.internal.UnsafeFieldAdapterImpl;
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 class UnsafeReflectionClonerTest extends AbstractClonerTests {
 

@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.internal;
+package io.github.sugarcubes.cloner.spi;
 
-import java.lang.reflect.Field;
+import io.github.sugarcubes.cloner.util.ClassUtils;
 
-@FunctionalInterface
-public interface FieldAdapterFactory {
+public interface TypeOpener {
 
-    FieldAdapter newAdapter(Field field);
+    TypeOpener NOOP = new TypeOpener() {
+        @Override
+        public <T> Class<T> open(Class<T> type) {
+            return type;
+        }
+    };
+
+    <T> Class<T> open(Class<T> type);
+
+    default <T> Class<T> open(String type) {
+        return open(ClassUtils.classForName(type));
+    }
 
 }

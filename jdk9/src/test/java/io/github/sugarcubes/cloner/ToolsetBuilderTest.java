@@ -22,11 +22,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.InstanceAllocator;
-import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
+import io.github.sugarcubes.cloner.spi.InstanceAllocator;
+import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 
 class ToolsetBuilderTest {
 
