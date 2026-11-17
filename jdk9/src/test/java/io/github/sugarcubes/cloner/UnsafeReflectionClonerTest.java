@@ -20,6 +20,7 @@ import io.github.sugarcubes.cloner.internal.Reflection;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl;
 import io.github.sugarcubes.cloner.internal.TypeOpener;
 import io.github.sugarcubes.cloner.internal.UnsafeBridge;
+import io.github.sugarcubes.cloner.internal.UnsafeFieldAdapterImpl;
 
 class UnsafeReflectionClonerTest extends AbstractClonerTests {
 
@@ -30,7 +31,7 @@ class UnsafeReflectionClonerTest extends AbstractClonerTests {
     private static Cloner unsafeCloner() {
         Reflection reflection = new ReflectionImpl(TypeOpener.NOOP);
         return Cloners.builder().toolset(new Toolset(reflection, new ObjenesisInstanceAllocatorFactory(),
-            new UnsafeFieldCopierFactory(UnsafeBridge.getInstance(reflection)))).build();
+            UnsafeFieldAdapterImpl.factory(UnsafeBridge.getInstance(reflection)))).build();
     }
 
 }

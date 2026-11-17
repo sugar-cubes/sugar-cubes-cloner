@@ -16,12 +16,13 @@
 package io.github.sugarcubes.cloner;
 
 import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
-import io.github.sugarcubes.cloner.internal.FieldAdapterFieldCopierFactory;
+import io.github.sugarcubes.cloner.internal.FieldsModel;
 import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.Reflection;
 
 /**
- * Set of low-level tools used by the reflection cloner: reflection, instance allocator and field copier.
+ * Low-level tools of the reflection cloner: reflection, instance allocator and field adapters. The cloner asks them
+ * how to create an instance and to read and write its fields, everything else is decided by the cloner.
  *
  * @author Maxim Butov
  * @see ToolsetBuilder
@@ -39,30 +40,19 @@ public class Toolset {
 
     private final Reflection reflection;
     private final InstanceAllocatorFactory allocatorFactory;
-    private final FieldCopierFactory fieldCopierFactory;
+    private final FieldAdapterFactory fieldAdapterFactory;
 
     /**
      * Constructor.
      *
      * @param reflection reflection
      * @param allocatorFactory instance allocator factory
-     * @param fieldCopierFactory field copier factory
-     */
-    public Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldCopierFactory fieldCopierFactory) {
-        this.reflection = reflection;
-        this.allocatorFactory = allocatorFactory;
-        this.fieldCopierFactory = fieldCopierFactory;
-    }
-
-    /**
-     * Constructor with field copier factory which uses field adapters.
-     *
-     * @param reflection reflection
-     * @param allocatorFactory instance allocator factory
      * @param fieldAdapterFactory field adapter factory
      */
     public Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldAdapterFactory fieldAdapterFactory) {
-        this(reflection, allocatorFactory, new FieldAdapterFieldCopierFactory(fieldAdapterFactory));
+        this.reflection = reflection;
+        this.allocatorFactory = allocatorFactory;
+        this.fieldAdapterFactory = fieldAdapterFactory;
     }
 
     /**
@@ -84,12 +74,23 @@ public class Toolset {
     }
 
     /**
-     * Returns field copier factory.
+     * Returns field adapter factory.
      *
-     * @return field copier factory
+     * @return field adapter factory
      */
-    public FieldCopierFactory getFieldCopierFactory() {
-        return fieldCopierFactory;
+    public FieldAdapterFactory getFieldAdapterFactory() {
+        return fieldAdapterFactory;
+    }
+
+    /**
+     * Creates the low-level model of a type whose state is its fields.
+     *
+     * @param <T> type
+     * @param type type
+     * @return model of the type
+     */
+    public <T> FieldsModel<T> fieldsModel(Class<T> type) {
+        return new FieldsModel<>(type, reflection, allocatorFactory, fieldAdapterFactory);
     }
 
 }
