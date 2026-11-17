@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.util;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
-import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+import static io.github.sugarcubes.cloner.util.ClonerExceptionUtils.replaceException;
 
 /**
  * Class-related utilities.

@@ -20,9 +20,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Optional;
 
-import io.github.sugarcubes.cloner.ClassUtils;
-import io.github.sugarcubes.cloner.ClonerExceptionUtils;
-import io.github.sugarcubes.cloner.MethodHandlesLookupUtils;
+import io.github.sugarcubes.cloner.util.ClassUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.MethodHandlesLookupUtils;
 
 /**
  * Instance allocator factory using {@link MethodHandle} to invoke constructor without parameters.

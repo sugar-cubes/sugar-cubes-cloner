@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.github.sugarcubes.cloner.util.Checks;
+
 /**
  * Copy policy interface.
  *

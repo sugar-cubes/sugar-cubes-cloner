@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
+import io.github.sugarcubes.cloner.util.Checks;
+
 /**
  * Copy context for sequential copying.
  *

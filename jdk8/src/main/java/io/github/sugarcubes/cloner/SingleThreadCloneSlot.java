@@ -17,6 +17,8 @@ package io.github.sugarcubes.cloner;
 
 import java.util.function.Predicate;
 
+import io.github.sugarcubes.cloner.util.Checks;
+
 /**
  * Not synchronized slot for single-thread contexts, where nobody waits for another thread. Also used for predefined
  * clones, which are completed when created and never change.

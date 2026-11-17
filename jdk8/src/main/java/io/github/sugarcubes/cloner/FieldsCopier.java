@@ -22,6 +22,7 @@ import java.util.Objects;
 import io.github.sugarcubes.cloner.internal.FieldAdapter;
 import io.github.sugarcubes.cloner.internal.FieldsModel;
 import io.github.sugarcubes.cloner.internal.InstanceAllocator;
+import io.github.sugarcubes.cloner.util.Checks;
 
 /**
  * Copier of objects whose state is their fields. Gets from the low-level {@link FieldsModel} how to allocate an

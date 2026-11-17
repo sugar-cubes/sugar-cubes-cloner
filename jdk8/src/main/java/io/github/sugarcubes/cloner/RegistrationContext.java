@@ -17,6 +17,8 @@ package io.github.sugarcubes.cloner;
 
 import java.util.concurrent.Callable;
 
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
+
 /**
  * A copy context which registers clone in the cache.
  *

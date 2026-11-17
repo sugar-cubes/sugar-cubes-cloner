@@ -20,7 +20,7 @@ import java.util.Optional;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
-import io.github.sugarcubes.cloner.ClassUtils;
+import io.github.sugarcubes.cloner.util.ClassUtils;
 
 /**
  * Instance allocator factory which uses Objenesis library to create objects.

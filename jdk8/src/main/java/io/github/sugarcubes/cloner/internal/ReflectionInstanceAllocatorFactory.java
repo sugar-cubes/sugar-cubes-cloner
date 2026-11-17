@@ -17,7 +17,7 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.util.Optional;
 
-import io.github.sugarcubes.cloner.ClassUtils;
+import io.github.sugarcubes.cloner.util.ClassUtils;
 
 /**
  * Instance allocator factory which calls the constructor without parameters via reflection.

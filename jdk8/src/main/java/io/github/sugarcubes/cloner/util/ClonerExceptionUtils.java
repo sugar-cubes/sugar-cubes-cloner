@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.util;
+
+import io.github.sugarcubes.cloner.ClonerException;
 
 /**
  * Exception handling utilities.

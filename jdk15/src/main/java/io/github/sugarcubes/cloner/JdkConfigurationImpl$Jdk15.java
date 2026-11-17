@@ -18,6 +18,10 @@ package io.github.sugarcubes.cloner;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
+import io.github.sugarcubes.cloner.util.ClassUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.ReflectionUtils;
+
 /**
  * Implementation of {@link JdkConfiguration} for JDK 15+.
  *

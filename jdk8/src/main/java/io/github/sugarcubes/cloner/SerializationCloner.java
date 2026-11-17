@@ -19,6 +19,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
+
 /**
  * The implementation of {@link Cloner} which uses Java serialization for cloning.
  *

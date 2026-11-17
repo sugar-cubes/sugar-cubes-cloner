@@ -30,6 +30,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import io.github.sugarcubes.cloner.util.IdentityReference;
+
 /**
  * Abstract copy context. Contains common code for the context implementations.
  *

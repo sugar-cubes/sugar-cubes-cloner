@@ -22,7 +22,7 @@ import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 
 import io.github.sugarcubes.cloner.ClonerException;
-import io.github.sugarcubes.cloner.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
  * Values model of a record: components are read with accessors, instances are created with the canonical

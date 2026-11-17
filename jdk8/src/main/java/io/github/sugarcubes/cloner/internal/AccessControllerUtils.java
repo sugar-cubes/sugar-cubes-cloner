@@ -18,7 +18,7 @@ package io.github.sugarcubes.cloner.internal;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 
-import io.github.sugarcubes.cloner.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 public class AccessControllerUtils {
 

@@ -22,6 +22,8 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.Spliterators;
 
+import io.github.sugarcubes.cloner.util.ClassUtils;
+
 /**
  * Implementation of {@link JdkConfiguration} for JDK 8+.
  *

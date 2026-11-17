@@ -17,7 +17,7 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Method;
 
-import io.github.sugarcubes.cloner.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.toolfactory.narcissus.Narcissus;
 
 /**
