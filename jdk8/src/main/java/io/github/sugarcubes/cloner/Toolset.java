@@ -17,6 +17,8 @@ package io.github.sugarcubes.cloner;
 
 import java.util.Optional;
 
+import io.github.sugarcubes.cloner.internal.ContainerModel;
+import io.github.sugarcubes.cloner.internal.ContainerModels;
 import io.github.sugarcubes.cloner.internal.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.internal.FieldsModel;
 import io.github.sugarcubes.cloner.internal.InstanceAllocatorFactory;
@@ -46,6 +48,7 @@ public class Toolset {
     private final InstanceAllocatorFactory allocatorFactory;
     private final FieldAdapterFactory fieldAdapterFactory;
     private final ValuesModelProvider valuesModels = new ValuesModelProvider();
+    private final ContainerModels containerModels;
 
     /**
      * Constructor.
@@ -58,6 +61,7 @@ public class Toolset {
         this.reflection = reflection;
         this.allocatorFactory = allocatorFactory;
         this.fieldAdapterFactory = fieldAdapterFactory;
+        this.containerModels = new ContainerModels(reflection);
     }
 
     /**
@@ -107,6 +111,17 @@ public class Toolset {
      */
     public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type) {
         return valuesModels.valuesModel(type, reflection);
+    }
+
+    /**
+     * Returns the low-level model of a container type (a well-known collection or map).
+     *
+     * @param <T> type
+     * @param type type
+     * @return model of the type, or empty if the type is not a supported container
+     */
+    public <T> Optional<ContainerModel<T>> containerModel(Class<T> type) {
+        return containerModels.containerModel(type);
     }
 
 }

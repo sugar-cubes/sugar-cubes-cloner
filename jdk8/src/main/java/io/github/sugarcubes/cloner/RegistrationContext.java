@@ -100,6 +100,11 @@ public final class RegistrationContext implements CopyContext {
         context.thenInvoke(task);
     }
 
+    @Override
+    public void afterCopy(Callable<?> task) {
+        context.afterCopy(task);
+    }
+
     /**
      * Checks that the cached clone is the same as returned from {@link #copy(Object)} method.
      *

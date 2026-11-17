@@ -149,4 +149,12 @@ public interface CopyContext {
      */
     void thenInvoke(Callable<?> task) throws Exception;
 
+    /**
+     * Registers a task which is invoked when the whole object graph is copied, e.g. to rebuild a container whose
+     * structure depends on hash codes of copied objects. Tasks are invoked in a single thread.
+     *
+     * @param task task
+     */
+    void afterCopy(Callable<?> task);
+
 }
