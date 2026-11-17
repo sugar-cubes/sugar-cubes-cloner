@@ -44,6 +44,7 @@ public class ClonerImpl implements Cloner {
                 AbstractCopyContext context = contextSupplier.get();
                 T clone = context.copy(object);
                 context.complete();
+                context.runAfterCopy();
                 return clone;
             }
         );

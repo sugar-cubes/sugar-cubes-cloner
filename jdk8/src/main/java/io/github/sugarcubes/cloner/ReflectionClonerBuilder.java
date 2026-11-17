@@ -53,15 +53,6 @@ public final class ReflectionClonerBuilder {
         JDK_CONFIGURATION.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
         JDK_CONFIGURATION.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.CLONEABLE));
 
-        defaultCopiers.put(java.util.ArrayDeque.class, new SimpleCollectionCopier<>(java.util.ArrayDeque::new));
-        defaultCopiers.put(java.util.ArrayList.class, new SimpleCollectionCopier<>(java.util.ArrayList::new));
-        defaultCopiers.put(java.util.LinkedList.class, new SimpleCollectionCopier<>(size -> new java.util.LinkedList<>()));
-        defaultCopiers.put(java.util.Stack.class, new SimpleCollectionCopier<>(size -> new java.util.Stack<>()));
-        defaultCopiers.put(java.util.Vector.class, new SimpleCollectionCopier<>(java.util.Vector::new));
-
-        defaultCopiers.put(java.util.EnumMap.class, new EnumMapCopier<>());
-        defaultCopiers.put(java.util.IdentityHashMap.class, new IdentityHashMapCopier());
-
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }
 

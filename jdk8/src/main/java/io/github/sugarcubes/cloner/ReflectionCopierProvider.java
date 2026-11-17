@@ -19,9 +19,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+
+import io.github.sugarcubes.cloner.internal.ContainerModel;
+import io.github.sugarcubes.cloner.internal.ValuesModel;
 
 /**
  * Copier provider implementation.
@@ -138,16 +142,7 @@ public class ReflectionCopierProvider implements CopierProvider {
             return ObjectCopier.NOOP;
         }
         if (type.isArray()) {
-            Class<?> componentType = type.getComponentType();
-            if (componentType.isPrimitive() || componentType.isEnum()) {
-                return ObjectCopier.CLONEABLE;
-            }
-            if (Modifier.isFinal(componentType.getModifiers()) &&
-                typePolicy.getAction(componentType) == CopyAction.ORIGINAL) {
-                // there is no mutable subtype of componentType, so, we can shallow clone array
-                return ObjectCopier.CLONEABLE;
-            }
-            return ObjectCopier.OBJECT_ARRAY;
+            return findArrayCopier(type);
         }
         TypeCopier annotation = type.getDeclaredAnnotation(TypeCopier.class);
         if (annotation != null) {
@@ -157,13 +152,50 @@ public class ReflectionCopierProvider implements CopierProvider {
             return ObjectCopier.COPYABLE;
         }
         ObjectCopier<?> copier = JdkConfigurationHolder.CONFIGURATION.getCopier(type);
-        if (copier != null) {
-            return copier;
+        return copier != null ? copier : findModelCopier(type);
+    }
+
+    /**
+     * Finds copier for an array type.
+     */
+    private ObjectCopier<?> findArrayCopier(Class<?> type) {
+        Class<?> componentType = type.getComponentType();
+        if (componentType.isPrimitive() || componentType.isEnum()) {
+            return ObjectCopier.CLONEABLE;
         }
+        if (Modifier.isFinal(componentType.getModifiers()) &&
+            typePolicy.getAction(componentType) == CopyAction.ORIGINAL) {
+            // there is no mutable subtype of componentType, so, we can shallow clone array
+            return ObjectCopier.CLONEABLE;
+        }
+        return ObjectCopier.OBJECT_ARRAY;
+    }
+
+    /**
+     * Finds copier by the low-level model of the type: values, container or fields.
+     */
+    private ObjectCopier<?> findModelCopier(Class<?> type) {
         boolean shallow = shallows.contains(type);
-        return toolset.valuesModel(type)
-            .<ObjectCopier<?>>map(model -> new ValuesCopier<>(model, shallow))
-            .orElseGet(() -> findFieldsCopier(type, shallow));
+        Optional<? extends ValuesModel<?>> values = toolset.valuesModel(type);
+        if (values.isPresent()) {
+            return new ValuesCopier<>(values.get(), shallow);
+        }
+        Optional<? extends ContainerModel<?>> container = toolset.containerModel(type);
+        if (container.isPresent()) {
+            return containerCopier(container.get(), type, shallow);
+        }
+        return findFieldsCopier(type, shallow);
+    }
+
+    /**
+     * Rebuilds containers which do not hash their keys, copies by fields and checks containers which hash them.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> ObjectCopier<T> containerCopier(ContainerModel<T> model, Class<?> type, boolean shallow) {
+        if (!model.hashesKeys()) {
+            return new ContainerCopier<>(model, shallow);
+        }
+        return new HashContainerCopier<>((FieldsCopier<T>) findFieldsCopier(type, shallow), model, shallow);
     }
 
     /**

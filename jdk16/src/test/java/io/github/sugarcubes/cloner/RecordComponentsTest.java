@@ -18,7 +18,11 @@ package io.github.sugarcubes.cloner;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -38,6 +42,21 @@ class RecordComponentsTest {
             items = new ArrayList<>(items);
         }
 
+    }
+
+    record DefensiveSetCopy(Set<String> names, Map<IdentityKey, String> byIdentity) {
+
+        DefensiveSetCopy {
+            names = new HashSet<>(names);
+            byIdentity = new HashMap<>(byIdentity);
+        }
+
+    }
+
+    /**
+     * Key with identity hash code.
+     */
+    static final class IdentityKey {
     }
 
     record Validated(List<String> items) {
@@ -81,6 +100,21 @@ class RecordComponentsTest {
         DefensiveCopy clone = cloner(mode).clone(original);
 
         Assertions.assertEquals(List.of("a", "b"), clone.items());
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
+    void constructorWithDefensiveCopyOfHashContainers(CloningMode mode) {
+        IdentityKey key = new IdentityKey();
+        DefensiveSetCopy original = new DefensiveSetCopy(new HashSet<>(Set.of("a", "b")), new HashMap<>(Map.of(key, "c")));
+
+        DefensiveSetCopy clone = cloner(mode).clone(original);
+
+        Assertions.assertEquals(Set.of("a", "b"), clone.names());
+        Assertions.assertEquals(List.of("c"), List.copyOf(clone.byIdentity().values()));
+        IdentityKey clonedKey = clone.byIdentity().keySet().iterator().next();
+        Assertions.assertNotSame(key, clonedKey);
+        Assertions.assertEquals("c", clone.byIdentity().get(clonedKey));
     }
 
     @ParameterizedTest

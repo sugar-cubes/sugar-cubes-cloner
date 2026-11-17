@@ -16,12 +16,14 @@
 package io.github.sugarcubes.cloner;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -65,6 +67,11 @@ public abstract class AbstractCopyContext implements CopyContext {
      * Slots which threads are waiting for, created on the first wait.
      */
     private Map<Thread, CloneSlot> waits;
+
+    /**
+     * Tasks invoked when the whole graph is copied, created on the first task.
+     */
+    private List<Callable<?>> afterCopy;
 
     /**
      * JDK configuration.
@@ -414,6 +421,32 @@ public abstract class AbstractCopyContext implements CopyContext {
 
     private static String describe(Object original) {
         return String.format("%s@%x", original.getClass().getName(), System.identityHashCode(original));
+    }
+
+    @Override
+    public synchronized void afterCopy(Callable<?> task) {
+        if (afterCopy == null) {
+            afterCopy = new ArrayList<>();
+        }
+        afterCopy.add(task);
+    }
+
+    /**
+     * Invokes the tasks registered with {@link #afterCopy(Callable)}. Must be called after {@link #complete()}.
+     *
+     * @throws Exception if something went wrong
+     */
+    public void runAfterCopy() throws Exception {
+        List<Callable<?>> tasks;
+        synchronized (this) {
+            tasks = afterCopy;
+            afterCopy = null;
+        }
+        if (tasks != null) {
+            for (Callable<?> task : tasks) {
+                task.call();
+            }
+        }
     }
 
     /**
