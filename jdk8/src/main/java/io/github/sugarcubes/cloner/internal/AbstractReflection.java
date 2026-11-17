@@ -22,7 +22,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+import static io.github.sugarcubes.cloner.util.ClonerExceptionUtils.replaceException;
 
 public abstract class AbstractReflection implements Reflection {
 

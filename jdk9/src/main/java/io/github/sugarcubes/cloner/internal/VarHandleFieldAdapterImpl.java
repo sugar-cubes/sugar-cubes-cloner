@@ -19,8 +19,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 
-import io.github.sugarcubes.cloner.ClonerExceptionUtils;
-import io.github.sugarcubes.cloner.MethodHandlesLookupUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.MethodHandlesLookupUtils;
 
 /**
  * Field adapter which uses {@link VarHandle} obtained from the trusted {@link MethodHandles.Lookup}, so it can also

@@ -17,7 +17,7 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
-import io.github.sugarcubes.cloner.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
  * Implementation of {@link UnsafeBridge} which calls {@link jdk.internal.misc.Unsafe}.

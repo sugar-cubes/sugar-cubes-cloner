@@ -17,6 +17,8 @@ package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Method;
 
+import io.github.sugarcubes.cloner.util.ReflectionUtils;
+
 /**
  * One-phase copier which creates a shallow clone of the original object with {@link Object#clone()} method.
  *

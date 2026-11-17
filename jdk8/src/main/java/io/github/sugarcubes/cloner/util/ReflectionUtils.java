@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner;
+package io.github.sugarcubes.cloner.util;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
@@ -22,7 +22,8 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import static io.github.sugarcubes.cloner.ClonerExceptionUtils.replaceException;
+import io.github.sugarcubes.cloner.ClonerException;
+import static io.github.sugarcubes.cloner.util.ClonerExceptionUtils.replaceException;
 
 /**
  * Shortcuts for Java Reflection API.

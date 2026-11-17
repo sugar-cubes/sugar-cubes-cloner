@@ -37,7 +37,7 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 
 import io.github.sugarcubes.cloner.ClonerException;
-import io.github.sugarcubes.cloner.ClonerExceptionUtils;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
  * Container models of well-known JDK collections and maps. Only these exact classes are supported: a subclass may

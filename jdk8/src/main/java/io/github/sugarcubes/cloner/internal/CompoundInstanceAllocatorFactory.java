@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import io.github.sugarcubes.cloner.Checks;
-import io.github.sugarcubes.cloner.ConcurrentLazyCache;
+import io.github.sugarcubes.cloner.util.Checks;
+import io.github.sugarcubes.cloner.util.ConcurrentLazyCache;
 
 /**
  * Instance allocator factory which uses for every type the first factory supporting it.

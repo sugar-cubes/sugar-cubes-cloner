@@ -17,7 +17,7 @@ package io.github.sugarcubes.cloner.internal;
 
 import java.lang.reflect.Field;
 
-import io.github.sugarcubes.cloner.Checks;
+import io.github.sugarcubes.cloner.util.Checks;
 
 /**
  * Field adapter which uses {@link Field} methods. The field must be accessible.

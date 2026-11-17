@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.util.ObjenesisUtils;
 
 public class ObjenesisInstanceAllocatorTest {
 

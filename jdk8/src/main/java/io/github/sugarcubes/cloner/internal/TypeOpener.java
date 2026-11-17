@@ -15,7 +15,7 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-import io.github.sugarcubes.cloner.ClassUtils;
+import io.github.sugarcubes.cloner.util.ClassUtils;
 
 public interface TypeOpener {
 

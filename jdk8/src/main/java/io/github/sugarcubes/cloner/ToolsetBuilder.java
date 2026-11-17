@@ -27,6 +27,7 @@ import io.github.sugarcubes.cloner.internal.Reflection;
 import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
 import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.util.Checks;
 
 /**
  * Builder for {@link Toolset}. Tools which are not set get failsafe defaults: plain reflection, Objenesis (if

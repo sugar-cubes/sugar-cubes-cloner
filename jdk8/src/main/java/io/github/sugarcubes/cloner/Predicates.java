@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import io.github.sugarcubes.cloner.util.Checks;
+
 /**
  * Predicates factory. To be used with {@link PredicatePolicy}.
  *
