@@ -174,6 +174,17 @@ class RecordComponentsTest {
 
     @ParameterizedTest
     @EnumSource(CloningMode.class)
+    void shallowRecordKeepsComponents(CloningMode mode) {
+        Node original = new Node("a", new ArrayList<>(List.of("b")));
+
+        Node clone = Cloners.builder().mode(mode).shallow(Node.class).build().clone(original);
+
+        Assertions.assertNotSame(original, clone);
+        Assertions.assertSame(original.items(), clone.items());
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
     void recordNotAccessibleFromCloner(CloningMode mode) {
         Object original = HiddenRecords.hidden("a", new ArrayList<>(List.of("b")));
 
