@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import io.github.sugarcubes.cloner.allocation.CompoundInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ReflectionFactoryAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.ReflectionInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.UnsafeAllocatorFactory;
 import io.github.sugarcubes.cloner.fields.CompoundFieldAdapterFactory;
@@ -299,8 +300,9 @@ public final class ToolsetBuilder {
 
     private static List<Mechanism<InstanceAllocatorFactory>> defaultAllocators() {
         List<Mechanism<InstanceAllocatorFactory>> list = new ArrayList<>();
-        if (ObjenesisUtils.isObjenesisAvailable()) {
-            list.add(new Mechanism<>(Allocation.OBJENESIS.name(), context -> new ObjenesisInstanceAllocatorFactory()));
+        if (ReflectionFactoryAllocatorFactory.isAvailable()) {
+            list.add(new Mechanism<>(Allocation.REFLECTION_FACTORY.name(),
+                context -> new ReflectionFactoryAllocatorFactory()));
         }
         else {
             list.add(new Mechanism<>(Allocation.UNSAFE.name() + " if available",
@@ -335,6 +337,11 @@ public final class ToolsetBuilder {
 
     private static InstanceAllocatorFactory allocator(Allocation variant, Supplier<UnsafeBridge> unsafe) {
         switch (variant) {
+            case REFLECTION_FACTORY:
+                if (!ReflectionFactoryAllocatorFactory.isAvailable()) {
+                    throw new ClonerException("ReflectionFactory is not available: add the jdk.unsupported module.");
+                }
+                return new ReflectionFactoryAllocatorFactory();
             case OBJENESIS:
                 if (!ObjenesisUtils.isObjenesisAvailable()) {
                     throw new ClonerException("Objenesis is not available: put it on the classpath.");

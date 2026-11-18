@@ -49,6 +49,7 @@ class InstanceAllocatorFactoryTest {
     @Test
     void allocatorsWithoutConstructorSupportAnyConcreteClass() throws Exception {
         InstanceAllocatorFactory[] factories = {
+            new ReflectionFactoryAllocatorFactory(),
             new ObjenesisInstanceAllocatorFactory(),
             new UnsafeAllocatorFactory(JdkPlatform.current().unsafeBridge(reflection)),
         };
@@ -77,6 +78,25 @@ class InstanceAllocatorFactoryTest {
         for (Class<?> type : NOT_INSTANTIABLE) {
             Assertions.assertFalse(factory.newAllocator(type).isPresent(), () -> factory + " " + type);
         }
+    }
+
+    static class ThrowingConstructor {
+
+        int value = 42;
+
+        ThrowingConstructor() {
+            throw new IllegalStateException("constructor called");
+        }
+
+    }
+
+    @Test
+    void reflectionFactoryCallsNoConstructor() throws Exception {
+        ThrowingConstructor instance = new ReflectionFactoryAllocatorFactory()
+            .newAllocator(ThrowingConstructor.class).get().newInstance();
+
+        // field initializers are a part of the constructor
+        Assertions.assertEquals(0, instance.value);
     }
 
 }
