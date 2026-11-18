@@ -102,18 +102,21 @@ public interface CopyPolicy<I> {
      */
     static <I> CopyPolicy<I> compound(List<CopyPolicy<I>> policies) {
         List<CopyPolicy<I>> nonDefaultPolicies = policies.stream().filter(p -> p != DEFAULT).collect(Collectors.toList());
-        switch (nonDefaultPolicies.size()) {
-            case 0:
-                return defaultPolicy();
-            case 1:
-                return policies.iterator().next();
-            default:
-                return input -> nonDefaultPolicies.stream()
-                    .map(p -> p.getAction(input))
-                    .filter(action -> action != CopyAction.DEFAULT)
-                    .findFirst()
-                    .orElse(CopyAction.DEFAULT);
+        if (nonDefaultPolicies.isEmpty()) {
+            return defaultPolicy();
         }
+        if (nonDefaultPolicies.size() == 1) {
+            return nonDefaultPolicies.get(0);
+        }
+        return input -> {
+            for (CopyPolicy<I> policy : nonDefaultPolicies) {
+                CopyAction action = policy.getAction(input);
+                if (action != CopyAction.DEFAULT) {
+                    return action;
+                }
+            }
+            return CopyAction.DEFAULT;
+        };
     }
 
 }
