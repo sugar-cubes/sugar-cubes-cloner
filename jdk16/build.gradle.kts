@@ -28,7 +28,7 @@ java {
 }
 
 // cloning must work without any --add-opens option
-val noOpensCheck by tasks.registering(JavaExec::class) {
+val noOpensCheck = tasks.register<JavaExec>("noOpensCheck") {
     description = "Clones common JDK types and own classes on JDK 17 without --add-opens."
     classpath = sourceSets.test.get().runtimeClasspath
     mainClass.set("io.github.sugarcubes.cloner.check.NoOpensCheck")
@@ -40,7 +40,7 @@ tasks.named("check") {
 }
 
 // module opening and field access mechanisms, tested on JDK 17 without any --add-opens option
-val moduleOpeningTest by sourceSets.creating {
+val moduleOpeningTest = sourceSets.create("moduleOpeningTest") {
     val main = sourceSets.main.get()
     // own classes first: they replace the version-specific aliases of the dependencies
     compileClasspath = main.output + configurations[compileClasspathConfigurationName]
@@ -50,7 +50,7 @@ val moduleOpeningTest by sourceSets.creating {
 configurations[moduleOpeningTest.implementationConfigurationName].extendsFrom(configurations.implementation.get())
 
 // the cloner jar with the agent manifest
-val agent by configurations.creating {
+val agent = configurations.create("agent") {
     isTransitive = false
 }
 
@@ -75,13 +75,13 @@ fun Test.moduleOpeningTest() {
     setForkEvery(1)
 }
 
-val noOpensTest by tasks.registering(Test::class) {
+val noOpensTest = tasks.register<Test>("noOpensTest") {
     description = "Tests module opening mechanisms on JDK 17 without --add-opens."
     moduleOpeningTest()
     filter.excludeTestsMatching("*.AgentTest")
 }
 
-val agentTest by tasks.registering(Test::class) {
+val agentTest = tasks.register<Test>("agentTest") {
     description = "Tests module opening by the cloner agent on JDK 17 without --add-opens."
     moduleOpeningTest()
     filter.includeTestsMatching("*.AgentTest")

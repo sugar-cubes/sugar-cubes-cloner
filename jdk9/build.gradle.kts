@@ -3,7 +3,7 @@ plugins {
     id("optional-dependencies")
     id("checkstyle-conventions")
     id("build-utils")
-    id("me.champeau.jmh") version "0.6.6"
+    id("me.champeau.jmh") version "0.7.4"
 }
 
 dependencies {
