@@ -88,7 +88,7 @@ Faster than java.io serialization.
 #### Clone an object
 
 ```java
-SomeObject clone = Cloners.reflection().clone(original);
+SomeObject clone = Cloners.defaults().clone(original);
 ```
 
 #### Do not clone instances of a class
