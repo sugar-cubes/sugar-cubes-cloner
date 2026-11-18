@@ -60,8 +60,8 @@ final class RecordValuesModel<T extends Record> implements ValuesModel<T> {
     }
 
     @Override
-    public String[] getNames() {
-        return names.clone();
+    public String nameOf(int index) {
+        return names[index];
     }
 
     @Override

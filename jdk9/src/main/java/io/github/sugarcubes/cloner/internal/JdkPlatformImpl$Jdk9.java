@@ -16,23 +16,61 @@
 package io.github.sugarcubes.cloner.internal;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.TypeOpener;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
- * {@link JdkPlatform} of JDK 9+: modules, {@code jdk.internal.misc.Unsafe}, immutable collections.
+ * {@link JdkPlatform} of JDK 9+: modules, {@code jdk.internal.misc.Unsafe}, immutable collections of {@link List#of},
+ * {@link Set#of} and {@link Map#of} rebuilt from their elements.
  *
  * @author Maxim Butov
  */
 class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
 
+    /**
+     * Models of immutable collections by their classes (the classes are not public).
+     */
+    private final Map<Class<?>, ValuesModel<?>> immutableCollections = new HashMap<>();
+
     JdkPlatformImpl$Jdk9() {
-        systemWideSingletons.addAll(Arrays.asList(List.of(), Set.of(), Map.of()));
+        // samples give the classes of the implementations
+        Object a = new Object();
+        Object b = new Object();
+        Object c = new Object();
+        for (List<?> list : Arrays.asList(List.of(), List.of(a), List.of(a, b, c))) {
+            immutableCollections.put(list.getClass(), ImmutableCollectionModel.list(list.getClass(), this::immutableList));
+        }
+        for (Set<?> set : Arrays.asList(Set.of(), Set.of(a), Set.of(a, b, c))) {
+            immutableCollections.put(set.getClass(), ImmutableCollectionModel.set(set.getClass()));
+        }
+        for (Map<?, ?> map : Arrays.asList(Map.of(), Map.of(a, a), Map.of(a, a, b, b))) {
+            immutableCollections.put(map.getClass(), ImmutableCollectionModel.map(map.getClass()));
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
+        ValuesModel<T> model = (ValuesModel<T>) immutableCollections.get(type);
+        return model != null ? Optional.of(model) : super.valuesModel(type, reflection);
+    }
+
+    /**
+     * Creates an immutable list of the elements.
+     *
+     * @param values elements
+     * @return immutable list
+     */
+    List<Object> immutableList(Object[] values) {
+        return List.of(values);
     }
 
     @Override

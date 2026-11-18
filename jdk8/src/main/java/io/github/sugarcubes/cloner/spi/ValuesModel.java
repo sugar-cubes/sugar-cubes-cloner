@@ -16,8 +16,9 @@
 package io.github.sugarcubes.cloner.spi;
 
 /**
- * Low-level model of a type whose instances are created from the values of their components, e.g. a record. Knows how
- * to read the values and to create an instance from them; what and how to copy is decided by the caller.
+ * Low-level model of a type whose instances are created from the values of their components, e.g. a record or an
+ * immutable collection. Knows how to read the values and to create an instance from them; what and how to copy is
+ * decided by the caller.
  *
  * @param <T> type
  * @author Maxim Butov
@@ -32,11 +33,31 @@ public interface ValuesModel<T> {
     Class<T> getType();
 
     /**
-     * Returns the names of the components, in the order of values.
+     * Returns the name of the component for messages.
      *
-     * @return names of the components
+     * @param index index of the value
+     * @return name of the component
      */
-    String[] getNames();
+    String nameOf(int index);
+
+    /**
+     * Tells whether the values are hashed by the created instance (elements of a set, keys of a map). Hash codes of
+     * copied values may be final only when the whole object graph is copied.
+     *
+     * @return {@code true} if values (or keys, see {@link #isMap()}) are hashed
+     */
+    default boolean hashesKeys() {
+        return false;
+    }
+
+    /**
+     * Tells whether the values are keys and values of a map in pairs.
+     *
+     * @return {@code true} for a map
+     */
+    default boolean isMap() {
+        return false;
+    }
 
     /**
      * Reads the values of the components.

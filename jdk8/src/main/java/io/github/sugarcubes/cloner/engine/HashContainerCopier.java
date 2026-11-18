@@ -15,13 +15,12 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.Set;
+import java.util.function.Supplier;
+
 
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
-import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
  * Copier of collections and maps which hash their keys. A hash code of a copied key may be final only when the whole
@@ -41,22 +40,9 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
  */
 public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
 
-    private static final Set<Class<?>> IMMUTABLE_TYPES = JdkPlatform.current().getImmutableTypes();
-
-    /**
-     * Whether a class has its own hash code instead of the identity one.
-     */
-    private static final ClassValue<Boolean> HASHED_BY_STATE = new ClassValue<Boolean>() {
-        @Override
-        protected Boolean computeValue(Class<?> type) {
-            return ClonerExceptionUtils.replaceException(() -> type.getMethod("hashCode").getDeclaringClass())
-                != Object.class;
-        }
-    };
-
     private final ContainerCopier<T> rebuilding;
 
-    private final FieldsCopier<T> fields;
+    private final Supplier<FieldsCopier<T>> fields;
 
     private final ContainerModel<T> model;
 
@@ -65,11 +51,11 @@ public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
     /**
      * Creates the copier.
      *
-     * @param fields copier of the container fields
+     * @param fields copier of the container fields, needed only for keys hashed by their state
      * @param model low-level model of the container
      * @param shallow shallow mode: keys are the original ones
      */
-    public HashContainerCopier(FieldsCopier<T> fields, ContainerModel<T> model, boolean shallow) {
+    public HashContainerCopier(Supplier<FieldsCopier<T>> fields, ContainerModel<T> model, boolean shallow) {
         this.rebuilding = new ContainerCopier<>(model, shallow);
         this.fields = fields;
         this.model = model;
@@ -78,7 +64,7 @@ public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
 
     @Override
     public T allocate(T original) throws Exception {
-        return hashCodesKnownAtOnce(original) ? rebuilding.allocate(original) : fields.allocate(original);
+        return hashCodesKnownAtOnce(original) ? rebuilding.allocate(original) : fields.get().allocate(original);
     }
 
     @Override
@@ -87,7 +73,7 @@ public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
             rebuilding.deepCopy(original, clone, context);
             return;
         }
-        fields.deepCopy(original, clone, context);
+        fields.get().deepCopy(original, clone, context);
         context.afterCopy(() -> {
             rebuildIfKeysNotFound(clone);
             return null;
@@ -101,22 +87,7 @@ public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
         if (shallow) {
             return true;
         }
-        Object[] elements = model.elements(original);
-        int step = model.isMap() ? 2 : 1;
-        for (int k = 0; k < elements.length; k += step) {
-            if (!hashCodeKnownAtOnce(elements[k])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean hashCodeKnownAtOnce(Object key) {
-        if (key == null || key instanceof Enum) {
-            return true;
-        }
-        Class<?> type = key.getClass();
-        return IMMUTABLE_TYPES.contains(type) || !HASHED_BY_STATE.get(type);
+        return HashKeys.knownAtOnce(model.elements(original), model.isMap());
     }
 
     private void rebuildIfKeysNotFound(T clone) {

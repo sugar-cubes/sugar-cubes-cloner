@@ -26,3 +26,15 @@ java {
         languageVersion.set(JavaLanguageVersion.of(16))
     }
 }
+
+// cloning must work without any --add-opens option
+val noOpensCheck by tasks.registering(JavaExec::class) {
+    description = "Clones common JDK types and own classes on JDK 17 without --add-opens."
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("io.github.sugarcubes.cloner.check.NoOpensCheck")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(17)) })
+}
+
+tasks.named("check") {
+    dependsOn(noOpensCheck)
+}

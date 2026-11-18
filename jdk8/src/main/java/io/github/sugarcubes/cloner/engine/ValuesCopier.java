@@ -85,10 +85,10 @@ public class ValuesCopier<T> implements ObjectCopier<T> {
             throw cycleError(original, "its constructor fails", e.getCause());
         }
         Object[] kept = model.read(clone);
-        String[] names = model.getNames();
         for (int k = 0; k < copies.length; k++) {
             if (incomplete[k] && kept[k] != copies[k]) {
-                throw cycleError(original, String.format("its constructor replaces the component '%s'", names[k]), null);
+                throw cycleError(original, String.format("its constructor replaces the component '%s'", model.nameOf(k)),
+                    null);
             }
         }
         return clone;
