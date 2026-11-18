@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.reflection;
+package io.github.sugarcubes.cloner.platform;
 
 import java.lang.reflect.Method;
 
@@ -23,7 +23,7 @@ import io.github.toolfactory.narcissus.Narcissus;
 /**
  * todo
  */
-public class NarcissusModuleOpenerImpl extends AbstractModuleOpener {
+class NarcissusModuleOpenerImpl extends AbstractModuleOpener {
 
     private final Method implAddExportsOrOpens;
 

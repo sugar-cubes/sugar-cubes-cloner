@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.reflection;
+package io.github.sugarcubes.cloner.platform;
 
 import java.lang.instrument.Instrumentation;
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * todo
  */
-public class InstrumentationModuleOpenerImpl extends AbstractModuleOpener {
+class InstrumentationModuleOpenerImpl extends AbstractModuleOpener {
 
     private final Instrumentation instrumentation;
 

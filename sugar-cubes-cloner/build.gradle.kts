@@ -110,8 +110,12 @@ tasks.withType<Javadoc> {
     exclude("**/JdkInternalMiscUnsafeBridge*")
     // only exported packages are documented, the others are only read to resolve references
     opts.addPathOption("sourcepath").value = clonerModules.flatMap { it.sourceSets.main.get().java.srcDirs }
+    exclude("io/github/sugarcubes/cloner/allocation/**")
     exclude("io/github/sugarcubes/cloner/engine/**")
+    exclude("io/github/sugarcubes/cloner/fields/**")
     exclude("io/github/sugarcubes/cloner/platform/**")
+    exclude("io/github/sugarcubes/cloner/reflection/**")
+    exclude("io/github/sugarcubes/cloner/unsafe/**")
     exclude("io/github/sugarcubes/cloner/util/**")
 }
 

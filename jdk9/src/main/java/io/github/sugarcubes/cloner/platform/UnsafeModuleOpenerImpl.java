@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.reflection;
+package io.github.sugarcubes.cloner.platform;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -25,7 +25,7 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 /**
  * todo
  */
-public class UnsafeModuleOpenerImpl extends AbstractModuleOpener {
+class UnsafeModuleOpenerImpl extends AbstractModuleOpener {
 
     private final UnsafeBridge unsafe;
     private final Method implAddExportsOrOpens;
