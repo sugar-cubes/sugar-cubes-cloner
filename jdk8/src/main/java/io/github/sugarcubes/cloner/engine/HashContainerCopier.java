@@ -27,8 +27,8 @@ import io.github.sugarcubes.cloner.spi.ContainerModel;
  * object graph is copied, so the copier chooses for every container:
  * <ul>
  *     <li>if the hash codes of all keys are known at once (keys which are not copied, e.g. strings and enums, or keys
- *     hashed by identity) and the model can create an empty container, the container is rebuilt from copied
- *     elements by {@link ContainerCopier} and is complete after its second phase;</li>
+ *     hashed by identity), the container is rebuilt from copied elements by {@link ContainerCopier} and is complete
+ *     after its second phase;</li>
  *     <li>otherwise it is copied by fields, keeping the hash codes of the original keys, which are right for keys
  *     hashed by their state. After the whole graph is copied, the container is checked and rebuilt from its own
  *     elements if some key is not found. Until then its content may be incomplete for the copiers which need it
@@ -81,9 +81,6 @@ public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
     }
 
     private boolean hashCodesKnownAtOnce(T original) {
-        if (!model.canCreate()) {
-            return false;
-        }
         if (shallow) {
             return true;
         }
