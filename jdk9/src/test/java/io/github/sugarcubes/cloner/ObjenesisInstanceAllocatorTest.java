@@ -16,6 +16,8 @@
 package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.junit.jupiter.api.Assertions;
@@ -45,6 +47,23 @@ public class ObjenesisInstanceAllocatorTest {
         Assertions.assertEquals(false, isObjenesisAvailableMethod.invoke(null));
         Callable callable = (Callable) cl.loadClass(TestCase.class.getName()).newInstance();
         Assertions.assertThrows(NoClassDefFoundError.class, () -> callable.call());
+    }
+
+    public static class CloneWithoutObjenesis implements Callable<Object> {
+
+        @Override
+        public Object call() {
+            return Cloners.reflection().clone(new ArrayList<>(List.of("a")));
+        }
+
+    }
+
+    @Test
+    public void testCloningWithoutObjenesis() throws Throwable {
+        CustomClassLoader cl = new CustomClassLoader().disable("org.objenesis.").reload("io.github.sugarcubes.");
+        Callable<?> callable = (Callable<?>) cl.loadClass(CloneWithoutObjenesis.class.getName()).newInstance();
+
+        Assertions.assertEquals(List.of("a"), callable.call());
     }
 
     @Test

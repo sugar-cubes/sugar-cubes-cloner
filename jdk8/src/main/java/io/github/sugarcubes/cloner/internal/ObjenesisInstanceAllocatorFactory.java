@@ -25,20 +25,12 @@ import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 
 /**
- * Instance allocator factory which uses Objenesis library to create objects.
+ * Instance allocator factory which uses Objenesis library to create objects. Loading this class needs Objenesis,
+ * check its availability with {@link io.github.sugarcubes.cloner.util.ObjenesisUtils#isObjenesisAvailable()} first.
  *
  * @author Maxim Butov
  */
 public class ObjenesisInstanceAllocatorFactory implements InstanceAllocatorFactory {
-
-    /**
-     * Availability of Objenesis.
-     *
-     * @return true, if Objenesis library is present in classpath
-     */
-    public static boolean isAvailable() {
-        return ClassUtils.isClassAvailable("org.objenesis.ObjenesisStd");
-    }
 
     /**
      * Objenesis instance.

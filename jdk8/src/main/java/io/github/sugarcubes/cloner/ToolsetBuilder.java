@@ -29,6 +29,7 @@ import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.util.Checks;
+import io.github.sugarcubes.cloner.util.ObjenesisUtils;
 
 /**
  * Builder for {@link Toolset}. Tools which are not set get failsafe defaults: plain reflection, Objenesis (if
@@ -138,7 +139,7 @@ public class ToolsetBuilder {
         if (allocators != null) {
             factories.addAll(allocators);
         }
-        else if (ObjenesisInstanceAllocatorFactory.isAvailable()) {
+        else if (ObjenesisUtils.isObjenesisAvailable()) {
             factories.add(new ObjenesisInstanceAllocatorFactory());
         }
         if (!constructorFallbackDisabled) {
