@@ -65,9 +65,8 @@ public class Checks {
      * @return value
      * @throws IllegalArgumentException if {@code value == null}
      */
-    public static <T> T notNull(T value, String format, Object... args) throws IllegalArgumentException {
+    public static <T> void notNull(T value, String format, Object... args) throws IllegalArgumentException {
         illegalArg(value == null, format, args);
-        return value;
     }
 
     /**
@@ -79,8 +78,8 @@ public class Checks {
      * @return value
      * @throws IllegalArgumentException if {@code value == null}
      */
-    public static <T> T argNotNull(T value, String name) throws IllegalArgumentException {
-        return notNull(value, "%s must be not null.", name);
+    public static <T> void argNotNull(T value, String name) throws IllegalArgumentException {
+        notNull(value, "%s must be not null.", name);
     }
 
     /**
