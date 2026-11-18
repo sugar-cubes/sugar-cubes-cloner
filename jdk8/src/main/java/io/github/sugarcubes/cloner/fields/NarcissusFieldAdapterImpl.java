@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner.fields;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
@@ -23,7 +24,7 @@ import io.github.toolfactory.narcissus.Narcissus;
 
 public class NarcissusFieldAdapterImpl implements FieldAdapter {
 
-    public static final FieldAdapterFactory FACTORY = NarcissusFieldAdapterImpl::new;
+    public static final FieldAdapterFactory FACTORY = field -> Optional.of(new NarcissusFieldAdapterImpl(field));
 
     private final Field field;
 

@@ -36,7 +36,7 @@ public class ReflectionFieldAdapterImpl implements FieldAdapter {
      * @return field adapter factory
      */
     public static FieldAdapterFactory factory(Reflection reflection) {
-        return field -> new ReflectionFieldAdapterImpl(reflection.makeAccessible(field));
+        return field -> reflection.tryMakeAccessible(field).map(ReflectionFieldAdapterImpl::new);
     }
 
     private final Field field;

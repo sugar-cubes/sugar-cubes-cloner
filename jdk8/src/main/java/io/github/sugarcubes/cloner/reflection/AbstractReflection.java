@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Optional;
 
 import io.github.sugarcubes.cloner.spi.Reflection;
 import static io.github.sugarcubes.cloner.util.ClonerExceptionUtils.replaceException;
@@ -66,5 +67,19 @@ public abstract class AbstractReflection implements Reflection {
     protected abstract <T> Constructor<T> getDeclaredConstructorImpl(Class<T> type, Class<?>... parameterTypes) throws Exception;
 
     protected abstract <T extends AccessibleObject & Member> T makeAccessibleImpl(T member);
+
+    @Override
+    public final <T extends AccessibleObject & Member> Optional<T> tryMakeAccessible(T member) {
+        return tryMakeAccessibleImpl(member) ? Optional.of(member) : Optional.empty();
+    }
+
+    /**
+     * Tries to make the member accessible.
+     *
+     * @param <T> member type
+     * @param member member
+     * @return {@code true} if the member is accessible now
+     */
+    protected abstract <T extends AccessibleObject & Member> boolean tryMakeAccessibleImpl(T member);
 
 }

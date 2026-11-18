@@ -53,4 +53,10 @@ class ReflectionImpl$Jdk9 extends ReflectionImpl$Jdk8 {
         }
     }
 
+    @Override
+    protected <T extends AccessibleObject & Member> boolean tryMakeAccessibleImpl(T member) {
+        opener.open(member.getDeclaringClass());
+        return member.trySetAccessible();
+    }
+
 }

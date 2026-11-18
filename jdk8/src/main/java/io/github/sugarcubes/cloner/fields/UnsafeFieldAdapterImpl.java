@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner.fields;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
@@ -36,7 +37,15 @@ public class UnsafeFieldAdapterImpl implements FieldAdapter {
      * @return field adapter factory
      */
     public static FieldAdapterFactory factory(UnsafeBridge unsafe) {
-        return field -> new UnsafeFieldAdapterImpl(unsafe, field);
+        return field -> {
+            try {
+                return Optional.of(new UnsafeFieldAdapterImpl(unsafe, field));
+            }
+            catch (UnsupportedOperationException e) {
+                // sun.misc.Unsafe refuses fields of records and hidden classes
+                return Optional.empty();
+            }
+        };
     }
 
     private final UnsafeBridge unsafe;

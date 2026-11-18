@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 public interface Reflection {
 
@@ -72,5 +73,15 @@ public interface Reflection {
      * @return same object
      */
     <T extends AccessibleObject & Member> T makeAccessible(T member);
+
+    /**
+     * Tries to make the member accessible. Unlike {@link #makeAccessible}, does not fail if it is not possible, e.g.
+     * the package of the member is not opened to the cloner.
+     *
+     * @param <T> member type
+     * @param member member
+     * @return the member if it is accessible now, otherwise empty
+     */
+    <T extends AccessibleObject & Member> Optional<T> tryMakeAccessible(T member);
 
 }

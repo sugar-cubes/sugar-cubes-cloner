@@ -49,4 +49,16 @@ public class ReflectionImpl$Jdk8 extends AbstractReflection {
         return member;
     }
 
+    @Override
+    protected <T extends AccessibleObject & Member> boolean tryMakeAccessibleImpl(T member) {
+        try {
+            member.setAccessible(true);
+            return true;
+        }
+        catch (SecurityException e) {
+            // denied by a security manager
+            return false;
+        }
+    }
+
 }

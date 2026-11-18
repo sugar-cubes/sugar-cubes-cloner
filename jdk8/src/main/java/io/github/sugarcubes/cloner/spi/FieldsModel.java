@@ -86,9 +86,9 @@ public final class FieldsModel<T> {
      * Creates an adapter which reads and writes the field.
      *
      * @param field one of {@link #getFields()}
-     * @return field adapter
+     * @return field adapter, or empty if the field cannot be accessed
      */
-    public FieldAdapter adapter(Field field) {
+    public Optional<FieldAdapter> adapter(Field field) {
         return adapters.newAdapter(field);
     }
 
