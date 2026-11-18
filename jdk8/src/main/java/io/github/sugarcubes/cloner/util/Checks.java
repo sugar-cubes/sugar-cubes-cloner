@@ -62,7 +62,6 @@ public class Checks {
      * @param value value
      * @param format format for exception message
      * @param args arguments for exception message
-     * @return value
      * @throws IllegalArgumentException if {@code value == null}
      */
     public static <T> void notNull(T value, String format, Object... args) throws IllegalArgumentException {
@@ -75,7 +74,6 @@ public class Checks {
      * @param <T> object type
      * @param value value
      * @param name argument name
-     * @return value
      * @throws IllegalArgumentException if {@code value == null}
      */
     public static <T> void argNotNull(T value, String name) throws IllegalArgumentException {
