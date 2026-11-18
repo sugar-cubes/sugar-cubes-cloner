@@ -109,8 +109,9 @@ final class IdentitySlotMap implements SlotMap {
             resize();
             index = indexOf(table, key);
         }
-        table[index] = key;
+        // the value first: a cell with a key always has its value
         table[index + 1] = slot;
+        table[index] = key;
         size = newSize;
     }
 
@@ -121,8 +122,8 @@ final class IdentitySlotMap implements SlotMap {
             Object key = oldTable[j];
             if (key != null) {
                 int i = indexOf(newTable, key);
-                newTable[i] = key;
                 newTable[i + 1] = oldTable[j + 1];
+                newTable[i] = key;
             }
         }
         table = newTable;
