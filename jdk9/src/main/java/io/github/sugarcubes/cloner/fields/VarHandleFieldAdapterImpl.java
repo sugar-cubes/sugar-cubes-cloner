@@ -18,6 +18,7 @@ package io.github.sugarcubes.cloner.fields;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
@@ -35,7 +36,7 @@ public class VarHandleFieldAdapterImpl implements FieldAdapter {
     /**
      * Factory of the adapters.
      */
-    public static final FieldAdapterFactory FACTORY = VarHandleFieldAdapterImpl::new;
+    public static final FieldAdapterFactory FACTORY = field -> Optional.of(new VarHandleFieldAdapterImpl(field));
 
     private static final MethodHandles.Lookup LOOKUP = MethodHandlesLookupUtils.getLookup();
 

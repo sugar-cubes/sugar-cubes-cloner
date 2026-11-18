@@ -37,7 +37,7 @@ class ToolsetBuilderTest {
 
         Assertions.assertSame(JdkPlatform.current().reflection(TypeOpener.NOOP).getClass(), toolset.getReflection().getClass());
         Assertions.assertInstanceOf(ReflectionFieldAdapterImpl.class,
-            toolset.getFieldAdapterFactory().newAdapter(Date.class.getDeclaredField("fastTime")));
+            toolset.getFieldAdapterFactory().newAdapter(Date.class.getDeclaredField("fastTime")).get());
         // Objenesis first, constructor is only a fallback: Date() would set the current time
         Assertions.assertTrue(toolset.getAllocatorFactory().invokesConstructor());
         Assertions.assertEquals(0, toolset.getAllocatorFactory().newAllocator(Date.class).get().newInstance().getTime());

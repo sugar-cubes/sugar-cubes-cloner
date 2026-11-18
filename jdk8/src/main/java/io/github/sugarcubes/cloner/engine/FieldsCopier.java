@@ -134,16 +134,22 @@ public class FieldsCopier<T> extends TwoPhaseObjectCopier<T> {
                 case NULL:
                     Checks.illegalArg(field.getType().isPrimitive(), "Cannot apply action NULL for primitive field %s.",
                         field);
-                    return new FieldStep(model.adapter(field), NULL);
+                    return new FieldStep(adapter(model, field), NULL);
                 case ORIGINAL:
                 case DEFAULT:
                     if (field.getType().isPrimitive()) {
-                        return new FieldStep(model.adapter(field), primitiveKind(field.getType()));
+                        return new FieldStep(adapter(model, field), primitiveKind(field.getType()));
                     }
-                    return new FieldStep(model.adapter(field), action == CopyAction.ORIGINAL ? ORIGINAL : CLONE);
+                    return new FieldStep(adapter(model, field), action == CopyAction.ORIGINAL ? ORIGINAL : CLONE);
                 default:
                     throw Checks.mustNotHappen();
             }
+        }
+
+        private static FieldAdapter adapter(FieldsModel<?> model, Field field) {
+            return model.adapter(field).orElseThrow(() -> new ClonerException(String.format("Cannot access field %s: "
+                + "open its package to the cloner with --add-opens JVM option or use a toolset with Unsafe field "
+                + "access.", field)));
         }
 
         private static int primitiveKind(Class<?> type) {

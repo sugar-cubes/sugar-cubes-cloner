@@ -16,10 +16,22 @@
 package io.github.sugarcubes.cloner.spi;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
+/**
+ * Factory of field adapters.
+ *
+ * @author Maxim Butov
+ */
 @FunctionalInterface
 public interface FieldAdapterFactory {
 
-    FieldAdapter newAdapter(Field field);
+    /**
+     * Creates an adapter which reads and writes the field.
+     *
+     * @param field field
+     * @return adapter, or empty if this factory cannot access the field (e.g. its package is not opened)
+     */
+    Optional<FieldAdapter> newAdapter(Field field);
 
 }
