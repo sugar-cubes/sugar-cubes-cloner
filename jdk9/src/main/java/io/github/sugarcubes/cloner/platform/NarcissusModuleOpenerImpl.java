@@ -25,19 +25,17 @@ import io.github.toolfactory.narcissus.Narcissus;
  */
 class NarcissusModuleOpenerImpl extends AbstractModuleOpener {
 
-    private final Method implAddExportsOrOpens;
+    private final Method implAddOpens;
 
-    public NarcissusModuleOpenerImpl() {
-        implAddExportsOrOpens = ClonerExceptionUtils.replaceException(() ->
-            Narcissus.findMethod(Module.class, "implAddExportsOrOpens", String.class, Module.class, boolean.class, boolean.class));
+    NarcissusModuleOpenerImpl() {
+        // the method behind --add-opens, present since JDK 9
+        implAddOpens = ClonerExceptionUtils.replaceException(() ->
+            Narcissus.findMethod(Module.class, "implAddOpens", String.class, Module.class));
     }
 
     @Override
     protected void openModule(Module module, String packageName, Module thisModule) throws Exception {
-        // export
-        Narcissus.invokeVoidMethod(module, implAddExportsOrOpens, packageName, thisModule, false, true);
-        // open
-        Narcissus.invokeVoidMethod(module, implAddExportsOrOpens, packageName, thisModule, true, true);
+        Narcissus.invokeVoidMethod(module, implAddOpens, packageName, thisModule);
     }
 
 }

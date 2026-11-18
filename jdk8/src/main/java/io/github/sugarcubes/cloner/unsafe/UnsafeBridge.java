@@ -68,6 +68,22 @@ public interface UnsafeBridge {
 
     long objectFieldOffset(Field f);
 
+    /**
+     * Returns the object holding the static field, to be used with {@link #staticFieldOffset(Field)}.
+     *
+     * @param f static field
+     * @return base object
+     */
+    Object staticFieldBase(Field f);
+
+    /**
+     * Returns the offset of the static field in its {@link #staticFieldBase(Field) base object}.
+     *
+     * @param f static field
+     * @return offset
+     */
+    long staticFieldOffset(Field f);
+
     <T> T allocateInstance(Class<T> cls) throws InstantiationException;
 
     void throwException(Throwable ee);

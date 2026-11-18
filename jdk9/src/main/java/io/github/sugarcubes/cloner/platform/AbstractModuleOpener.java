@@ -25,7 +25,7 @@ abstract class AbstractModuleOpener extends AbstractTypeOpener {
     private final Module thisModule = AbstractModuleOpener.class.getModule();
 
     @Override
-    protected void openImpl(Class<?> type) throws Exception {
+    protected void openImpl(Class<?> type) throws Throwable {
         String packageName = type.getPackageName();
         Module module = type.getModule();
         if (!module.isOpen(packageName, thisModule)) {
@@ -33,6 +33,6 @@ abstract class AbstractModuleOpener extends AbstractTypeOpener {
         }
     }
 
-    protected abstract void openModule(Module module, String packageName, Module thisModule) throws Exception;
+    protected abstract void openModule(Module module, String packageName, Module thisModule) throws Throwable;
 
 }

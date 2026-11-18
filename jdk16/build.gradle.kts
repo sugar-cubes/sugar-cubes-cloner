@@ -66,7 +66,9 @@ fun Test.moduleOpeningTest() {
     useJUnitPlatform()
     testClassesDirs = moduleOpeningTest.output.classesDirs
     classpath = moduleOpeningTest.runtimeClasspath
-    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(17)) })
+    // another JDK: -PopeningTestJdk=25
+    val jdk = (findProperty("openingTestJdk") as String?)?.toInt() ?: 17
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(jdk)) })
     // build-utils adds --add-opens to every test task
     jvmArgs = listOf()
     // module opening is global: a fresh JVM for every test class

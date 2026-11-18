@@ -37,6 +37,6 @@ public abstract class AbstractTypeOpener implements TypeOpener {
         return type;
     }
 
-    protected abstract void openImpl(Class<?> type) throws Exception;
+    protected abstract void openImpl(Class<?> type) throws Throwable;
 
 }

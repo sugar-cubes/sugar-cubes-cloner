@@ -135,6 +135,16 @@ class JdkInternalMiscUnsafeBridge$Jdk9 implements UnsafeBridge {
     }
 
     @Override
+    public Object staticFieldBase(Field f) {
+        return unsafe.staticFieldBase(f);
+    }
+
+    @Override
+    public long staticFieldOffset(Field f) {
+        return unsafe.staticFieldOffset(f);
+    }
+
+    @Override
     public <T> T allocateInstance(Class<T> cls) throws InstantiationException {
         return (T) unsafe.allocateInstance(cls);
     }
