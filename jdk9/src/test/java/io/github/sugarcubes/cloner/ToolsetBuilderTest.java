@@ -27,7 +27,6 @@ import io.github.sugarcubes.cloner.fields.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 class ToolsetBuilderTest {
 
@@ -35,7 +34,7 @@ class ToolsetBuilderTest {
     void defaultsAreFailsafe() throws Exception {
         Toolset toolset = Toolsets.builder().build();
 
-        Assertions.assertSame(JdkPlatform.current().reflection(TypeOpener.NOOP).getClass(), toolset.getReflection().getClass());
+        Assertions.assertSame(JdkPlatform.current().reflection().getClass(), toolset.getReflection().getClass());
         Assertions.assertInstanceOf(ReflectionFieldAdapterImpl.class,
             toolset.getFieldAdapterFactory().newAdapter(Date.class.getDeclaredField("fastTime")).get());
         // Objenesis first, constructor is only a fallback: Date() would set the current time

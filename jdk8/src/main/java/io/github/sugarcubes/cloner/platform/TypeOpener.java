@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.spi;
+package io.github.sugarcubes.cloner.platform;
 
-import io.github.sugarcubes.cloner.util.ClassUtils;
+/**
+ * Opens the package of a type to the cloner for deep reflection, a part of {@link ReflectionImpl$Jdk9 reflection} on
+ * JDK 9+.
+ */
+interface TypeOpener {
 
-public interface TypeOpener {
-
+    /**
+     * Opener which opens nothing.
+     */
     TypeOpener NOOP = new TypeOpener() {
         @Override
-        public <T> Class<T> open(Class<T> type) {
-            return type;
+        public void open(Class<?> type) {
         }
     };
 
-    <T> Class<T> open(Class<T> type);
-
-    default <T> Class<T> open(String type) {
-        return open(ClassUtils.classForName(type));
-    }
+    /**
+     * Opens the package of the type to the cloner if the mechanism can do it.
+     *
+     * @param type type
+     */
+    void open(Class<?> type);
 
 }

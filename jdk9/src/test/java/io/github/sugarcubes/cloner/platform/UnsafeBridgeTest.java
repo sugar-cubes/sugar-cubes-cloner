@@ -18,7 +18,6 @@ package io.github.sugarcubes.cloner.platform;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.unsafe.SunMiscUnsafeBridge;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 
@@ -27,7 +26,7 @@ class UnsafeBridgeTest {
     @Test
     void prefersJdkInternalMiscUnsafeWhenExported() throws Exception {
         // tests run with --add-opens java.base/jdk.internal.misc=ALL-UNNAMED
-        UnsafeBridge unsafe = JdkPlatform.current().unsafeBridge(JdkPlatform.current().reflection(TypeOpener.NOOP));
+        UnsafeBridge unsafe = JdkPlatform.current().unsafeBridge(JdkPlatform.current().reflection());
 
         Assertions.assertInstanceOf(JdkInternalMiscUnsafeBridge$Jdk9.class, unsafe);
         Assertions.assertInstanceOf(Object.class, unsafe.allocateInstance(Object.class));
@@ -35,7 +34,7 @@ class UnsafeBridgeTest {
 
     @Test
     void sunMiscUnsafeBridgeWorks() throws Exception {
-        UnsafeBridge unsafe = new SunMiscUnsafeBridge(JdkPlatform.current().reflection(TypeOpener.NOOP));
+        UnsafeBridge unsafe = new SunMiscUnsafeBridge(JdkPlatform.current().reflection());
 
         Assertions.assertInstanceOf(SunMiscUnsafeBridge.class, unsafe);
         Assertions.assertInstanceOf(Object.class, unsafe.allocateInstance(Object.class));

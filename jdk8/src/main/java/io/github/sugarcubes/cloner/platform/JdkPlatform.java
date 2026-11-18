@@ -23,9 +23,9 @@ import io.github.sugarcubes.cloner.ModuleOpening;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
+import io.github.sugarcubes.cloner.util.Checks;
 
 /**
  * Everything which differs between JDK versions. The implementation for the running JDK is chosen by the
@@ -46,22 +46,25 @@ public interface JdkPlatform {
     }
 
     /**
-     * Creates reflection which opens packages with the type opener before making members accessible (JDK 9+).
+     * Creates reflection which opens packages to the cloner with the mechanism before making members accessible (JDK
+     * 9+), fails with {@link io.github.sugarcubes.cloner.ClonerException} if the mechanism is not available.
      *
-     * @param opener type opener
+     * @param opening module opening mechanism
+     * @param unsafe Unsafe bridge, requested only if the mechanism needs it
      * @return reflection
      */
-    Reflection reflection(TypeOpener opener);
+    Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe);
 
     /**
-     * Creates the type opener of the mechanism, fails with {@link io.github.sugarcubes.cloner.ClonerException} if the
-     * mechanism is not available.
+     * Creates reflection which opens nothing.
      *
-     * @param opening mechanism
-     * @param unsafe Unsafe bridge, requested only if the mechanism needs it
-     * @return type opener
+     * @return reflection
      */
-    TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe);
+    default Reflection reflection() {
+        return reflection(ModuleOpening.NONE, () -> {
+            throw Checks.mustNotHappen();
+        });
+    }
 
     /**
      * Returns the factory of field adapters using {@code VarHandle}, JDK 9+.

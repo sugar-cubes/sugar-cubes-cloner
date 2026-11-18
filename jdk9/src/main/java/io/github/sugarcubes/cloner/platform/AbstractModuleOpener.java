@@ -15,8 +15,6 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
-import io.github.sugarcubes.cloner.reflection.AbstractTypeOpener;
-
 /**
  * todo
  */

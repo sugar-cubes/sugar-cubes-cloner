@@ -35,7 +35,6 @@ import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.Lazy;
@@ -263,7 +262,7 @@ public final class ToolsetBuilder {
         Lazy<UnsafeBridge> unsafe = new Lazy<>(() -> unsafeBridge(platform));
         Reflection reflection = this.reflection != null
             ? this.reflection
-            : platform.reflection(platform.typeOpener(moduleOpening, unsafe));
+            : platform.reflection(moduleOpening, unsafe);
         Context context = new Context(platform, reflection, unsafe);
 
         List<Mechanism<InstanceAllocatorFactory>> allocators = this.allocators != null
@@ -284,7 +283,7 @@ public final class ToolsetBuilder {
     private static UnsafeBridge unsafeBridge(JdkPlatform platform) {
         try {
             // reading sun.misc.Unsafe needs no module opening
-            return platform.unsafeBridge(platform.reflection(TypeOpener.NOOP));
+            return platform.unsafeBridge(platform.reflection());
         }
         catch (LinkageError e) {
             throw new ClonerException("Unsafe is not available.", e);

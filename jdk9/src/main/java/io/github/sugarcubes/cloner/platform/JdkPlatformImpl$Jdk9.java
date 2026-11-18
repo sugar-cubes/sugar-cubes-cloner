@@ -30,7 +30,6 @@ import io.github.sugarcubes.cloner.ModuleOpening;
 import io.github.sugarcubes.cloner.reflection.ClonerAgent;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.Checks;
@@ -95,7 +94,11 @@ class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
     }
 
     @Override
-    public TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
+    public Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
+        return new ReflectionImpl$Jdk9(typeOpener(opening, unsafe));
+    }
+
+    private static TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
         switch (opening) {
             case NONE:
                 return TypeOpener.NOOP;
@@ -127,11 +130,6 @@ class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
             throw new ClonerException("VarHandle field access needs the trusted lookup: open java.base/java.lang.invoke "
                 + "to the cloner with --add-opens JVM option.", e);
         }
-    }
-
-    @Override
-    public Reflection reflection(TypeOpener opener) {
-        return new ReflectionImpl$Jdk9(opener);
     }
 
     @Override

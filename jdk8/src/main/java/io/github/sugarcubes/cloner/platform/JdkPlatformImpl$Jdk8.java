@@ -30,7 +30,6 @@ import io.github.sugarcubes.cloner.reflection.ReflectionImpl$Jdk8;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.unsafe.SunMiscUnsafeBridge;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
@@ -210,15 +209,9 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     }
 
     @Override
-    public Reflection reflection(TypeOpener opener) {
+    public Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
         // no modules, nothing to open
         return new ReflectionImpl$Jdk8();
-    }
-
-    @Override
-    public TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
-        // no modules, nothing to open
-        return TypeOpener.NOOP;
     }
 
     @Override

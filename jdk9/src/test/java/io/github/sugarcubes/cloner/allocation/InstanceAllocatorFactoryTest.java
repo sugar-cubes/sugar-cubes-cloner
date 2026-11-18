@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 
 class InstanceAllocatorFactoryTest {
@@ -45,7 +44,7 @@ class InstanceAllocatorFactoryTest {
 
     private static final Class<?>[] NOT_INSTANTIABLE = {List.class, AbstractList.class, int[].class, int.class};
 
-    private final Reflection reflection = JdkPlatform.current().reflection(TypeOpener.NOOP);
+    private final Reflection reflection = JdkPlatform.current().reflection();
 
     @Test
     void allocatorsWithoutConstructorSupportAnyConcreteClass() throws Exception {
