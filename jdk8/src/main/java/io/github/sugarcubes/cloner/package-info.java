@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 /**
- * Java Reflection Cloner library.
+ * Java deep cloning library.
+ *
  * <p>Default configuration example:</p>
  * <pre>
  *     Cloner cloner = Cloners.defaults();
  *     SomeObject myObjectClone = cloner.clone(myObject);
  * </pre>
+ *
  * <p>Custom configuration example:</p>
  * <pre>
  *     Cloner cloner =
  *         // new builder instance
  *         Cloners.builder()
- *             // custom allocator
- *             .objectFactoryProvider(new ObjenesisObjectFactoryProvider())
+ *             // create instances and access fields with Unsafe
+ *             .toolset(Toolsets.unsafe())
  *             // copy thread locals by reference
  *             .typeAction(Predicates.subclass(ThreadLocal.class), CopyAction.ORIGINAL)
  *             // do not clone closeables
@@ -56,6 +58,7 @@
  * @see io.github.sugarcubes.cloner.TraversalAlgorithm
  * @see io.github.sugarcubes.cloner.TypeCopier
  * @see io.github.sugarcubes.cloner.TypePolicy
+ * @see io.github.sugarcubes.cloner.Toolsets
  *
  * @author Maxim Butov
  */

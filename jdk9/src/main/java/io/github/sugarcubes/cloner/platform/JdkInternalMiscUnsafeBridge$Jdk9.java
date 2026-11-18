@@ -27,6 +27,9 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
  */
 class JdkInternalMiscUnsafeBridge$Jdk9 implements UnsafeBridge {
 
+    /**
+     * The {@code jdk.internal.misc.Unsafe} instance.
+     */
     protected final jdk.internal.misc.Unsafe unsafe = jdk.internal.misc.Unsafe.getUnsafe();
 
     public JdkInternalMiscUnsafeBridge$Jdk9() {
