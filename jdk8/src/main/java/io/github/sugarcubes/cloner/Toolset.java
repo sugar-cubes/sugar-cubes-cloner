@@ -32,11 +32,14 @@ public final class Toolset {
     private final Reflection reflection;
     private final InstanceAllocatorFactory allocatorFactory;
     private final FieldAdapterFactory fieldAdapterFactory;
+    private final String description;
 
-    Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldAdapterFactory fieldAdapterFactory) {
+    Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldAdapterFactory fieldAdapterFactory,
+        String description) {
         this.reflection = reflection;
         this.allocatorFactory = allocatorFactory;
         this.fieldAdapterFactory = fieldAdapterFactory;
+        this.description = description;
     }
 
     /**
@@ -64,6 +67,16 @@ public final class Toolset {
      */
     public FieldAdapterFactory getFieldAdapterFactory() {
         return fieldAdapterFactory;
+    }
+
+    /**
+     * Describes the chosen mechanisms, e.g. for logging.
+     *
+     * @return description of the toolset
+     */
+    @Override
+    public String toString() {
+        return description;
     }
 
 }

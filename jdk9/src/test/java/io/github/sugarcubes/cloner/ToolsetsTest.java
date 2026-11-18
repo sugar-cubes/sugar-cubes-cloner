@@ -15,6 +15,11 @@
  */
 package io.github.sugarcubes.cloner;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Assertions;
@@ -22,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.fields.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.fields.UnsafeFieldAdapterImpl;
+import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 
 class ToolsetsTest {
 
@@ -103,6 +109,59 @@ class ToolsetsTest {
         Counted clone = Cloners.builder().toolset(toolset).build().clone(new Counted(5));
 
         Assertions.assertEquals(5, clone.value);
+    }
+
+    @Test
+    void variantsAndCustomAdaptersAreMixedInOrder() throws Exception {
+        Field value = Counted.class.getDeclaredField("value");
+        List<String> asked = new ArrayList<>();
+        FieldAdapterFactory first = field -> {
+            asked.add("first");
+            return Optional.empty();
+        };
+        Toolset toolset = Toolsets.builder()
+            .fieldAdapter(first)
+            .fieldAccess(FieldAccess.UNSAFE)
+            .fieldAdapter(field -> {
+                asked.add("last");
+                return Optional.empty();
+            })
+            .build();
+
+        Assertions.assertInstanceOf(UnsafeFieldAdapterImpl.class,
+            toolset.getFieldAdapterFactory().newAdapter(value).get());
+        Assertions.assertEquals(Collections.singletonList("first"), asked);
+    }
+
+    @Test
+    void emptyAllocatorsDisableDefaults() {
+        Toolset toolset = Toolsets.builder().allocators().build();
+
+        Assertions.assertTrue(toolset.toString().contains("allocation=[]"), toolset.toString());
+    }
+
+    @Test
+    void toStringDescribesMechanisms() {
+        Toolset toolset = Toolsets.builder()
+            .moduleOpening(ModuleOpening.UNSAFE)
+            .allocation(Allocation.UNSAFE)
+            .fieldAccess(FieldAccess.VAR_HANDLE, FieldAccess.REFLECTION)
+            .noConstructorFallback()
+            .build();
+
+        Assertions.assertEquals("Toolset[moduleOpening=UNSAFE, allocation=[UNSAFE], constructorFallback=none, "
+            + "fieldAccess=[VAR_HANDLE, REFLECTION]]", toolset.toString());
+    }
+
+    @Test
+    void availability() {
+        Assertions.assertTrue(Toolsets.isAvailable(Allocation.UNSAFE));
+        Assertions.assertTrue(Toolsets.isAvailable(Allocation.OBJENESIS));
+        Assertions.assertTrue(Toolsets.isAvailable(FieldAccess.VAR_HANDLE));
+        Assertions.assertTrue(Toolsets.isAvailable(ModuleOpening.UNSAFE));
+        Assertions.assertFalse(Toolsets.isAvailable(FieldAccess.NARCISSUS));
+        Assertions.assertFalse(Toolsets.isAvailable(ModuleOpening.NARCISSUS));
+        Assertions.assertFalse(Toolsets.isAvailable(ModuleOpening.INSTRUMENTATION));
     }
 
 }
