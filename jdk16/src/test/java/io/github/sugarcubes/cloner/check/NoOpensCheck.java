@@ -78,7 +78,7 @@ public final class NoOpensCheck {
 
     public static void main(String[] args) {
         Graph original = new Graph();
-        Graph clone = Cloners.reflection().clone(original);
+        Graph clone = Cloners.defaults().clone(original);
         check(clone != original, "graph is copied");
         check(clone.list.equals(original.list) && clone.list != original.list, "ArrayList");
         check(clone.linked.equals(original.linked), "LinkedList");

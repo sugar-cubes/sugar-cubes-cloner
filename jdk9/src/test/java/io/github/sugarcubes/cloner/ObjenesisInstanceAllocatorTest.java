@@ -53,7 +53,7 @@ public class ObjenesisInstanceAllocatorTest {
 
         @Override
         public Object call() {
-            return Cloners.reflection().clone(new ArrayList<>(List.of("a")));
+            return Cloners.defaults().clone(new ArrayList<>(List.of("a")));
         }
 
     }

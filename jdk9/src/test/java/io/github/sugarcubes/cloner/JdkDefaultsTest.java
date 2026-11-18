@@ -64,7 +64,7 @@ class JdkDefaultsTest {
     void sharedAndClonedJdkObjects() throws Exception {
         Holder original = new Holder();
 
-        Holder clone = Cloners.reflection().clone(original);
+        Holder clone = Cloners.defaults().clone(original);
 
         Assertions.assertNotSame(original, clone);
         Assertions.assertSame(original.locale, clone.locale);

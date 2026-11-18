@@ -22,7 +22,7 @@ class ReadmeExample {
     private final SomeObject original = new SomeObject();
 
     private void simple() {
-        SomeObject clone = Cloners.reflection().clone(original);
+        SomeObject clone = Cloners.defaults().clone(original);
     }
 
     private void doNotCloneType() {

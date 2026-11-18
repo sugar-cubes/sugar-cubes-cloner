@@ -36,7 +36,7 @@ class LambdaFieldTest {
     void lambdaIsCopiedByReference() {
         Holder original = new Holder("x");
 
-        Holder clone = Cloners.reflection().clone(original);
+        Holder clone = Cloners.defaults().clone(original);
 
         Assertions.assertNotSame(original, clone);
         Assertions.assertSame(original.supplier, clone.supplier);

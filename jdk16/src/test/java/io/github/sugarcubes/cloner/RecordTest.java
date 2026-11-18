@@ -38,7 +38,7 @@ public class RecordTest {
     @Test
     void testRecords() {
         Cat cat1 = new Cat("Kesha", 7, "Gray");
-        Cat cat2 = Cloners.reflection().clone(cat1);
+        Cat cat2 = Cloners.defaults().clone(cat1);
         assertThat(cat2, not(sameInstance(cat1)));
         assertThat(cat2, equalTo(cat1));
     }

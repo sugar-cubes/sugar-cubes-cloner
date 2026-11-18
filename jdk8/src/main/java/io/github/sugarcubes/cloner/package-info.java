@@ -17,7 +17,7 @@
  * Java Reflection Cloner library.
  * <p>Default configuration example:</p>
  * <pre>
- *     Cloner cloner = Cloners.reflection();
+ *     Cloner cloner = Cloners.defaults();
  *     SomeObject myObjectClone = cloner.clone(myObject);
  * </pre>
  * <p>Custom configuration example:</p>

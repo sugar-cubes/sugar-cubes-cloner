@@ -34,12 +34,12 @@ import static org.hamcrest.Matchers.sameInstance;
 public class ImmutableCollectionsTest {
 
     <T> void testEmptyCollectionClone(T original) {
-        T clone = Cloners.reflection().clone(original);
+        T clone = Cloners.defaults().clone(original);
         assertThat(clone, sameInstance(original));
     }
 
     <T> void testImmutableCollectionClone(T original) {
-        T clone = Cloners.reflection().clone(original);
+        T clone = Cloners.defaults().clone(original);
         assertThat(clone, not(sameInstance(original)));
         assertThat(clone, equalTo(original));
     }

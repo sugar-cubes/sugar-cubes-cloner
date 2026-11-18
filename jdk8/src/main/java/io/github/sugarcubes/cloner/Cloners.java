@@ -34,11 +34,11 @@ public class Cloners {
     }
 
     /**
-     * Returns an instance of {@link Cloner} with default settings.
+     * Returns an instance of {@link Cloner} with default settings: sequential mode, {@link Toolsets#defaults()}.
      *
-     * @return reflection sequential cloner
+     * @return default cloner
      */
-    public static Cloner reflection() {
+    public static Cloner defaults() {
         return builder().build();
     }
 
@@ -52,14 +52,14 @@ public class Cloners {
     }
 
     /**
-     * Clones object using {@link #reflection()} cloner.
+     * Clones object using {@link #defaults()} cloner.
      *
      * @param <T> object type
      * @param object original object
      * @return clone
      */
-    public static <T> T reflectionClone(T object) {
-        return reflection().clone(object);
+    public static <T> T clone(T object) {
+        return defaults().clone(object);
     }
 
     /**
