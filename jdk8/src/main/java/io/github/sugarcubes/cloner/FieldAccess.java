@@ -40,6 +40,8 @@ public enum FieldAccess {
 
     /**
      * Narcissus library with its native part, must be on the classpath.
+     * Narcissus loads a native library: since JDK 24 the JVM warns about it unless started with
+     * {@code --enable-native-access=ALL-UNNAMED} (or the module of Narcissus), a future JDK will deny it.
      */
     NARCISSUS,
 

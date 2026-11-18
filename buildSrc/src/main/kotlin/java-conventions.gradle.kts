@@ -23,6 +23,21 @@ tasks.named<Test>("test") {
     maxHeapSize = "1g"
 }
 
+// tests on another JDK: -PtestJdk=21, another vendor: -PtestJdkVendor=ibm (IBM Semeru, OpenJ9)
+val testJdk = (findProperty("testJdk") as String?)?.toInt()
+val testJdkVendor = findProperty("testJdkVendor") as String?
+
+if (testJdk != null) {
+    tasks.withType<Test>().configureEach {
+        javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(testJdk))
+            if (testJdkVendor != null) {
+                vendor.set(if (testJdkVendor.equals("ibm", true)) JvmVendorSpec.IBM else JvmVendorSpec.matching(testJdkVendor))
+            }
+        })
+    }
+}
+
 tasks.withType<Javadoc> {
     enabled = false
 }
