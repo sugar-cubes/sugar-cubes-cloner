@@ -20,11 +20,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Optional;
 
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
-import io.github.sugarcubes.cloner.util.MethodHandlesLookupUtils;
 
 /**
  * Instance allocator factory using {@link MethodHandle} to invoke constructor without parameters.
@@ -37,7 +37,7 @@ public class MethodHandleInstanceAllocatorFactory implements InstanceAllocatorFa
     /**
      * Trusted {@link MethodHandles.Lookup} instance.
      */
-    private static final MethodHandles.Lookup LOOKUP = MethodHandlesLookupUtils.getLookup();
+    private static final MethodHandles.Lookup LOOKUP = JdkPlatform.current().trustedLookup();
 
     /**
      * Constructor's method type.

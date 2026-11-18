@@ -18,7 +18,6 @@ package io.github.sugarcubes.cloner.platform;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Field;
 
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
@@ -34,9 +33,7 @@ class UnsafeModuleOpenerImpl extends AbstractModuleOpener {
 
     UnsafeModuleOpenerImpl(UnsafeBridge unsafe) {
         this.implAddOpens = ClonerExceptionUtils.replaceException(() -> {
-            Field implLookup = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
-            MethodHandles.Lookup lookup = (MethodHandles.Lookup) unsafe.getObject(unsafe.staticFieldBase(implLookup),
-                unsafe.staticFieldOffset(implLookup));
+            MethodHandles.Lookup lookup = TrustedLookup.byUnsafe(unsafe);
             MethodType type = MethodType.methodType(void.class, String.class, Module.class);
             return lookup.findVirtual(Module.class, "implAddOpens", type);
         });

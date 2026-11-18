@@ -15,6 +15,7 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -192,6 +193,11 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     public Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
         // no modules, nothing to open
         return new ReflectionImpl$Jdk8();
+    }
+
+    @Override
+    public MethodHandles.Lookup trustedLookup() {
+        return TrustedLookup.byReflection();
     }
 
     @Override

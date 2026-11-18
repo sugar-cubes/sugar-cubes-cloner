@@ -44,24 +44,6 @@ public class ClassUtils {
     }
 
     /**
-     * Checks the availability of the method in the class.
-     *
-     * @param type class
-     * @param methodName name of the method
-     * @param parameterTypes parameter types
-     * @return {@code true} if the method is available
-     */
-    public static boolean isMethodAvailable(Class<?> type, String methodName, Class<?>... parameterTypes) {
-        try {
-            type.getDeclaredMethod(methodName, parameterTypes);
-            return true;
-        }
-        catch (NoSuchMethodException e) {
-            return false;
-        }
-    }
-
-    /**
      * Checks whether an instance of the type can be allocated without arguments, as instance allocators do.
      * Interfaces, abstract classes and primitives have no own instances. Arrays have, but an array is created
      * with its length, so arrays are copied by separate copiers and never reach instance allocators.
