@@ -18,7 +18,6 @@ package io.github.sugarcubes.cloner.engine;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -59,7 +58,7 @@ public class ParallelCopyContext extends AbstractCopyContext {
      * @param executor executor service
      */
     public ParallelCopyContext(CopierProvider copierProvider, Map<Object, Object> clones, ExecutorService executor) {
-        super(copierProvider, ConcurrentHashMap::new, clones);
+        super(copierProvider, new ConcurrentSlotMap(), clones);
         this.executor = executor;
     }
 

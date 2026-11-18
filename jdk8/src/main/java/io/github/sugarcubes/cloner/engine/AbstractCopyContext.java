@@ -27,15 +27,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
-import io.github.sugarcubes.cloner.util.IdentityReference;
 
 /**
  * Abstract copy context. Contains common code for the context implementations.
@@ -62,13 +59,13 @@ public abstract class AbstractCopyContext implements CopyContext {
     /**
      * Copying states of the original objects.
      */
-    private final Map<IdentityReference<Object>, CloneSlot> clones;
+    private final SlotMap clones;
 
     /**
-     * Creates slots for {@link Map#computeIfAbsent}; kept in a field, a lambda capturing {@code this} would be
+     * Creates slots for {@link SlotMap#getOrCreate}; kept in a field, a lambda capturing {@code this} would be
      * allocated for every copied object.
      */
-    private final Function<IdentityReference<Object>, CloneSlot> slotFactory = key -> newSlot();
+    private final Function<Object, CloneSlot> slotFactory = original -> newSlot();
 
     /**
      * Slots which threads are waiting for, created on the first wait.
@@ -86,25 +83,18 @@ public abstract class AbstractCopyContext implements CopyContext {
     private static final JdkPlatform JDK_PLATFORM = JdkPlatform.current();
 
     /**
-     * Predefined system-wide singletons as map.
-     */
-    @SuppressWarnings("checkstyle:Indentation")
-    private static final Map<IdentityReference<Object>, CloneSlot> SYSTEM_SINGLETONS_AS_MAP =
-        JDK_PLATFORM.getSystemWideSingletons().stream()
-            .collect(Collectors.toMap(IdentityReference::new, SingleThreadCloneSlot::new));
-
-    /**
      * Creates context with specified copier provider, clones map and predefined cloned objects.
      *
      * @param copierProvider copier provider
-     * @param cacheSupplier cache supplier
+     * @param slots empty slot map
      * @param clones predefined cloned objects
      */
-    protected AbstractCopyContext(CopierProvider copierProvider, Supplier<Map<?, ?>> cacheSupplier, Map<Object, Object> clones) {
+    AbstractCopyContext(CopierProvider copierProvider, SlotMap slots, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
-        this.clones = (Map) cacheSupplier.get();
-        this.clones.putAll(SYSTEM_SINGLETONS_AS_MAP);
-        clones.forEach((key, value) -> this.clones.put(new IdentityReference<>(key), new SingleThreadCloneSlot(value)));
+        this.clones = slots;
+        // system-wide singletons are their own clones
+        JDK_PLATFORM.getSystemWideSingletons().forEach(singleton -> slots.put(singleton, new SingleThreadCloneSlot(singleton)));
+        clones.forEach((key, value) -> slots.put(key, new SingleThreadCloneSlot(value)));
     }
 
     /**
@@ -165,7 +155,7 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (copier == ObjectCopier.NULL) {
             return null;
         }
-        CloneSlot slot = clones.computeIfAbsent(new IdentityReference<>(original), slotFactory);
+        CloneSlot slot = clones.getOrCreate(original, slotFactory);
         Object existing = slot.getClone();
         if (existing != null) {
             return existing;
@@ -186,7 +176,7 @@ public abstract class AbstractCopyContext implements CopyContext {
             return;
         }
         CloneSlot owner = getOwner();
-        CloneSlot slot = clones.get(new IdentityReference<>(original));
+        CloneSlot slot = clones.get(original);
         owner.addHole(slot);
         clone = slot.subscribe(new CloneSlot.Subscription(owner, (CloneSetter<Object>) setter));
         if (clone != null) {
@@ -201,7 +191,7 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (clone == null || clone == original) {
             return clone;
         }
-        CloneSlot slot = clones.get(new IdentityReference<>(original));
+        CloneSlot slot = clones.get(original);
         while (!slot.isCompleted()) {
             if (!runSecondPhase(slot, original) && !await(slot, original, CloneSlot::isCompleted)) {
                 // waits for an object being created by the current thread
@@ -213,7 +203,7 @@ public abstract class AbstractCopyContext implements CopyContext {
 
     @Override
     public boolean isComplete(Object original) {
-        CloneSlot slot = original != null ? clones.get(new IdentityReference<>(original)) : null;
+        CloneSlot slot = original != null ? clones.get(original) : null;
         return slot == null || slot.isCompleted();
     }
 
@@ -228,7 +218,7 @@ public abstract class AbstractCopyContext implements CopyContext {
      */
     @SuppressWarnings("unchecked")
     protected <T> T doClone(T original, ObjectCopier<T> copier) throws Exception {
-        CloneSlot slot = clones.computeIfAbsent(new IdentityReference<>(original), slotFactory);
+        CloneSlot slot = clones.getOrCreate(original, slotFactory);
         Object existing = slot.getClone();
         if (existing != null) {
             return (T) existing;
