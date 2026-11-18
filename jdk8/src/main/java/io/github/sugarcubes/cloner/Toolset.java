@@ -18,8 +18,7 @@ package io.github.sugarcubes.cloner;
 import java.util.Optional;
 
 import io.github.sugarcubes.cloner.internal.ContainerModels;
-import io.github.sugarcubes.cloner.internal.HiddenClasses;
-import io.github.sugarcubes.cloner.internal.ValuesModelProvider;
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
@@ -48,9 +47,7 @@ public class Toolset {
     private final Reflection reflection;
     private final InstanceAllocatorFactory allocatorFactory;
     private final FieldAdapterFactory fieldAdapterFactory;
-    private final ValuesModelProvider valuesModels = new ValuesModelProvider();
     private final ContainerModels containerModels;
-    private final HiddenClasses hiddenClasses = new HiddenClasses();
 
     /**
      * Constructor.
@@ -101,7 +98,7 @@ public class Toolset {
      * @return {@code true} if the class is hidden
      */
     public boolean isHidden(Class<?> type) {
-        return hiddenClasses.isHidden(type);
+        return JdkPlatform.current().isHidden(type);
     }
 
     /**
@@ -123,7 +120,7 @@ public class Toolset {
      * @return model of the type, or empty if the type is not such (e.g. not a record)
      */
     public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type) {
-        return valuesModels.valuesModel(type, reflection);
+        return JdkPlatform.current().valuesModel(type, reflection);
     }
 
     /**

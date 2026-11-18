@@ -23,19 +23,29 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.ReflectionUtils;
 
 /**
- * Implementation of {@link JdkConfiguration} for JDK 15+.
+ * {@link JdkPlatform} of JDK 15+: hidden classes, {@code jdk.internal.misc.Unsafe} with references, archived immutable
+ * collections.
  *
  * @author Maxim Butov
  */
-class JdkConfigurationImpl$Jdk15 extends JdkConfigurationImpl$Jdk9 {
+class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
 
-    @Override
-    public void initialize() {
-        super.initialize();
+    JdkPlatformImpl$Jdk15() {
         Class<?> immutableCollectionsClass = ClassUtils.classForName("java.util.ImmutableCollections");
         Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, "archivedObjects");
         Object[] archivedObjects = (Object[]) ClonerExceptionUtils.replaceException(() -> archivedObjectsField.get(null));
         systemWideSingletons.addAll(Arrays.asList(archivedObjects));
+    }
+
+    @Override
+    public boolean isHidden(Class<?> type) {
+        // lambda classes are hidden classes too
+        return type.isHidden();
+    }
+
+    @Override
+    UnsafeBridge newJdkInternalMiscUnsafeBridge() {
+        return new JdkInternalMiscUnsafeBridge$Jdk15();
     }
 
 }

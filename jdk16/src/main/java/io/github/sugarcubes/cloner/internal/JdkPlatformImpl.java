@@ -16,10 +16,10 @@
 package io.github.sugarcubes.cloner.internal;
 
 /**
- * Actual Unsafe bridge provider.
+ * Platform of the running JDK, chosen by the multi-release jar.
  *
  * @author Maxim Butov
  */
-class UnsafeBridgeProvider extends UnsafeBridgeProvider$Jdk9 {
+final class JdkPlatformImpl extends JdkPlatformImpl$Jdk16 {
 
 }

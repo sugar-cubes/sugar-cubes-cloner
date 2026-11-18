@@ -22,11 +22,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
-import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 class ToolsetBuilderTest {
 
@@ -34,7 +35,7 @@ class ToolsetBuilderTest {
     void defaultsAreFailsafe() throws Exception {
         Toolset toolset = new ToolsetBuilder().build();
 
-        Assertions.assertInstanceOf(ReflectionImpl$Jdk8.class, toolset.getReflection());
+        Assertions.assertSame(JdkPlatform.current().reflection(TypeOpener.NOOP).getClass(), toolset.getReflection().getClass());
         Assertions.assertInstanceOf(ReflectionFieldAdapterImpl.class,
             toolset.getFieldAdapterFactory().newAdapter(Date.class.getDeclaredField("fastTime")));
         // Objenesis first, constructor is only a fallback: Date() would set the current time

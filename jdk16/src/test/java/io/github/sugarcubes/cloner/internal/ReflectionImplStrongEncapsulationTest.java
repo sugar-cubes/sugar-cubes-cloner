@@ -32,7 +32,7 @@ class ReflectionImplStrongEncapsulationTest {
 
     @Test
     void notOpenedMemberGivesHint() {
-        Reflection reflection = new ReflectionImpl(TypeOpener.NOOP);
+        Reflection reflection = new ReflectionImpl$Jdk9(TypeOpener.NOOP);
         // the test JVM opens only a few java.base packages, java.util.regex is not among them
         Field field = reflection.getDeclaredField(Pattern.class, "pattern");
 

@@ -22,11 +22,12 @@ import java.util.List;
 import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
-import io.github.sugarcubes.cloner.internal.ReflectionImpl$Jdk8;
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.util.Checks;
 
 /**
@@ -126,7 +127,7 @@ public class ToolsetBuilder {
      * @return toolset
      */
     public Toolset build() {
-        Reflection reflection = this.reflection != null ? this.reflection : new ReflectionImpl$Jdk8();
+        Reflection reflection = this.reflection != null ? this.reflection : JdkPlatform.current().reflection(TypeOpener.NOOP);
         FieldAdapterFactory fieldAdapter =
             this.fieldAdapter != null ? this.fieldAdapter : ReflectionFieldAdapterImpl.factory(reflection);
         return new Toolset(reflection, buildAllocatorFactory(reflection), fieldAdapter);

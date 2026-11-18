@@ -15,41 +15,22 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-import java.util.Set;
+import java.util.Optional;
+
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
- * Facts about the JDK implementation: immutable types, cloneable types, system-wide singletons. Decisions how to copy
- * them are made by the cloner.
+ * {@link JdkPlatform} of JDK 16+: records are created from the values of their components.
  *
  * @author Maxim Butov
  */
-public interface JdkConfiguration {
+class JdkPlatformImpl$Jdk16 extends JdkPlatformImpl$Jdk15 {
 
-    /**
-     * Initializes configuration.
-     */
-    default void initialize() {
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
+        return type.isRecord() ? Optional.of(new RecordValuesModel(type, reflection)) : super.valuesModel(type, reflection);
     }
-
-    /**
-     * Returns immutable types.
-     *
-     * @return set of immutable types
-     */
-    Set<Class<?>> getImmutableTypes();
-
-    /**
-     * Returns cloneable types.
-     *
-     * @return set of cloneable types
-     */
-    Set<Class<?>> getCloneableTypes();
-
-    /**
-     * Returns system-wide JDK singletons.
-     *
-     * @return system-wide JDK singletons
-     */
-    Set<Object> getSystemWideSingletons();
 
 }

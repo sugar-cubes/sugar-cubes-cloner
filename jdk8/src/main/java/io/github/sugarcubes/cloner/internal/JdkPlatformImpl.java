@@ -16,8 +16,10 @@
 package io.github.sugarcubes.cloner.internal;
 
 /**
- * Actual JDK configuration.
+ * Platform of the running JDK, chosen by the multi-release jar.
+ *
+ * @author Maxim Butov
  */
-final class JdkConfigurationImpl extends JdkConfigurationImpl$Jdk15 {
+final class JdkPlatformImpl extends JdkPlatformImpl$Jdk8 {
 
 }
