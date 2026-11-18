@@ -60,7 +60,7 @@ public class Toolset {
         this.reflection = reflection;
         this.allocatorFactory = allocatorFactory;
         this.fieldAdapterFactory = fieldAdapterFactory;
-        this.containerModels = new ContainerModels(reflection);
+        this.containerModels = new ContainerModels();
     }
 
     /**

@@ -41,15 +41,6 @@ public interface ContainerModel<T> {
     boolean hashesKeys();
 
     /**
-     * Tells whether {@link #create(Object)} is supported, e.g. the configuration of the original can be read.
-     *
-     * @return {@code true} if empty containers can be created
-     */
-    default boolean canCreate() {
-        return true;
-    }
-
-    /**
      * Creates an empty container of the same kind as the original: the same class and configuration, e.g. the key
      * type of an {@link java.util.EnumMap}.
      *

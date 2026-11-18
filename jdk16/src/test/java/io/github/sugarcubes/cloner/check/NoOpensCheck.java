@@ -23,6 +23,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,12 @@ public final class NoOpensCheck {
         final Point point = new Point(1, 2);
         final Date date = new Date(42);
         final List<String> empty = List.of();
+        final Map<String, Integer> accessOrdered = new LinkedHashMap<>(16, 0.75f, true);
 
         Graph() {
+            accessOrdered.put("k", 1);
+            accessOrdered.put("l", 2);
+            accessOrdered.get("k");
             immutableSet = Set.of(key);
             immutableMap = Map.of(key, "j");
         }
@@ -84,6 +89,8 @@ public final class NoOpensCheck {
         check(clone.point.equals(original.point), "record");
         check(clone.date.equals(original.date) && clone.date != original.date, "Date");
         check(clone.empty == original.empty, "empty List.of keeps identity");
+        clone.accessOrdered.get("l");
+        check(List.of("k", "l").equals(List.copyOf(clone.accessOrdered.keySet())), "LinkedHashMap keeps access order");
         System.out.println("Cloning without --add-opens works.");
     }
 

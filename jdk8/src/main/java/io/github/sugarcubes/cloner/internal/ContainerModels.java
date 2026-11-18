@@ -15,7 +15,6 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,10 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
-import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
-import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
  * Container models of well-known JDK collections and maps. Only these exact classes are supported: a subclass may
@@ -56,10 +52,8 @@ public final class ContainerModels {
 
     /**
      * Creates the models.
-     *
-     * @param reflection reflection to read configuration of containers which is not public
      */
-    public ContainerModels(Reflection reflection) {
+    public ContainerModels() {
         collection(ArrayList.class, ArrayList::new, false);
         collection(LinkedList.class, size -> new LinkedList<>(), false);
         collection(ArrayDeque.class, ArrayDeque::new, false);
@@ -68,7 +62,7 @@ public final class ContainerModels {
         collection(HashSet.class, size -> new HashSet<>(hashCapacity(size)), true);
         collection(LinkedHashSet.class, size -> new LinkedHashSet<>(hashCapacity(size)), true);
         map(HashMap.class, original -> new HashMap<>(hashCapacity(original.size())), true);
-        models.put(LinkedHashMap.class, new LinkedHashMapModel(reflection));
+        map(LinkedHashMap.class, ContainerModels::emptyLinkedHashMap, true);
         map(Hashtable.class, original -> new Hashtable<>(hashCapacity(original.size())), true);
         map(ConcurrentHashMap.class, original -> new ConcurrentHashMap<>(hashCapacity(original.size())), true);
         map(IdentityHashMap.class, original -> new IdentityHashMap<>(original.size()), false);
@@ -97,6 +91,14 @@ public final class ContainerModels {
 
     private static int hashCapacity(int size) {
         return (int) (size / LOAD_FACTOR) + 1;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<Object, Object> emptyLinkedHashMap(Map<Object, Object> original) {
+        // the clone keeps the access order and the load factor, which are not public
+        LinkedHashMap<Object, Object> clone = (LinkedHashMap<Object, Object>) ((LinkedHashMap<Object, Object>) original).clone();
+        clone.clear();
+        return clone;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -154,53 +156,6 @@ public final class ContainerModels {
         @Override
         public void clear(T container) {
             container.clear();
-        }
-
-    }
-
-    /**
-     * Model of {@link LinkedHashMap}: an empty map must keep the access order of the original, which is not public.
-     * The order is read through the reflection when first needed; if it cannot be read, maps are not created.
-     */
-    private static final class LinkedHashMapModel extends MapModel<LinkedHashMap<Object, Object>> {
-
-        private final Reflection reflection;
-
-        private volatile Optional<Field> accessOrder;
-
-        LinkedHashMapModel(Reflection reflection) {
-            super(null, true);
-            this.reflection = reflection;
-        }
-
-        @Override
-        public boolean canCreate() {
-            return accessOrder().isPresent();
-        }
-
-        @Override
-        public LinkedHashMap<Object, Object> create(LinkedHashMap<Object, Object> original) {
-            Field field = accessOrder().orElseThrow(() -> new ClonerException("Access order of LinkedHashMap is not accessible."));
-            boolean ordered = (Boolean) ClonerExceptionUtils.replaceException(() -> field.get(original));
-            return new LinkedHashMap<>(hashCapacity(original.size()), LOAD_FACTOR, ordered);
-        }
-
-        private Optional<Field> accessOrder() {
-            Optional<Field> field = accessOrder;
-            if (field == null) {
-                accessOrder = field = findAccessOrder();
-            }
-            return field;
-        }
-
-        private Optional<Field> findAccessOrder() {
-            try {
-                return Optional.of(reflection.makeAccessible(reflection.getDeclaredField(LinkedHashMap.class, "accessOrder")));
-            }
-            catch (ClonerException e) {
-                // not opened to the cloner
-                return Optional.empty();
-            }
         }
 
     }
