@@ -29,11 +29,21 @@ final class IdentitySlotMap implements SlotMap {
     private static final int DEFAULT_CAPACITY = 32;
 
     /**
+     * Shared table of an empty map: the smallest one, never written, the first insertion replaces it.
+     */
+    private static final Object[] EMPTY = new Object[2];
+
+    /**
      * Keys at even indices, values at the following odd ones; the length is twice the capacity.
      */
-    private Object[] table;
+    private Object[] table = EMPTY;
 
     private int size;
+
+    /**
+     * Length of the table created on the first insertion.
+     */
+    private final int initialLength;
 
     /**
      * Creates the map with the default capacity.
@@ -48,7 +58,7 @@ final class IdentitySlotMap implements SlotMap {
      * @param capacity initial capacity, a power of two
      */
     IdentitySlotMap(int capacity) {
-        table = new Object[capacity * 2];
+        initialLength = capacity * 2;
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -104,7 +114,7 @@ final class IdentitySlotMap implements SlotMap {
 
     private void insert(int index, Object key, CloneSlot slot) {
         int newSize = size + 1;
-        // keeps the load factor at most 2/3
+        // keeps the load factor at most 2/3; the empty table is always replaced
         if (newSize + (newSize << 1) > table.length) {
             resize();
             index = indexOf(table, key);
@@ -117,7 +127,7 @@ final class IdentitySlotMap implements SlotMap {
 
     private void resize() {
         Object[] oldTable = table;
-        Object[] newTable = new Object[oldTable.length * 2];
+        Object[] newTable = new Object[oldTable == EMPTY ? initialLength : oldTable.length * 2];
         for (int j = 0; j < oldTable.length; j += 2) {
             Object key = oldTable[j];
             if (key != null) {
