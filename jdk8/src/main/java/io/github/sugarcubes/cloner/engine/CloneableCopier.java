@@ -22,8 +22,9 @@ import java.util.Optional;
 
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.ObjectCopier;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
+import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.util.Lazy;
-import io.github.sugarcubes.cloner.util.ReflectionUtils;
 
 /**
  * One-phase copier which creates a shallow clone of the original object: arrays are copied element by element, other
@@ -50,7 +51,10 @@ public class CloneableCopier<T extends Cloneable> implements ObjectCopier<T> {
     /**
      * {@link Object#clone()} made accessible when first needed.
      */
-    private static final Lazy<Method> OBJECT_CLONE = new Lazy<>(() -> ReflectionUtils.getMethod(Object.class, CLONE));
+    private static final Lazy<Method> OBJECT_CLONE = new Lazy<>(() -> {
+        Reflection reflection = JdkPlatform.current().reflection();
+        return reflection.makeAccessible(reflection.getDeclaredMethod(Object.class, CLONE));
+    });
 
     @Override
     @SuppressWarnings("unchecked")

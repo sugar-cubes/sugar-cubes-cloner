@@ -23,7 +23,6 @@ import java.util.Optional;
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
-import io.github.sugarcubes.cloner.util.MethodHandlesLookupUtils;
 
 /**
  * Field adapter which uses {@link VarHandle} obtained from the trusted {@link MethodHandles.Lookup}, so it can also
@@ -38,7 +37,7 @@ class VarHandleFieldAdapterImpl implements FieldAdapter {
      */
     public static final FieldAdapterFactory FACTORY = field -> Optional.of(new VarHandleFieldAdapterImpl(field));
 
-    private static final MethodHandles.Lookup LOOKUP = MethodHandlesLookupUtils.getLookup();
+    private static final MethodHandles.Lookup LOOKUP = TrustedLookup.byReflection();
 
     private final VarHandle handle;
 

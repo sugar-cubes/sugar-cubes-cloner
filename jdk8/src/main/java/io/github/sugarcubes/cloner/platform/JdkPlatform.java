@@ -15,6 +15,7 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -64,6 +65,15 @@ public interface JdkPlatform {
             throw Checks.mustNotHappen();
         });
     }
+
+    /**
+     * Returns the trusted lookup {@code MethodHandles.Lookup.IMPL_LOOKUP}, read by reflection: on JDK 9+ it needs
+     * {@code java.base/java.lang.invoke} opened to the cloner.
+     *
+     * @return trusted lookup
+     * @throws LinkageError if the lookup cannot be read
+     */
+    MethodHandles.Lookup trustedLookup();
 
     /**
      * Returns the factory of field adapters using {@code VarHandle}, JDK 9+.
