@@ -20,13 +20,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * todo
+ * Opens packages to the cloner by {@link Instrumentation#redefineModule}, the supported way, available when the
+ * cloner agent is loaded (see {@link io.github.sugarcubes.cloner.reflection.ClonerAgent}).
  */
 class InstrumentationModuleOpenerImpl extends AbstractModuleOpener {
 
     private final Instrumentation instrumentation;
 
-    public InstrumentationModuleOpenerImpl(Instrumentation instrumentation) {
+    InstrumentationModuleOpenerImpl(Instrumentation instrumentation) {
         this.instrumentation = instrumentation;
     }
 

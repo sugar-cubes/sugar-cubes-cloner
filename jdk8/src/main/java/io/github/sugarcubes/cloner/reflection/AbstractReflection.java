@@ -26,6 +26,11 @@ import java.util.Optional;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import static io.github.sugarcubes.cloner.util.ClonerExceptionUtils.replaceException;
 
+/**
+ * Base reflection: wraps exceptions of implementation methods into {@link io.github.sugarcubes.cloner.ClonerException}.
+ *
+ * @author Maxim Butov
+ */
 public abstract class AbstractReflection implements Reflection {
 
     @Override
@@ -53,6 +58,14 @@ public abstract class AbstractReflection implements Reflection {
         return replaceException(() -> makeAccessibleImpl(member));
     }
 
+    /**
+     * Finds the declared field among {@link #getDeclaredFieldsImpl(Class) declared fields}.
+     *
+     * @param type class
+     * @param name field name
+     * @return field
+     * @throws Exception if there is no such field
+     */
     protected Field getDeclaredFieldImpl(Class<?> type, String name) throws Exception {
         return Arrays.stream(getDeclaredFieldsImpl(type))
             .filter(field -> field.getName().equals(name))
@@ -60,12 +73,44 @@ public abstract class AbstractReflection implements Reflection {
             .orElseThrow(() -> new NoSuchFieldException(String.format("No field '%s' in %s.", name, type)));
     }
 
+    /**
+     * Returns the declared fields of the class.
+     *
+     * @param type class
+     * @return declared fields
+     * @throws Exception if fields cannot be obtained
+     */
     protected abstract Field[] getDeclaredFieldsImpl(Class<?> type) throws Exception;
 
+    /**
+     * Returns the declared method of the class.
+     *
+     * @param type class
+     * @param name method name
+     * @param parameterTypes parameter types
+     * @return method
+     * @throws Exception if there is no such method
+     */
     protected abstract Method getDeclaredMethodImpl(Class<?> type, String name, Class<?>... parameterTypes) throws Exception;
 
+    /**
+     * Returns the declared constructor of the class.
+     *
+     * @param <T> object type
+     * @param type class
+     * @param parameterTypes parameter types
+     * @return constructor
+     * @throws Exception if there is no such constructor
+     */
     protected abstract <T> Constructor<T> getDeclaredConstructorImpl(Class<T> type, Class<?>... parameterTypes) throws Exception;
 
+    /**
+     * Makes the member accessible.
+     *
+     * @param <T> member type
+     * @param member member
+     * @return same member
+     */
     protected abstract <T extends AccessibleObject & Member> T makeAccessibleImpl(T member);
 
     @Override

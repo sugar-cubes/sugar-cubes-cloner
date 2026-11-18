@@ -16,7 +16,7 @@
 package io.github.sugarcubes.cloner.platform;
 
 /**
- * todo
+ * Type opener which opens the package of a type to the cloner module if it is not open yet.
  */
 abstract class AbstractModuleOpener extends AbstractTypeOpener {
 
@@ -31,6 +31,14 @@ abstract class AbstractModuleOpener extends AbstractTypeOpener {
         }
     }
 
+    /**
+     * Opens the package of the module to the cloner module.
+     *
+     * @param module module of the type
+     * @param packageName package of the type
+     * @param thisModule cloner module
+     * @throws Throwable if opening fails
+     */
     protected abstract void openModule(Module module, String packageName, Module thisModule) throws Throwable;
 
 }

@@ -33,6 +33,11 @@ public class SunMiscUnsafeBridge implements UnsafeBridge {
      */
     private final sun.misc.Unsafe unsafe;
 
+    /**
+     * Reads {@code sun.misc.Unsafe.theUnsafe}.
+     *
+     * @param reflection reflection to make the field accessible
+     */
     public SunMiscUnsafeBridge(Reflection reflection) {
         Field theUnsafe = reflection.makeAccessible(reflection.getDeclaredField(Unsafe.class, "theUnsafe"));
         this.unsafe = (sun.misc.Unsafe) ClonerExceptionUtils.replaceException(() -> theUnsafe.get(null));

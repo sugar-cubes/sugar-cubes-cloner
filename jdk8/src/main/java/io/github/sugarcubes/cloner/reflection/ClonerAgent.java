@@ -18,7 +18,9 @@ package io.github.sugarcubes.cloner.reflection;
 import java.lang.instrument.Instrumentation;
 
 /**
- * Java agent which gives access to {@link Instrumentation} for cloner module.
+ * Java agent which gives access to {@link Instrumentation} for the cloner, needed for
+ * {@link io.github.sugarcubes.cloner.ModuleOpening#INSTRUMENTATION}. Start the JVM with
+ * {@code -javaagent:<cloner jar>} or load the agent into a running JVM with the Attach API.
  *
  * @author Maxim Butov
  */
@@ -26,10 +28,22 @@ public class ClonerAgent {
 
     private static Instrumentation instrumentation;
 
+    /**
+     * Agent entry point when the JVM starts with {@code -javaagent}.
+     *
+     * @param agentArgs agent arguments, not used
+     * @param instrumentation instrumentation
+     */
     public static void premain(String agentArgs, Instrumentation instrumentation) {
         initialize(instrumentation);
     }
 
+    /**
+     * Agent entry point when the agent is loaded into a running JVM.
+     *
+     * @param agentArgs agent arguments, not used
+     * @param instrumentation instrumentation
+     */
     public static void agentmain(String agentArgs, Instrumentation instrumentation) {
         initialize(instrumentation);
     }
