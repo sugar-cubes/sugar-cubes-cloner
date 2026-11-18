@@ -23,13 +23,19 @@ package io.github.sugarcubes.cloner;
 public enum Allocation {
 
     /**
-     * Objenesis library, must be on the classpath.
+     * {@code sun.reflect.ReflectionFactory} of the {@code jdk.unsupported} module, the mechanism of deserialization:
+     * needs neither {@code Unsafe}, nor opened packages, nor additional libraries.
+     */
+    REFLECTION_FACTORY,
+
+    /**
+     * Objenesis library, must be on the classpath. On HotSpot and OpenJ9 it uses the same mechanism as
+     * {@link #REFLECTION_FACTORY}.
      */
     OBJENESIS,
 
     /**
-     * {@code Unsafe.allocateInstance()}. Since JDK 24 the JVM warns on the first use of {@code sun.misc.Unsafe}
-     * memory access.
+     * {@code Unsafe.allocateInstance()}, not a memory access method: the JVM does not warn about it.
      */
     UNSAFE,
 
