@@ -23,11 +23,7 @@
 module io.github.sugarcubes.cloner {
 
     exports io.github.sugarcubes.cloner;
-    exports io.github.sugarcubes.cloner.allocation;
-    exports io.github.sugarcubes.cloner.fields;
-    exports io.github.sugarcubes.cloner.reflection;
     exports io.github.sugarcubes.cloner.spi;
-    exports io.github.sugarcubes.cloner.unsafe;
 
     requires static java.instrument;
     requires static jdk.unsupported;

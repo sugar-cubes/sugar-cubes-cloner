@@ -27,11 +27,7 @@ import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.ModuleOpening;
-import io.github.sugarcubes.cloner.fields.VarHandleFieldAdapterImpl;
 import io.github.sugarcubes.cloner.reflection.ClonerAgent;
-import io.github.sugarcubes.cloner.reflection.InstrumentationModuleOpenerImpl;
-import io.github.sugarcubes.cloner.reflection.NarcissusModuleOpenerImpl;
-import io.github.sugarcubes.cloner.reflection.UnsafeModuleOpenerImpl;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.TypeOpener;

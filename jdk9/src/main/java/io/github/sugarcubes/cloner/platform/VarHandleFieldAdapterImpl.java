@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.fields;
+package io.github.sugarcubes.cloner.platform;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
@@ -31,7 +31,7 @@ import io.github.sugarcubes.cloner.util.MethodHandlesLookupUtils;
  *
  * @author Maxim Butov
  */
-public class VarHandleFieldAdapterImpl implements FieldAdapter {
+class VarHandleFieldAdapterImpl implements FieldAdapter {
 
     /**
      * Factory of the adapters.

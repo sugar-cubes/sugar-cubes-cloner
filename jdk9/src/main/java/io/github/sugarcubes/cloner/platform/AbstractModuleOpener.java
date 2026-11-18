@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.reflection;
+package io.github.sugarcubes.cloner.platform;
+
+import io.github.sugarcubes.cloner.reflection.AbstractTypeOpener;
 
 /**
  * todo
  */
-public abstract class AbstractModuleOpener extends AbstractTypeOpener {
+abstract class AbstractModuleOpener extends AbstractTypeOpener {
 
     private final Module thisModule = AbstractModuleOpener.class.getModule();
 
