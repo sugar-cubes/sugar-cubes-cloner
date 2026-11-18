@@ -1,8 +1,14 @@
+import com.diffplug.gradle.spotless.SpotlessExtension
+
 plugins {
-    id("com.github.hierynomus.license") version "0.16.1"
+    id("com.diffplug.spotless") version "8.11.0" apply false
 }
 
 val currentVersion = file("version.txt").readText().trim()
+
+// license header of Java sources, HEADER.txt wrapped into a block comment
+val licenseHeader = rootProject.file("HEADER.txt").readLines()
+    .joinToString("\n", "/*\n", "\n */\n") { " * $it".trimEnd() }
 
 allprojects {
     group = "io.github.sugar-cubes"
@@ -13,12 +19,13 @@ allprojects {
         mavenCentral()
     }
 
-    apply(plugin = "com.github.hierynomus.license")
+    apply(plugin = "com.diffplug.spotless")
 
-    license {
-        header = rootProject.file("HEADER.txt")
-        useDefaultMappings = true
-        mapping("java", "SLASHSTAR_STYLE")
-        strictCheck = true
+    configure<SpotlessExtension> {
+        java {
+            target("src/*/java/**/*.java")
+            // the header ends before the package, imports, module or the javadoc of package-info and module-info
+            licenseHeader(licenseHeader, "(package|import|module|/\\*\\*)")
+        }
     }
 }
