@@ -26,8 +26,6 @@ Gradle:
 implementation "io.github.sugar-cubes:sugar-cubes-cloner:1.2.3"
 ```
 
-It is recommended also to include [Objenesis](https://github.com/easymock/objenesis) library into your application.  
-
 ## Objectives
 
 - To get simple, convenient and configurable way of deep-cloning of objects of any types.
@@ -210,7 +208,7 @@ In sequential mode does not use recursion. Uses [Depth-first](https://en.wikiped
 
 In parallel mode the order of copying is unpredictable.
 
-If the [Objenesis](https://github.com/easymock/objenesis) library is available in the classpath, uses it to instantiate objects. Otherwise, uses reflection.
+Creates objects without calling constructors by `sun.reflect.ReflectionFactory` of the `jdk.unsupported` module, as deserialization does; no additional libraries are needed.
 
 The priority of copy configurations is:
 1. (high) builder configuration;

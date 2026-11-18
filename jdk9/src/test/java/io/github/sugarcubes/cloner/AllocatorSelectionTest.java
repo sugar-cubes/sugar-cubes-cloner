@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.allocation.MethodHandleInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ReflectionFactoryAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.ReflectionInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
@@ -72,7 +72,7 @@ class AllocatorSelectionTest {
 
     @Test
     void allocatorDoesNotCallConstructor() {
-        Cloner cloner = cloner(Toolsets.builder().allocator(new ObjenesisInstanceAllocatorFactory()));
+        Cloner cloner = cloner(Toolsets.builder().allocator(new ReflectionFactoryAllocatorFactory()));
         Counted original = new Counted();
         original.value = 7;
         int constructed = Counted.CONSTRUCTED.get();
@@ -99,7 +99,7 @@ class AllocatorSelectionTest {
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> builder.allocator(constructorAllocator));
         Assertions.assertThrows(IllegalArgumentException.class,
-            () -> builder.allocators(new ObjenesisInstanceAllocatorFactory(), new MethodHandleInstanceAllocatorFactory()));
+            () -> builder.allocators(new ReflectionFactoryAllocatorFactory(), new MethodHandleInstanceAllocatorFactory()));
     }
 
     @Test

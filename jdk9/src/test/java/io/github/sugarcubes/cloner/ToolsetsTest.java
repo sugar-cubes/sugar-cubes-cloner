@@ -101,7 +101,7 @@ class ToolsetsTest {
     @Test
     void variantsAreCombined() {
         Toolset toolset = Toolsets.builder()
-            .allocation(Allocation.UNSAFE, Allocation.OBJENESIS)
+            .allocation(Allocation.UNSAFE, Allocation.REFLECTION_FACTORY)
             .fieldAccess(FieldAccess.REFLECTION, FieldAccess.UNSAFE)
             .moduleOpening(ModuleOpening.UNSAFE)
             .build();
@@ -156,7 +156,7 @@ class ToolsetsTest {
     @Test
     void availability() {
         Assertions.assertTrue(Toolsets.isAvailable(Allocation.UNSAFE));
-        Assertions.assertTrue(Toolsets.isAvailable(Allocation.OBJENESIS));
+        Assertions.assertTrue(Toolsets.isAvailable(Allocation.REFLECTION_FACTORY));
         Assertions.assertTrue(Toolsets.isAvailable(FieldAccess.VAR_HANDLE));
         Assertions.assertTrue(Toolsets.isAvailable(ModuleOpening.UNSAFE));
         Assertions.assertFalse(Toolsets.isAvailable(FieldAccess.NARCISSUS));

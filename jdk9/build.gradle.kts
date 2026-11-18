@@ -8,7 +8,6 @@ plugins {
 
 dependencies {
 
-    compileOnly("org.objenesis:objenesis:3.3")
     implementation(project(":jdk8"))
 
     testImplementation(testFixtures(project(":jdk8")))
