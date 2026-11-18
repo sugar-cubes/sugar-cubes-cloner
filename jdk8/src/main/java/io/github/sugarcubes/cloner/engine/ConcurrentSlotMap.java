@@ -15,7 +15,7 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Slot map for several threads: {@link IdentitySlotMap} segments, each guarded by its own lock, so a lookup allocates
@@ -68,7 +68,7 @@ final class ConcurrentSlotMap implements SlotMap {
     }
 
     @Override
-    public CloneSlot getOrCreate(Object original, Function<Object, CloneSlot> factory) {
+    public CloneSlot getOrCreate(Object original, Supplier<CloneSlot> factory) {
         IdentitySlotMap segment = segment(original);
         synchronized (segment) {
             return segment.getOrCreate(original, factory);

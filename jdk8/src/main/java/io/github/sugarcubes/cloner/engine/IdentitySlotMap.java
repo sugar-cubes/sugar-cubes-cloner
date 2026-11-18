@@ -15,7 +15,7 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Slot map for one thread: open addressing with linear probing over one array of keys and values, as in
@@ -90,13 +90,13 @@ final class IdentitySlotMap implements SlotMap {
     }
 
     @Override
-    public CloneSlot getOrCreate(Object original, Function<Object, CloneSlot> factory) {
+    public CloneSlot getOrCreate(Object original, Supplier<CloneSlot> factory) {
         Object[] table = this.table;
         int i = indexOf(table, original);
         if (table[i] != null) {
             return (CloneSlot) table[i + 1];
         }
-        CloneSlot slot = factory.apply(original);
+        CloneSlot slot = factory.get();
         insert(i, original, slot);
         return slot;
     }
@@ -127,8 +127,9 @@ final class IdentitySlotMap implements SlotMap {
 
     private void resize() {
         Object[] oldTable = table;
-        Object[] newTable = new Object[oldTable == EMPTY ? initialLength : oldTable.length * 2];
-        for (int j = 0; j < oldTable.length; j += 2) {
+        int oldTableLength = oldTable.length;
+        Object[] newTable = new Object[oldTableLength < initialLength ? initialLength : oldTableLength * 2];
+        for (int j = 0; j < oldTableLength; j += 2) {
             Object key = oldTable[j];
             if (key != null) {
                 int i = indexOf(newTable, key);
