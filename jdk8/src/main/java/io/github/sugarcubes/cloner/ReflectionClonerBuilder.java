@@ -473,7 +473,7 @@ public final class ReflectionClonerBuilder {
         CopyPolicy<Field> fieldPolicy =
             compound(this.fieldPolicy, fieldActions, fieldPredicateActions, new AnnotatedFieldCopyPolicy());
 
-        Toolset toolset = this.toolset != null ? this.toolset : Toolset.failsafe();
+        Toolset toolset = this.toolset != null ? this.toolset : Toolsets.defaults();
 
         ReflectionCopierProvider provider =
             new ReflectionCopierProvider(toolset, objectPolicy, typePolicy, fieldPolicy, copiers, shallows);

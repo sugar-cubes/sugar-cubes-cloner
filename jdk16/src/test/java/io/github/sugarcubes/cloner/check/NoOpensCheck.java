@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import io.github.sugarcubes.cloner.Cloners;
 
@@ -61,6 +62,9 @@ public final class NoOpensCheck {
         final Date date = new Date(42);
         final List<String> empty = List.of();
         final Map<String, Integer> accessOrdered = new LinkedHashMap<>(16, 0.75f, true);
+        // JDK classes without a model, copied by fields: Unsafe is used where reflection cannot access
+        final TreeMap<String, Integer> sorted = new TreeMap<>(Map.of("m", 4, "n", 5));
+        final StringBuilder text = new StringBuilder("abc");
 
         Graph() {
             accessOrdered.put("k", 1);
@@ -91,6 +95,8 @@ public final class NoOpensCheck {
         check(clone.empty == original.empty, "empty List.of keeps identity");
         clone.accessOrdered.get("l");
         check(List.of("k", "l").equals(List.copyOf(clone.accessOrdered.keySet())), "LinkedHashMap keeps access order");
+        check(clone.sorted.equals(original.sorted) && clone.sorted != original.sorted, "TreeMap");
+        check("abc".contentEquals(clone.text) && clone.text != original.text, "StringBuilder");
         System.out.println("Cloning without --add-opens works.");
     }
 

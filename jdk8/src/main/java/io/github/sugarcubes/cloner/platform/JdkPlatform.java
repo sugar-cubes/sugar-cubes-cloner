@@ -17,7 +17,11 @@ package io.github.sugarcubes.cloner.platform;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
+import io.github.sugarcubes.cloner.ModuleOpening;
+import io.github.sugarcubes.cloner.spi.ContainerModel;
+import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
@@ -48,6 +52,32 @@ public interface JdkPlatform {
      * @return reflection
      */
     Reflection reflection(TypeOpener opener);
+
+    /**
+     * Creates the type opener of the mechanism, fails with {@link io.github.sugarcubes.cloner.ClonerException} if the
+     * mechanism is not available.
+     *
+     * @param opening mechanism
+     * @param unsafe Unsafe bridge, requested only if the mechanism needs it
+     * @return type opener
+     */
+    TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe);
+
+    /**
+     * Returns the factory of field adapters using {@code VarHandle}, JDK 9+.
+     *
+     * @return factory or empty on JDK 8
+     */
+    Optional<FieldAdapterFactory> varHandleFieldAdapters();
+
+    /**
+     * Returns the container model of a well-known JDK collection or map.
+     *
+     * @param <T> type
+     * @param type type
+     * @return model or empty if the type is not a supported container
+     */
+    <T> Optional<ContainerModel<T>> containerModel(Class<T> type);
 
     /**
      * Creates the best Unsafe bridge available.

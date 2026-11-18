@@ -23,8 +23,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.function.Supplier;
 
+import io.github.sugarcubes.cloner.ModuleOpening;
 import io.github.sugarcubes.cloner.reflection.ReflectionImpl$Jdk8;
+import io.github.sugarcubes.cloner.spi.ContainerModel;
+import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
@@ -128,6 +132,8 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
         SYSTEM_WIDE_SINGLETONS = Collections.unmodifiableSet(singletons);
     }
 
+    private static final ContainerModels CONTAINER_MODELS = new ContainerModels();
+
     /**
      * Kinds of classes, computed once by {@link #kindOf(Class)}.
      */
@@ -207,6 +213,22 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     public Reflection reflection(TypeOpener opener) {
         // no modules, nothing to open
         return new ReflectionImpl$Jdk8();
+    }
+
+    @Override
+    public TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
+        // no modules, nothing to open
+        return TypeOpener.NOOP;
+    }
+
+    @Override
+    public Optional<FieldAdapterFactory> varHandleFieldAdapters() {
+        return Optional.empty();
+    }
+
+    @Override
+    public <T> Optional<ContainerModel<T>> containerModel(Class<T> type) {
+        return CONTAINER_MODELS.containerModel(type);
     }
 
     @Override

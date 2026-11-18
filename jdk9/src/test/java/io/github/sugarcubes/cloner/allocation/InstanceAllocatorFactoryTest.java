@@ -51,7 +51,7 @@ class InstanceAllocatorFactoryTest {
     void allocatorsWithoutConstructorSupportAnyConcreteClass() throws Exception {
         InstanceAllocatorFactory[] factories = {
             new ObjenesisInstanceAllocatorFactory(),
-            new UnsafeAllocatorFactory(UnsafeBridge.getInstance(reflection)),
+            new UnsafeAllocatorFactory(JdkPlatform.current().unsafeBridge(reflection)),
         };
         for (InstanceAllocatorFactory factory : factories) {
             Assertions.assertInstanceOf(NoDefaultConstructor.class,
