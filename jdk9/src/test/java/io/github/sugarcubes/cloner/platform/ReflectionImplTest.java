@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 class ReflectionImplTest {
 
@@ -32,9 +31,8 @@ class ReflectionImplTest {
         final List<Class<?>> opened = new ArrayList<>();
 
         @Override
-        public <T> Class<T> open(Class<T> type) {
+        public void open(Class<?> type) {
             opened.add(type);
-            return type;
         }
 
     }

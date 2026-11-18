@@ -13,30 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.sugarcubes.cloner.reflection;
+package io.github.sugarcubes.cloner.platform;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
-public abstract class AbstractTypeOpener implements TypeOpener {
+/**
+ * Type opener which opens every type once.
+ */
+abstract class AbstractTypeOpener implements TypeOpener {
 
-    private final Set<Class<?>> opened = Collections.newSetFromMap(new WeakHashMap<>());
+    private final Set<Class<?>> opened = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
-    public <T> Class<T> open(Class<T> type) {
+    public void open(Class<?> type) {
         if (opened.add(type)) {
             ClonerExceptionUtils.replaceException(() -> {
                 openImpl(type);
                 return null;
             });
         }
-        return type;
     }
 
+    /**
+     * Opens the package of the type.
+     *
+     * @param type type
+     * @throws Throwable if opening fails
+     */
     protected abstract void openImpl(Class<?> type) throws Throwable;
 
 }

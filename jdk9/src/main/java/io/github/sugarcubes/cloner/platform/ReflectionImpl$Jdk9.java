@@ -21,7 +21,6 @@ import java.lang.reflect.Member;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.reflection.ReflectionImpl$Jdk8;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 /**
  * Reflection for JDK 9+: before making a member accessible opens its package to the cloner.
@@ -37,7 +36,7 @@ class ReflectionImpl$Jdk9 extends ReflectionImpl$Jdk8 {
      *
      * @param opener opener of packages for deep reflection
      */
-    public ReflectionImpl$Jdk9(TypeOpener opener) {
+    ReflectionImpl$Jdk9(TypeOpener opener) {
         this.opener = opener;
     }
 
@@ -49,7 +48,7 @@ class ReflectionImpl$Jdk9 extends ReflectionImpl$Jdk8 {
         }
         catch (InaccessibleObjectException e) {
             throw new ClonerException(String.format("Cannot make %s accessible. Open its package to the cloner with "
-                + "--add-opens JVM option or use a type opener which can open it.", member), e);
+                + "--add-opens JVM option or use a toolset with module opening.", member), e);
         }
     }
 

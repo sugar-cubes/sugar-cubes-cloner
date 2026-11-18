@@ -26,14 +26,13 @@ import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 /**
  * JDK 16+ denies illegal reflective access by default; java.util.regex is not opened to the test JVM.
  */
 class CompoundFieldAdapterFactoryTest {
 
-    private final Reflection reflection = JdkPlatform.current().reflection(TypeOpener.NOOP);
+    private final Reflection reflection = JdkPlatform.current().reflection();
 
     private final FieldAdapterFactory reflective = ReflectionFieldAdapterImpl.factory(reflection);
 

@@ -27,7 +27,6 @@ import io.github.sugarcubes.cloner.allocation.ReflectionInstanceAllocatorFactory
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 class AllocatorSelectionTest {
 
@@ -69,7 +68,7 @@ class AllocatorSelectionTest {
     };
 
     private final ReflectionInstanceAllocatorFactory constructorAllocator =
-        new ReflectionInstanceAllocatorFactory(JdkPlatform.current().reflection(TypeOpener.NOOP));
+        new ReflectionInstanceAllocatorFactory(JdkPlatform.current().reflection());
 
     @Test
     void allocatorDoesNotCallConstructor() {
