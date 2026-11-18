@@ -17,8 +17,8 @@ package io.github.sugarcubes.cloner;
 
 import java.util.Optional;
 
-import io.github.sugarcubes.cloner.internal.ContainerModels;
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
+import io.github.sugarcubes.cloner.platform.ContainerModels;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.FieldsModel;

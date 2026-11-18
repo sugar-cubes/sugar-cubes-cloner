@@ -34,7 +34,7 @@ import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.util.IdentityReference;
 
 /**

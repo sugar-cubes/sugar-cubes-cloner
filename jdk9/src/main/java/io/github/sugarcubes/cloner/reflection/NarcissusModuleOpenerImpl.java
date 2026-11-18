@@ -1,0 +1,43 @@
+/*
+ * Copyright 2017-2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.github.sugarcubes.cloner.reflection;
+
+import java.lang.reflect.Method;
+
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
+import io.github.toolfactory.narcissus.Narcissus;
+
+/**
+ * todo
+ */
+public class NarcissusModuleOpenerImpl extends AbstractModuleOpener {
+
+    private final Method implAddExportsOrOpens;
+
+    public NarcissusModuleOpenerImpl() {
+        implAddExportsOrOpens = ClonerExceptionUtils.replaceException(() ->
+            Narcissus.findMethod(Module.class, "implAddExportsOrOpens", String.class, Module.class, boolean.class, boolean.class));
+    }
+
+    @Override
+    protected void openModule(Module module, String packageName, Module thisModule) throws Exception {
+        // export
+        Narcissus.invokeVoidMethod(module, implAddExportsOrOpens, packageName, thisModule, false, true);
+        // open
+        Narcissus.invokeVoidMethod(module, implAddExportsOrOpens, packageName, thisModule, true, true);
+    }
+
+}

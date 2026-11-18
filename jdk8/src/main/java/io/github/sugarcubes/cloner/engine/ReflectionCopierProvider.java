@@ -33,7 +33,7 @@ import io.github.sugarcubes.cloner.NullCopier;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.Toolset;
 import io.github.sugarcubes.cloner.TypeCopier;
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.ValuesModel;

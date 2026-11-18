@@ -21,10 +21,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
-import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
+import io.github.sugarcubes.cloner.allocation.CompoundInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.fields.ReflectionFieldAdapterImpl;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.TypeOpener;

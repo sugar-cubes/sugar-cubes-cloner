@@ -21,10 +21,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
-import io.github.sugarcubes.cloner.internal.MethodHandleInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.MethodHandleInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ReflectionInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.TypeOpener;

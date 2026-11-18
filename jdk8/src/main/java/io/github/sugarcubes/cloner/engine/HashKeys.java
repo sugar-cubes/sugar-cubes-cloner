@@ -15,7 +15,7 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
