@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class SlotMapTest {
         SlotMap map = newMap(type);
         Object key = new Object();
         int[] created = new int[1];
-        Function<Object, CloneSlot> factory = original -> {
+        Supplier<CloneSlot> factory = () -> {
             created[0]++;
             return new SingleThreadCloneSlot(key);
         };
@@ -77,7 +77,7 @@ class SlotMapTest {
         for (int i = 0; i < 100_000; i++) {
             Object key = new Object();
             keys.add(key);
-            slots.add(map.getOrCreate(key, original -> new SingleThreadCloneSlot(key)));
+            slots.add(map.getOrCreate(key, () -> new SingleThreadCloneSlot(key)));
         }
 
         for (int i = 0; i < keys.size(); i++) {
@@ -93,7 +93,7 @@ class SlotMapTest {
         Object key = new Object();
         CloneSlot replacement = new SingleThreadCloneSlot(key);
 
-        map.getOrCreate(key, original -> new SingleThreadCloneSlot(key));
+        map.getOrCreate(key, () -> new SingleThreadCloneSlot(key));
         map.put(key, replacement);
 
         Assertions.assertSame(replacement, map.get(key));
@@ -113,7 +113,7 @@ class SlotMapTest {
             for (int t = 0; t < threads; t++) {
                 results.add(executor.submit(() -> {
                     List<CloneSlot> slots = new ArrayList<>();
-                    keys.forEach(key -> slots.add(map.getOrCreate(key, original -> new ConcurrentCloneSlot())));
+                    keys.forEach(key -> slots.add(map.getOrCreate(key, ConcurrentCloneSlot::new)));
                     return slots;
                 }));
             }
@@ -147,7 +147,7 @@ class SlotMapTest {
                 results.add(executor.submit(() -> {
                     for (int i = 0; i < keysPerWriter; i++) {
                         Object key = new Object();
-                        map.getOrCreate(key, original -> new ConcurrentCloneSlot());
+                        map.getOrCreate(key, ConcurrentCloneSlot::new);
                         inserted.add(key);
                     }
                 }));
