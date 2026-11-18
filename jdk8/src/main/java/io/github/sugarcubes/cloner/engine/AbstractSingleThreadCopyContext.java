@@ -15,7 +15,6 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -37,7 +36,7 @@ public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContex
      * @param clones predefined cloned objects
      */
     public AbstractSingleThreadCopyContext(CopierProvider copierProvider, Map<Object, Object> clones) {
-        super(copierProvider, HashMap::new, clones);
+        super(copierProvider, new IdentitySlotMap(), clones);
     }
 
     @Override
