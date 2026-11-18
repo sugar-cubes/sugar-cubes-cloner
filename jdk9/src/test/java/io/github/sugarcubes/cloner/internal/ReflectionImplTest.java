@@ -47,7 +47,7 @@ class ReflectionImplTest {
 
     private final RecordingOpener opener = new RecordingOpener();
 
-    private final Reflection reflection = new ReflectionImpl(opener);
+    private final Reflection reflection = new ReflectionImpl$Jdk9(opener);
 
     @Test
     void enumeratingFieldsDoesNotOpenType() {

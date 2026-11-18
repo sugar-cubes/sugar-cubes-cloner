@@ -36,7 +36,7 @@ public interface UnsafeBridge {
      * @return {@link UnsafeBridge} instance
      */
     static UnsafeBridge getInstance(Reflection reflection) {
-        return new UnsafeBridgeProvider().newInstance(reflection);
+        return JdkPlatform.current().unsafeBridge(reflection);
     }
 
     Object getUnsafe();

@@ -15,15 +15,15 @@
  */
 package io.github.sugarcubes.cloner;
 
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.ReflectionImpl;
 import io.github.sugarcubes.cloner.internal.VarHandleFieldAdapterImpl;
 import io.github.sugarcubes.cloner.spi.TypeOpener;
 
 class VarHandleReflectionClonerTest extends AbstractClonerTests {
 
     public VarHandleReflectionClonerTest() {
-        super(Cloners.builder().toolset(new Toolset(new ReflectionImpl(TypeOpener.NOOP), new ObjenesisInstanceAllocatorFactory(),
+        super(Cloners.builder().toolset(new Toolset(JdkPlatform.current().reflection(TypeOpener.NOOP), new ObjenesisInstanceAllocatorFactory(),
             VarHandleFieldAdapterImpl.FACTORY)).build());
     }
 

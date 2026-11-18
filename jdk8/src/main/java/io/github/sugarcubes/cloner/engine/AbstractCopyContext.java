@@ -34,8 +34,7 @@ import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
-import io.github.sugarcubes.cloner.internal.JdkConfiguration;
-import io.github.sugarcubes.cloner.internal.JdkConfigurationHolder;
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.util.IdentityReference;
 
 /**
@@ -82,16 +81,16 @@ public abstract class AbstractCopyContext implements CopyContext {
     private List<Callable<?>> afterCopy;
 
     /**
-     * JDK configuration.
+     * Platform of the running JDK.
      */
-    private static final JdkConfiguration JDK_CONFIGURATION = JdkConfigurationHolder.CONFIGURATION;
+    private static final JdkPlatform JDK_PLATFORM = JdkPlatform.current();
 
     /**
      * Predefined system-wide singletons as map.
      */
     @SuppressWarnings("checkstyle:Indentation")
     private static final Map<IdentityReference<Object>, CloneSlot> SYSTEM_SINGLETONS_AS_MAP =
-        JDK_CONFIGURATION.getSystemWideSingletons().stream()
+        JDK_PLATFORM.getSystemWideSingletons().stream()
             .collect(Collectors.toMap(IdentityReference::new, SingleThreadCloneSlot::new));
 
     /**

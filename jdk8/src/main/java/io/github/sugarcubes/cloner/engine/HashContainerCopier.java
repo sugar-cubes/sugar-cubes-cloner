@@ -19,7 +19,7 @@ import java.util.Set;
 
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
-import io.github.sugarcubes.cloner.internal.JdkConfigurationHolder;
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
@@ -41,7 +41,7 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
  */
 public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
 
-    private static final Set<Class<?>> IMMUTABLE_TYPES = JdkConfigurationHolder.CONFIGURATION.getImmutableTypes();
+    private static final Set<Class<?>> IMMUTABLE_TYPES = JdkPlatform.current().getImmutableTypes();
 
     /**
      * Whether a class has its own hash code instead of the identity one.

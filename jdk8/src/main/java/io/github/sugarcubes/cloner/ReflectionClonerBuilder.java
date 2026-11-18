@@ -39,8 +39,7 @@ import io.github.sugarcubes.cloner.engine.PredicatePolicy;
 import io.github.sugarcubes.cloner.engine.RecursiveCopyContext;
 import io.github.sugarcubes.cloner.engine.ReflectionCopierProvider;
 import io.github.sugarcubes.cloner.engine.SequentialCopyContext;
-import io.github.sugarcubes.cloner.internal.JdkConfiguration;
-import io.github.sugarcubes.cloner.internal.JdkConfigurationHolder;
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
@@ -54,9 +53,9 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 public final class ReflectionClonerBuilder {
 
     /**
-     * JDK configuration.
+     * Platform of the running JDK.
      */
-    private static final JdkConfiguration JDK_CONFIGURATION = JdkConfigurationHolder.CONFIGURATION;
+    private static final JdkPlatform JDK_PLATFORM = JdkPlatform.current();
 
     /**
      * Default copiers for well-known JDK types.
@@ -66,8 +65,8 @@ public final class ReflectionClonerBuilder {
     static {
         Map<Class<?>, ObjectCopier<?>> defaultCopiers = new LinkedHashMap<>();
 
-        JDK_CONFIGURATION.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
-        JDK_CONFIGURATION.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.CLONEABLE));
+        JDK_PLATFORM.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
+        JDK_PLATFORM.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.CLONEABLE));
 
         DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
     }

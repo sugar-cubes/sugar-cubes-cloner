@@ -19,17 +19,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
 
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.TypeOpener;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 
 /**
- * Implementation of {@link JdkConfiguration} for JDK 8+.
+ * {@link JdkPlatform} of JDK 8.
  *
  * @author Maxim Butov
  */
-class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
+class JdkPlatformImpl$Jdk8 implements JdkPlatform {
 
     /**
      * JDK immutable types.
@@ -77,7 +81,7 @@ class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
      */
     protected final Set<Object> systemWideSingletons = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    public JdkConfigurationImpl$Jdk8() {
+    JdkPlatformImpl$Jdk8() {
         systemWideSingletons.addAll(Arrays.asList(
             Collections.emptyEnumeration(),
             Collections.emptyIterator(),
@@ -109,6 +113,28 @@ class JdkConfigurationImpl$Jdk8 implements JdkConfiguration {
     @Override
     public Set<Object> getSystemWideSingletons() {
         return Collections.unmodifiableSet(systemWideSingletons);
+    }
+
+    @Override
+    public Reflection reflection(TypeOpener opener) {
+        // no modules, nothing to open
+        return new ReflectionImpl$Jdk8();
+    }
+
+    @Override
+    public UnsafeBridge unsafeBridge(Reflection reflection) {
+        return new SunMiscUnsafeBridge(reflection);
+    }
+
+    @Override
+    public boolean isHidden(Class<?> type) {
+        // lambda classes are synthetic VM anonymous classes
+        return type.isSynthetic() && type.getName().contains("$$Lambda");
+    }
+
+    @Override
+    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
+        return Optional.empty();
     }
 
 }

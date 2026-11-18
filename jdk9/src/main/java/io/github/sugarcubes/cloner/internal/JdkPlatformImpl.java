@@ -15,22 +15,11 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-import java.util.Optional;
-
-import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.ValuesModel;
-
 /**
- * Finds {@link ValuesModel} of a type on JDK 16+: records are created from the values of their components.
+ * Platform of the running JDK, chosen by the multi-release jar.
  *
  * @author Maxim Butov
  */
-class ValuesModelProvider$Jdk16 extends ValuesModelProvider$Jdk8 {
-
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
-        return type.isRecord() ? Optional.of(new RecordValuesModel(type, reflection)) : super.valuesModel(type, reflection);
-    }
+final class JdkPlatformImpl extends JdkPlatformImpl$Jdk9 {
 
 }

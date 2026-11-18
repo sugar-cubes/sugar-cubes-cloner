@@ -27,7 +27,7 @@ import io.github.sugarcubes.cloner.spi.TypeOpener;
  *
  * @author Maxim Butov
  */
-public class ReflectionImpl$Jdk9 extends ReflectionImpl$Jdk8 {
+class ReflectionImpl$Jdk9 extends ReflectionImpl$Jdk8 {
 
     private final TypeOpener opener;
 
