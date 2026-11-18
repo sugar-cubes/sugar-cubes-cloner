@@ -499,7 +499,7 @@ public final class ReflectionClonerBuilder {
             default:
                 throw Checks.mustNotHappen();
         }
-        return new ClonerImpl(contextSupplier);
+        return new ClonerImpl(provider, contextSupplier);
     }
 
 }
