@@ -17,9 +17,12 @@ package io.github.sugarcubes.cloner.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Assertions;
@@ -121,6 +124,47 @@ class SlotMapTest {
                     Assertions.assertSame(first.get(i), slots.get(i));
                     Assertions.assertSame(first.get(i), map.get(keys.get(i)));
                 }
+            }
+        }
+        finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    void readersSeeSlotsInsertedByOtherThreads() throws Exception {
+        SlotMap map = new ConcurrentSlotMap();
+        // a queue publishes inserted keys to the readers
+        Queue<Object> inserted = new ConcurrentLinkedQueue<>();
+        int writers = 4;
+        int readers = 4;
+        int keysPerWriter = 50_000;
+        AtomicInteger checked = new AtomicInteger();
+        ExecutorService executor = Executors.newFixedThreadPool(writers + readers);
+        try {
+            List<Future<?>> results = new ArrayList<>();
+            for (int w = 0; w < writers; w++) {
+                results.add(executor.submit(() -> {
+                    for (int i = 0; i < keysPerWriter; i++) {
+                        Object key = new Object();
+                        map.getOrCreate(key, original -> new ConcurrentCloneSlot());
+                        inserted.add(key);
+                    }
+                }));
+            }
+            for (int r = 0; r < readers; r++) {
+                results.add(executor.submit(() -> {
+                    while (checked.get() < writers * keysPerWriter) {
+                        Object key = inserted.poll();
+                        if (key != null) {
+                            Assertions.assertNotNull(map.get(key));
+                            checked.incrementAndGet();
+                        }
+                    }
+                }));
+            }
+            for (Future<?> result : results) {
+                result.get();
             }
         }
         finally {
