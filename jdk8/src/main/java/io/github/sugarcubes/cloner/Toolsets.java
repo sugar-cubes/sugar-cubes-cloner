@@ -24,8 +24,9 @@ public final class Toolsets {
 
     /**
      * Default toolset: reflection, with {@code Unsafe} only for fields which reflection cannot access (packages not
-     * opened to the cloner); instances are created with Objenesis if it is available, constructors are the fallback.
-     * Since JDK 24 the JVM warns when {@code Unsafe} is used for the first time.
+     * opened to the cloner); instances are created with Objenesis if it is available, otherwise with {@code Unsafe},
+     * constructors are the last fallback. Since JDK 24 the JVM warns when {@code Unsafe} accesses a field for the first
+     * time.
      *
      * @return default toolset
      */
