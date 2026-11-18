@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner.internal;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,25 +37,36 @@ import io.github.sugarcubes.cloner.spi.ValuesModel;
 class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
 
     /**
+     * Objects of the running JVM which appeared in JDK 9, with all their subtypes.
+     */
+    private static final List<Class<?>> RUNTIME_SUPER_TYPES = unmodifiableList(Module.class, ModuleLayer.class);
+
+    /**
      * Models of immutable collections by their classes (the classes are not public).
      */
-    private final Map<Class<?>, ValuesModel<?>> immutableCollections = new HashMap<>();
+    private final Map<Class<?>, ValuesModel<?>> immutableCollections = immutableCollectionModels();
 
-    JdkPlatformImpl$Jdk9() {
-        runtimeSuperTypes.addAll(Arrays.asList(Module.class, ModuleLayer.class));
+    private Map<Class<?>, ValuesModel<?>> immutableCollectionModels() {
+        Map<Class<?>, ValuesModel<?>> models = new HashMap<>();
         // samples give the classes of the implementations
         Object a = new Object();
         Object b = new Object();
         Object c = new Object();
         for (List<?> list : Arrays.asList(List.of(), List.of(a), List.of(a, b, c))) {
-            immutableCollections.put(list.getClass(), ImmutableCollectionModel.list(list.getClass(), this::immutableList));
+            models.put(list.getClass(), ImmutableCollectionModel.list(list.getClass(), this::immutableList));
         }
         for (Set<?> set : Arrays.asList(Set.of(), Set.of(a), Set.of(a, b, c))) {
-            immutableCollections.put(set.getClass(), ImmutableCollectionModel.set(set.getClass()));
+            models.put(set.getClass(), ImmutableCollectionModel.set(set.getClass()));
         }
         for (Map<?, ?> map : Arrays.asList(Map.of(), Map.of(a, a), Map.of(a, a, b, b))) {
-            immutableCollections.put(map.getClass(), ImmutableCollectionModel.map(map.getClass()));
+            models.put(map.getClass(), ImmutableCollectionModel.map(map.getClass()));
         }
+        return Collections.unmodifiableMap(models);
+    }
+
+    @Override
+    Kind kindOf(Class<?> type) {
+        return isSubtype(type, RUNTIME_SUPER_TYPES) ? Kind.RUNTIME : super.kindOf(type);
     }
 
     @Override
