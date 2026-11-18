@@ -31,9 +31,25 @@ final class IdentitySlotMap implements SlotMap {
     /**
      * Keys at even indices, values at the following odd ones; the length is twice the capacity.
      */
-    private Object[] table = new Object[DEFAULT_CAPACITY * 2];
+    private Object[] table;
 
     private int size;
+
+    /**
+     * Creates the map with the default capacity.
+     */
+    IdentitySlotMap() {
+        this(DEFAULT_CAPACITY);
+    }
+
+    /**
+     * Creates the map with the capacity.
+     *
+     * @param capacity initial capacity, a power of two
+     */
+    IdentitySlotMap(int capacity) {
+        table = new Object[capacity * 2];
+    }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static int hash(Object key, int length) {

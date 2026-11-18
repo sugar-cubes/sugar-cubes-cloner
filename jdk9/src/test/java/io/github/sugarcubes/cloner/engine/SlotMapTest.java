@@ -17,9 +17,13 @@ package io.github.sugarcubes.cloner.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -90,6 +94,38 @@ class SlotMapTest {
         map.put(key, replacement);
 
         Assertions.assertSame(replacement, map.get(key));
+    }
+
+    @Test
+    void concurrentGetOrCreateCreatesOneSlotPerKey() throws Exception {
+        SlotMap map = new ConcurrentSlotMap();
+        List<Object> keys = new ArrayList<>();
+        for (int i = 0; i < 10_000; i++) {
+            keys.add(new Object());
+        }
+        int threads = 8;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<List<CloneSlot>>> results = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                results.add(executor.submit(() -> {
+                    List<CloneSlot> slots = new ArrayList<>();
+                    keys.forEach(key -> slots.add(map.getOrCreate(key, original -> new ConcurrentCloneSlot())));
+                    return slots;
+                }));
+            }
+            List<CloneSlot> first = results.get(0).get();
+            for (Future<List<CloneSlot>> result : results) {
+                List<CloneSlot> slots = result.get();
+                for (int i = 0; i < keys.size(); i++) {
+                    Assertions.assertSame(first.get(i), slots.get(i));
+                    Assertions.assertSame(first.get(i), map.get(keys.get(i)));
+                }
+            }
+        }
+        finally {
+            executor.shutdown();
+        }
     }
 
 }

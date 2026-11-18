@@ -15,34 +15,72 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import io.github.sugarcubes.cloner.util.IdentityReference;
-
 /**
- * Slot map for several threads: {@link ConcurrentHashMap} with {@link IdentityReference} keys.
+ * Slot map for several threads: {@link IdentitySlotMap} segments, each guarded by its own lock, so a lookup allocates
+ * nothing and threads rarely wait for each other. A segment is chosen by the high bits of the identity hash code, the
+ * segment itself uses the low ones.
  */
 final class ConcurrentSlotMap implements SlotMap {
 
-    private final Map<IdentityReference<Object>, CloneSlot> map = new ConcurrentHashMap<>();
+    /**
+     * Number of segments, a power of two.
+     */
+    private static final int SEGMENTS = 32;
+
+    /**
+     * Shift which leaves the bits of a segment index.
+     */
+    private static final int SHIFT = Integer.SIZE - Integer.numberOfTrailingZeros(SEGMENTS);
+
+    /**
+     * Initial capacity of a segment, a power of two.
+     */
+    private static final int SEGMENT_CAPACITY = 4;
+
+    /**
+     * Multiplier of the Fibonacci hashing: spreads the identity hash code over the high bits.
+     */
+    private static final int GOLDEN_RATIO = 0x9E3779B9;
+
+    private final IdentitySlotMap[] segments = new IdentitySlotMap[SEGMENTS];
+
+    /**
+     * Creates the map.
+     */
+    ConcurrentSlotMap() {
+        for (int i = 0; i < SEGMENTS; i++) {
+            segments[i] = new IdentitySlotMap(SEGMENT_CAPACITY);
+        }
+    }
+
+    private IdentitySlotMap segment(Object original) {
+        return segments[(System.identityHashCode(original) * GOLDEN_RATIO) >>> SHIFT];
+    }
 
     @Override
     public CloneSlot get(Object original) {
-        return map.get(new IdentityReference<>(original));
+        IdentitySlotMap segment = segment(original);
+        synchronized (segment) {
+            return segment.get(original);
+        }
     }
 
     @Override
     public CloneSlot getOrCreate(Object original, Function<Object, CloneSlot> factory) {
-        IdentityReference<Object> key = new IdentityReference<>(original);
-        CloneSlot slot = map.get(key);
-        return slot != null ? slot : map.computeIfAbsent(key, factory);
+        IdentitySlotMap segment = segment(original);
+        synchronized (segment) {
+            return segment.getOrCreate(original, factory);
+        }
     }
 
     @Override
     public void put(Object original, CloneSlot slot) {
-        map.put(new IdentityReference<>(original), slot);
+        IdentitySlotMap segment = segment(original);
+        synchronized (segment) {
+            segment.put(original, slot);
+        }
     }
 
 }
