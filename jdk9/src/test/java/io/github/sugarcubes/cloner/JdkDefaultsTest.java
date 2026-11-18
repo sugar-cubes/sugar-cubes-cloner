@@ -48,6 +48,7 @@ class JdkDefaultsTest {
         Comparator<String> comparator = String.CASE_INSENSITIVE_ORDER;
         Thread thread = Thread.currentThread();
         ClassLoader classLoader = getClass().getClassLoader();
+        Module module = getClass().getModule();
         Method method;
         Date date = new Date(42);
         BitSet bits = new BitSet();
@@ -75,6 +76,7 @@ class JdkDefaultsTest {
         Assertions.assertSame(original.comparator, clone.comparator);
         Assertions.assertSame(original.thread, clone.thread);
         Assertions.assertSame(original.classLoader, clone.classLoader);
+        Assertions.assertSame(original.module, clone.module);
         Assertions.assertSame(original.method, clone.method);
         Assertions.assertNotSame(original.date, clone.date);
         Assertions.assertEquals(original.date, clone.date);

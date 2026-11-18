@@ -15,7 +15,6 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -50,7 +49,7 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     /**
      * Immutable types: values, canonical instances, classes of stateless singletons. Exact classes.
      */
-    protected final Set<Class<?>> immutableTypes = new HashSet<>(Arrays.asList(
+    private static final Set<Class<?>> IMMUTABLE_TYPES = unmodifiableSet(
         java.math.BigDecimal.class, java.math.BigInteger.class, java.math.MathContext.class,
         Boolean.class, Byte.class, Character.class, Class.class, Double.class, Float.class, Integer.class, Long.class,
         Short.class, String.class,
@@ -68,22 +67,22 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
         Spliterators.emptySpliterator().getClass(), Spliterators.emptyIntSpliterator().getClass(),
         Spliterators.emptyLongSpliterator().getClass(), Spliterators.emptyDoubleSpliterator().getClass(),
         String.CASE_INSENSITIVE_ORDER.getClass()
-    ));
+    );
 
     /**
      * Immutable types with all their subtypes: canonical or immutable instances of not public classes.
      */
-    protected final List<Class<?>> immutableSuperTypes = new ArrayList<>(Arrays.asList(
+    private static final List<Class<?>> IMMUTABLE_SUPER_TYPES = unmodifiableList(
         java.nio.charset.Charset.class,
         java.nio.file.Path.class,
         java.time.ZoneId.class,
         java.time.chrono.Chronology.class
-    ));
+    );
 
     /**
      * Types copied with their public {@code clone()} method. Exact classes.
      */
-    protected final Set<Class<?>> cloneableTypes = new HashSet<>(Arrays.asList(
+    private static final Set<Class<?>> CLONEABLE_TYPES = unmodifiableSet(
         java.util.BitSet.class,
         java.util.Date.class,
         java.util.GregorianCalendar.class,
@@ -97,24 +96,38 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
         ClassUtils.classForName("java.text.DigitList"),
         java.text.MessageFormat.class,
         java.text.SimpleDateFormat.class
-    ));
+    );
 
     /**
      * Objects of the running JVM with all their subtypes: threads, class loaders, reflection objects, references.
      */
-    protected final List<Class<?>> runtimeSuperTypes = new ArrayList<>(Arrays.asList(
+    private static final List<Class<?>> RUNTIME_SUPER_TYPES = unmodifiableList(
         Thread.class, ThreadGroup.class, ClassLoader.class, Runtime.class,
         java.lang.reflect.AccessibleObject.class, java.lang.reflect.Parameter.class,
         java.lang.invoke.MethodHandle.class, java.lang.invoke.MethodType.class,
         java.lang.invoke.MethodHandles.Lookup.class,
         java.lang.ref.Reference.class, java.lang.ref.ReferenceQueue.class
-    ));
+    );
 
     /**
      * Singleton instances whose classes also have other instances (unmodifiable wrappers).
      */
-    protected final Set<Object> systemWideSingletons = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Set<Object> SYSTEM_WIDE_SINGLETONS;
 
+    static {
+        Set<Object> singletons = Collections.newSetFromMap(new IdentityHashMap<>());
+        singletons.addAll(Arrays.asList(
+            Collections.emptyNavigableMap(),
+            Collections.emptyNavigableSet(),
+            Collections.emptySortedMap(),
+            Collections.emptySortedSet()
+        ));
+        SYSTEM_WIDE_SINGLETONS = Collections.unmodifiableSet(singletons);
+    }
+
+    /**
+     * Kinds of classes, computed once by {@link #kindOf(Class)}.
+     */
     private final ClassValue<Kind> kinds = new ClassValue<Kind>() {
         @Override
         protected Kind computeValue(Class<?> type) {
@@ -122,30 +135,49 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
         }
     };
 
-    JdkPlatformImpl$Jdk8() {
-        systemWideSingletons.addAll(Arrays.asList(
-            Collections.emptyNavigableMap(),
-            Collections.emptyNavigableSet(),
-            Collections.emptySortedMap(),
-            Collections.emptySortedSet()
-        ));
-    }
-
-    private Kind kindOf(Class<?> type) {
-        if (immutableTypes.contains(type) || isSubtype(type, immutableSuperTypes)) {
+    /**
+     * Determines the kind of the class. A newer JDK version overrides it for its own types and delegates the others
+     * to the older version.
+     *
+     * @param type class
+     * @return kind of the class
+     */
+    Kind kindOf(Class<?> type) {
+        if (IMMUTABLE_TYPES.contains(type) || isSubtype(type, IMMUTABLE_SUPER_TYPES)) {
             return Kind.IMMUTABLE;
         }
-        if (cloneableTypes.contains(type)) {
+        if (CLONEABLE_TYPES.contains(type)) {
             return Kind.CLONEABLE;
         }
-        if (isSubtype(type, runtimeSuperTypes)) {
+        if (isSubtype(type, RUNTIME_SUPER_TYPES)) {
             return Kind.RUNTIME;
         }
         return Kind.OTHER;
     }
 
-    private static boolean isSubtype(Class<?> type, List<Class<?>> superTypes) {
+    /**
+     * Tells whether the class is a subtype of one of the types.
+     *
+     * @param type class
+     * @param superTypes types
+     * @return {@code true} if the class is a subtype of one of the types
+     */
+    static boolean isSubtype(Class<?> type, List<Class<?>> superTypes) {
         return superTypes.stream().anyMatch(superType -> superType.isAssignableFrom(type));
+    }
+
+    /**
+     * Creates an unmodifiable list.
+     *
+     * @param types types
+     * @return unmodifiable list
+     */
+    static List<Class<?>> unmodifiableList(Class<?>... types) {
+        return Collections.unmodifiableList(Arrays.asList(types));
+    }
+
+    private static Set<Class<?>> unmodifiableSet(Class<?>... types) {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(types)));
     }
 
     @Override
@@ -165,7 +197,7 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
 
     @Override
     public Set<Object> getSystemWideSingletons() {
-        return Collections.unmodifiableSet(systemWideSingletons);
+        return SYSTEM_WIDE_SINGLETONS;
     }
 
     @Override
