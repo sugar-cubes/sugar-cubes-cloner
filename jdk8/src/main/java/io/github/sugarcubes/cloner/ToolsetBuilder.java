@@ -16,10 +16,11 @@
 package io.github.sugarcubes.cloner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import io.github.sugarcubes.cloner.allocation.CompoundInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
@@ -59,14 +60,47 @@ import io.github.sugarcubes.cloner.util.ObjenesisUtils;
  */
 public final class ToolsetBuilder {
 
+    /**
+     * What mechanisms are created from.
+     */
+    private static final class Context {
+
+        final JdkPlatform platform;
+
+        final Reflection reflection;
+
+        final Supplier<UnsafeBridge> unsafe;
+
+        Context(JdkPlatform platform, Reflection reflection, Supplier<UnsafeBridge> unsafe) {
+            this.platform = platform;
+            this.reflection = reflection;
+            this.unsafe = unsafe;
+        }
+
+    }
+
+    /**
+     * Mechanism to create, with its description.
+     */
+    private static final class Mechanism<T> {
+
+        final String description;
+
+        final Function<Context, T> factory;
+
+        Mechanism(String description, Function<Context, T> factory) {
+            this.description = description;
+            this.factory = factory;
+        }
+
+    }
+
     private Reflection reflection;
     private ModuleOpening moduleOpening = ModuleOpening.NONE;
-    private List<Allocation> allocation;
-    private List<InstanceAllocatorFactory> allocators;
+    private List<Mechanism<InstanceAllocatorFactory>> allocators;
     private InstanceAllocatorFactory constructorFallback;
     private boolean constructorFallbackDisabled;
-    private List<FieldAccess> fieldAccess;
-    private List<FieldAdapterFactory> fieldAdapters;
+    private List<Mechanism<FieldAdapterFactory>> fieldAdapters;
 
     ToolsetBuilder() {
     }
@@ -94,20 +128,23 @@ public final class ToolsetBuilder {
     }
 
     /**
-     * Sets the mechanisms creating instances without constructors. For every type the first mechanism supporting it
-     * is used.
+     * Adds mechanisms creating instances without constructors. Mechanisms and custom allocators are tried in the
+     * order of adding; for every type the first one supporting it is used.
      *
      * @param allocation mechanisms in order of preference
      * @return same builder instance
      */
     public ToolsetBuilder allocation(Allocation... allocation) {
-        this.allocation = Arrays.asList(allocation);
-        this.allocators = null;
+        List<Mechanism<InstanceAllocatorFactory>> list = allocatorList();
+        for (Allocation variant : allocation) {
+            Checks.argNotNull(variant, "Allocation");
+            list.add(new Mechanism<>(variant.name(), context -> allocator(variant, context.unsafe)));
+        }
         return this;
     }
 
     /**
-     * Sets a custom instance allocator factory, which must not call constructors.
+     * Adds a custom instance allocator factory, which must not call constructors.
      *
      * @param allocator instance allocator factory
      * @return same builder instance
@@ -117,21 +154,28 @@ public final class ToolsetBuilder {
     }
 
     /**
-     * Sets custom instance allocator factories, which must not call constructors. For every type the first factory
-     * supporting it is used.
+     * Adds custom instance allocator factories, which must not call constructors. Mechanisms and custom allocators
+     * are tried in the order of adding; for every type the first one supporting it is used.
      *
      * @param allocators instance allocator factories in order of preference
      * @return same builder instance
      */
     public ToolsetBuilder allocators(InstanceAllocatorFactory... allocators) {
+        List<Mechanism<InstanceAllocatorFactory>> list = allocatorList();
         for (InstanceAllocatorFactory allocator : allocators) {
             Checks.argNotNull(allocator, "Instance allocator factory");
             Checks.illegalArg(allocator.invokesConstructor(),
                 "%s calls constructors, set it as constructor fallback.", allocator);
+            list.add(new Mechanism<>(String.valueOf(allocator), context -> allocator));
         }
-        this.allocators = Arrays.asList(allocators);
-        this.allocation = null;
         return this;
+    }
+
+    private List<Mechanism<InstanceAllocatorFactory>> allocatorList() {
+        if (allocators == null) {
+            allocators = new ArrayList<>();
+        }
+        return allocators;
     }
 
     /**
@@ -158,19 +202,23 @@ public final class ToolsetBuilder {
     }
 
     /**
-     * Sets the mechanisms reading and writing fields. For every field the first mechanism able to access it is used.
+     * Adds mechanisms reading and writing fields. Mechanisms and custom adapters are tried in the order of adding; for
+     * every field the first one able to access it is used.
      *
      * @param fieldAccess mechanisms in order of preference
      * @return same builder instance
      */
     public ToolsetBuilder fieldAccess(FieldAccess... fieldAccess) {
-        this.fieldAccess = Arrays.asList(fieldAccess);
-        this.fieldAdapters = null;
+        List<Mechanism<FieldAdapterFactory>> list = fieldAdapterList();
+        for (FieldAccess variant : fieldAccess) {
+            Checks.argNotNull(variant, "Field access");
+            list.add(new Mechanism<>(variant.name(), context -> fieldAdapters(variant, context)));
+        }
         return this;
     }
 
     /**
-     * Sets a custom field adapter factory.
+     * Adds a custom field adapter factory.
      *
      * @param fieldAdapter field adapter factory
      * @return same builder instance
@@ -180,18 +228,26 @@ public final class ToolsetBuilder {
     }
 
     /**
-     * Sets custom field adapter factories. For every field the first factory able to access it is used.
+     * Adds custom field adapter factories. Mechanisms and custom adapters are tried in the order of adding; for every
+     * field the first one able to access it is used.
      *
      * @param fieldAdapters field adapter factories in order of preference
      * @return same builder instance
      */
     public ToolsetBuilder fieldAdapters(FieldAdapterFactory... fieldAdapters) {
+        List<Mechanism<FieldAdapterFactory>> list = fieldAdapterList();
         for (FieldAdapterFactory fieldAdapter : fieldAdapters) {
             Checks.argNotNull(fieldAdapter, "Field adapter factory");
+            list.add(new Mechanism<>(String.valueOf(fieldAdapter), context -> fieldAdapter));
         }
-        this.fieldAdapters = Arrays.asList(fieldAdapters);
-        this.fieldAccess = null;
         return this;
+    }
+
+    private List<Mechanism<FieldAdapterFactory>> fieldAdapterList() {
+        if (fieldAdapters == null) {
+            fieldAdapters = new ArrayList<>();
+        }
+        return fieldAdapters;
     }
 
     /**
@@ -203,29 +259,66 @@ public final class ToolsetBuilder {
         Checks.illegalArg(reflection != null && moduleOpening != ModuleOpening.NONE,
             "Module opening applies to the default reflection only.");
         JdkPlatform platform = JdkPlatform.current();
-        // reading sun.misc.Unsafe needs no module opening
-        Lazy<UnsafeBridge> unsafe = new Lazy<>(() -> platform.unsafeBridge(platform.reflection(TypeOpener.NOOP)));
+        Lazy<UnsafeBridge> unsafe = new Lazy<>(() -> unsafeBridge(platform));
         Reflection reflection = this.reflection != null
             ? this.reflection
             : platform.reflection(platform.typeOpener(moduleOpening, unsafe));
-        return new Toolset(reflection, buildAllocatorFactory(reflection, unsafe),
-            buildFieldAdapterFactory(platform, reflection, unsafe));
+        Context context = new Context(platform, reflection, unsafe);
+
+        List<Mechanism<InstanceAllocatorFactory>> allocators = this.allocators != null
+            ? this.allocators
+            : defaultAllocators();
+        List<Mechanism<FieldAdapterFactory>> fieldAdapters = this.fieldAdapters != null
+            ? this.fieldAdapters
+            : defaultFieldAdapters();
+        Object opening = this.reflection != null ? "custom reflection" : moduleOpening;
+        Object fallback = constructorFallbackDisabled ? "none"
+            : constructorFallback != null ? constructorFallback : "constructors";
+        String description = String.format("Toolset[moduleOpening=%s, allocation=%s, constructorFallback=%s, %s]",
+            opening, describe(allocators), fallback, "fieldAccess=" + describe(fieldAdapters));
+        return new Toolset(reflection, buildAllocatorFactory(allocators, context),
+            buildFieldAdapterFactory(fieldAdapters, context), description);
     }
 
-    private InstanceAllocatorFactory buildAllocatorFactory(Reflection reflection, Supplier<UnsafeBridge> unsafe) {
+    private static UnsafeBridge unsafeBridge(JdkPlatform platform) {
+        try {
+            // reading sun.misc.Unsafe needs no module opening
+            return platform.unsafeBridge(platform.reflection(TypeOpener.NOOP));
+        }
+        catch (LinkageError e) {
+            throw new ClonerException("Unsafe is not available.", e);
+        }
+    }
+
+    private static <T> String describe(List<Mechanism<T>> mechanisms) {
+        return mechanisms.stream().map(mechanism -> mechanism.description).collect(Collectors.joining(", ", "[", "]"));
+    }
+
+    private static List<Mechanism<InstanceAllocatorFactory>> defaultAllocators() {
+        List<Mechanism<InstanceAllocatorFactory>> list = new ArrayList<>();
+        if (ObjenesisUtils.isObjenesisAvailable()) {
+            list.add(new Mechanism<>(Allocation.OBJENESIS.name(), context -> new ObjenesisInstanceAllocatorFactory()));
+        }
+        return list;
+    }
+
+    private static List<Mechanism<FieldAdapterFactory>> defaultFieldAdapters() {
+        List<Mechanism<FieldAdapterFactory>> list = new ArrayList<>();
+        list.add(new Mechanism<>(FieldAccess.REFLECTION.name(),
+            context -> ReflectionFieldAdapterImpl.factory(context.reflection)));
+        list.add(new Mechanism<>(FieldAccess.UNSAFE.name() + " if reflection cannot access",
+            context -> unsafeIfAvailable(context.unsafe)));
+        return list;
+    }
+
+    private InstanceAllocatorFactory buildAllocatorFactory(List<Mechanism<InstanceAllocatorFactory>> mechanisms,
+        Context context) {
         List<InstanceAllocatorFactory> factories = new ArrayList<>();
-        if (allocators != null) {
-            factories.addAll(allocators);
-        }
-        else if (allocation != null) {
-            allocation.forEach(variant -> factories.add(allocator(variant, unsafe)));
-        }
-        else if (ObjenesisUtils.isObjenesisAvailable()) {
-            factories.add(new ObjenesisInstanceAllocatorFactory());
-        }
+        mechanisms.forEach(mechanism -> factories.add(mechanism.factory.apply(context)));
         if (!constructorFallbackDisabled) {
-            factories.add(
-                constructorFallback != null ? constructorFallback : new ReflectionInstanceAllocatorFactory(reflection));
+            factories.add(constructorFallback != null
+                ? constructorFallback
+                : new ReflectionInstanceAllocatorFactory(context.reflection));
         }
         if (factories.isEmpty()) {
             throw new IllegalStateException("No instance allocators: set allocators or enable constructor fallback.");
@@ -247,32 +340,22 @@ public final class ToolsetBuilder {
         }
     }
 
-    private FieldAdapterFactory buildFieldAdapterFactory(JdkPlatform platform, Reflection reflection,
-        Supplier<UnsafeBridge> unsafe) {
+    private static FieldAdapterFactory buildFieldAdapterFactory(List<Mechanism<FieldAdapterFactory>> mechanisms,
+        Context context) {
+        Checks.illegalArg(mechanisms.isEmpty(), "No field access mechanisms.");
         List<FieldAdapterFactory> factories = new ArrayList<>();
-        if (fieldAdapters != null) {
-            factories.addAll(fieldAdapters);
-        }
-        else if (fieldAccess != null) {
-            fieldAccess.forEach(variant -> factories.add(fieldAdapters(variant, platform, reflection, unsafe)));
-        }
-        else {
-            factories.add(ReflectionFieldAdapterImpl.factory(reflection));
-            factories.add(unsafeIfAvailable(unsafe));
-        }
-        Checks.illegalArg(factories.isEmpty(), "No field access mechanisms.");
+        mechanisms.forEach(mechanism -> factories.add(mechanism.factory.apply(context)));
         return factories.size() == 1 ? factories.get(0) : new CompoundFieldAdapterFactory(factories);
     }
 
-    private static FieldAdapterFactory fieldAdapters(FieldAccess variant, JdkPlatform platform, Reflection reflection,
-        Supplier<UnsafeBridge> unsafe) {
+    private static FieldAdapterFactory fieldAdapters(FieldAccess variant, Context context) {
         switch (variant) {
             case REFLECTION:
-                return ReflectionFieldAdapterImpl.factory(reflection);
+                return ReflectionFieldAdapterImpl.factory(context.reflection);
             case UNSAFE:
-                return UnsafeFieldAdapterImpl.factory(unsafe.get());
+                return UnsafeFieldAdapterImpl.factory(context.unsafe.get());
             case VAR_HANDLE:
-                return platform.varHandleFieldAdapters()
+                return context.platform.varHandleFieldAdapters()
                     .orElseThrow(() -> new ClonerException("VarHandle field access needs JDK 9+."));
             case NARCISSUS:
                 if (!NarcissusUtils.isNarcissusAvailable()) {
@@ -292,7 +375,7 @@ public final class ToolsetBuilder {
             try {
                 return Optional.of(UnsafeFieldAdapterImpl.factory(unsafe.get()));
             }
-            catch (LinkageError | ClonerException e) {
+            catch (ClonerException e) {
                 // e.g. a runtime image without jdk.unsupported
                 return Optional.empty();
             }

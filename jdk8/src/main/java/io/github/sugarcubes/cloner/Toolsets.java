@@ -70,6 +70,46 @@ public final class Toolsets {
         return new ToolsetBuilder();
     }
 
+    /**
+     * Tells whether the instance allocation mechanism is available in the running JVM.
+     *
+     * @param allocation mechanism
+     * @return {@code true} if the mechanism can be used
+     */
+    public static boolean isAvailable(Allocation allocation) {
+        return canBuild(builder().allocation(allocation));
+    }
+
+    /**
+     * Tells whether the field access mechanism is available in the running JVM.
+     *
+     * @param fieldAccess mechanism
+     * @return {@code true} if the mechanism can be used
+     */
+    public static boolean isAvailable(FieldAccess fieldAccess) {
+        return canBuild(builder().fieldAccess(fieldAccess));
+    }
+
+    /**
+     * Tells whether the module opening mechanism is available in the running JVM.
+     *
+     * @param moduleOpening mechanism
+     * @return {@code true} if the mechanism can be used
+     */
+    public static boolean isAvailable(ModuleOpening moduleOpening) {
+        return canBuild(builder().moduleOpening(moduleOpening));
+    }
+
+    private static boolean canBuild(ToolsetBuilder builder) {
+        try {
+            builder.build();
+            return true;
+        }
+        catch (ClonerException e) {
+            return false;
+        }
+    }
+
     private Toolsets() {
     }
 
