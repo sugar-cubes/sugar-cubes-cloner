@@ -21,6 +21,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,9 +30,12 @@ import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TreeMap;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * Default copying of JDK types: immutable objects and objects of the running JVM are shared, some types are cloned.
@@ -96,6 +101,26 @@ class JdkDefaultsTest {
 
         Assertions.assertNull(clone.locale);
         Assertions.assertSame(custom, clone.date);
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
+    void emptySortedCollectionsAreShared(CloningMode mode) {
+        Cloner cloner = Cloners.builder().mode(mode).build();
+        List<Object> original = new ArrayList<>(Arrays.asList(Collections.emptyNavigableMap(),
+            Collections.emptyNavigableSet(), Collections.emptySortedMap(), Collections.emptySortedSet(),
+            Collections.unmodifiableNavigableMap(new TreeMap<>(Collections.singletonMap("a", 1)))));
+
+        List<Object> clone = cloner.clone(original);
+
+        Assertions.assertNotSame(original, clone);
+        for (int i = 0; i < 4; i++) {
+            Assertions.assertSame(original.get(i), clone.get(i));
+            Assertions.assertSame(original.get(i), cloner.clone(original.get(i)));
+        }
+        // other unmodifiable wrappers are copied
+        Assertions.assertNotSame(original.get(4), clone.get(4));
+        Assertions.assertEquals(original.get(4), clone.get(4));
     }
 
 }

@@ -32,7 +32,6 @@ import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
-import io.github.sugarcubes.cloner.platform.JdkPlatform;
 
 /**
  * Abstract copy context. Contains common code for the context implementations.
@@ -78,11 +77,6 @@ public abstract class AbstractCopyContext implements CopyContext {
     private List<Callable<?>> afterCopy;
 
     /**
-     * Platform of the running JDK.
-     */
-    private static final JdkPlatform JDK_PLATFORM = JdkPlatform.current();
-
-    /**
      * Creates context with specified copier provider, clones map and predefined cloned objects.
      *
      * @param copierProvider copier provider
@@ -92,8 +86,6 @@ public abstract class AbstractCopyContext implements CopyContext {
     AbstractCopyContext(CopierProvider copierProvider, SlotMap slots, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
         this.clones = slots;
-        // system-wide singletons are their own clones
-        JDK_PLATFORM.getSystemWideSingletons().forEach(singleton -> slots.put(singleton, new SingleThreadCloneSlot(singleton)));
         clones.forEach((key, value) -> slots.put(key, new SingleThreadCloneSlot(value)));
     }
 

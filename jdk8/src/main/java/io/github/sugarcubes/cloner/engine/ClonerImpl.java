@@ -18,6 +18,7 @@ package io.github.sugarcubes.cloner.engine;
 import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.Cloner;
+import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
@@ -28,6 +29,11 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 public class ClonerImpl implements Cloner {
 
     /**
+     * Copier provider of the contexts, recognizes trivial originals.
+     */
+    private final CopierProvider copierProvider;
+
+    /**
      * Creates context for the single copy process.
      */
     private final Supplier<? extends AbstractCopyContext> contextSupplier;
@@ -35,14 +41,27 @@ public class ClonerImpl implements Cloner {
     /**
      * Creates cloner with custom context supplier.
      *
+     * @param copierProvider copier provider of the contexts
      * @param contextSupplier context supplier
      */
-    public ClonerImpl(Supplier<? extends AbstractCopyContext> contextSupplier) {
+    public ClonerImpl(CopierProvider copierProvider, Supplier<? extends AbstractCopyContext> contextSupplier) {
+        this.copierProvider = copierProvider;
         this.contextSupplier = contextSupplier;
     }
 
     @Override
     public <T> T clone(T object) {
+        // trivial cases need no context
+        if (object == null) {
+            return null;
+        }
+        ObjectCopier<T> copier = copierProvider.getCopier(object);
+        if (copier == ObjectCopier.NOOP) {
+            return object;
+        }
+        if (copier == ObjectCopier.NULL) {
+            return null;
+        }
         return ClonerExceptionUtils.replaceException(() -> {
                 AbstractCopyContext context = contextSupplier.get();
                 T clone = context.copy(object);

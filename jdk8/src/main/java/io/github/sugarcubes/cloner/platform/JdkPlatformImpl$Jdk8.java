@@ -18,7 +18,6 @@ package io.github.sugarcubes.cloner.platform;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -70,6 +69,8 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
         Collections.emptyEnumeration().getClass(), Collections.emptyIterator().getClass(),
         Collections.emptyList().getClass(), Collections.emptyListIterator().getClass(),
         Collections.emptyMap().getClass(), Collections.emptySet().getClass(),
+        // emptyNavigableMap() and emptySortedMap(), the only instance of a private class, same for the sets
+        Collections.emptyNavigableMap().getClass(), Collections.emptyNavigableSet().getClass(),
         Spliterators.emptySpliterator().getClass(), Spliterators.emptyIntSpliterator().getClass(),
         Spliterators.emptyLongSpliterator().getClass(), Spliterators.emptyDoubleSpliterator().getClass(),
         String.CASE_INSENSITIVE_ORDER.getClass()
@@ -114,22 +115,6 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
         java.lang.invoke.MethodHandles.Lookup.class,
         java.lang.ref.Reference.class, java.lang.ref.ReferenceQueue.class
     );
-
-    /**
-     * Singleton instances whose classes also have other instances (unmodifiable wrappers).
-     */
-    private static final Set<Object> SYSTEM_WIDE_SINGLETONS;
-
-    static {
-        Set<Object> singletons = Collections.newSetFromMap(new IdentityHashMap<>());
-        singletons.addAll(Arrays.asList(
-            Collections.emptyNavigableMap(),
-            Collections.emptyNavigableSet(),
-            Collections.emptySortedMap(),
-            Collections.emptySortedSet()
-        ));
-        SYSTEM_WIDE_SINGLETONS = Collections.unmodifiableSet(singletons);
-    }
 
     private static final ContainerModels CONTAINER_MODELS = new ContainerModels();
 
@@ -201,11 +186,6 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     @Override
     public boolean isRuntime(Class<?> type) {
         return kinds.get(type) == Kind.RUNTIME;
-    }
-
-    @Override
-    public Set<Object> getSystemWideSingletons() {
-        return SYSTEM_WIDE_SINGLETONS;
     }
 
     @Override

@@ -16,7 +16,6 @@
 package io.github.sugarcubes.cloner.platform;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ModuleOpening;
@@ -134,13 +133,6 @@ public interface JdkPlatform {
      * @return {@code true} for objects of the running JVM
      */
     boolean isRuntime(Class<?> type);
-
-    /**
-     * Returns system-wide JDK singletons whose classes have other instances, e.g. empty unmodifiable wrappers.
-     *
-     * @return system-wide JDK singletons
-     */
-    Set<Object> getSystemWideSingletons();
 
     /**
      * Holder of the current platform, not for direct use.
