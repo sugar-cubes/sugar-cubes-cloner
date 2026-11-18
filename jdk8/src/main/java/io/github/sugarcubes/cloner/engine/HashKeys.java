@@ -15,8 +15,6 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.Set;
-
 import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
@@ -27,8 +25,6 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
  * @author Maxim Butov
  */
 final class HashKeys {
-
-    private static final Set<Class<?>> IMMUTABLE_TYPES = JdkPlatform.current().getImmutableTypes();
 
     /**
      * Whether a class has its own hash code instead of the identity one.
@@ -66,7 +62,7 @@ final class HashKeys {
             return true;
         }
         Class<?> type = key.getClass();
-        return IMMUTABLE_TYPES.contains(type) || !HASHED_BY_STATE.get(type);
+        return JdkPlatform.current().isImmutable(type) || !HASHED_BY_STATE.get(type);
     }
 
     private HashKeys() {

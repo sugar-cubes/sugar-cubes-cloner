@@ -76,21 +76,33 @@ public interface JdkPlatform {
     <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection);
 
     /**
-     * Returns immutable JDK types.
+     * Tells whether instances of the type are immutable and may be shared: values, canonical instances (e.g. locales,
+     * currencies, charsets, zones), classes of stateless singletons.
      *
-     * @return set of immutable types
+     * @param type type
+     * @return {@code true} if instances are immutable
      */
-    Set<Class<?>> getImmutableTypes();
+    boolean isImmutable(Class<?> type);
 
     /**
-     * Returns JDK types which are copied with {@link Object#clone()}.
+     * Tells whether instances of the type are copied with their public {@code clone()} method.
      *
-     * @return set of cloneable types
+     * @param type type
+     * @return {@code true} if instances are copied with {@code clone()}
      */
-    Set<Class<?>> getCloneableTypes();
+    boolean isCloneable(Class<?> type);
 
     /**
-     * Returns system-wide JDK singletons.
+     * Tells whether instances of the type are objects of the running JVM (threads, class loaders, modules, reflection
+     * objects, references), which cannot be copied meaningfully.
+     *
+     * @param type type
+     * @return {@code true} for objects of the running JVM
+     */
+    boolean isRuntime(Class<?> type);
+
+    /**
+     * Returns system-wide JDK singletons whose classes have other instances, e.g. empty unmodifiable wrappers.
      *
      * @return system-wide JDK singletons
      */

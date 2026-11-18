@@ -33,6 +33,7 @@ import io.github.sugarcubes.cloner.NullCopier;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.Toolset;
 import io.github.sugarcubes.cloner.TypeCopier;
+import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
@@ -179,7 +180,20 @@ public class ReflectionCopierProvider implements CopierProvider {
             // instances of hidden classes (e.g. lambdas) can be neither created nor written, they are shared
             return ObjectCopier.NOOP;
         }
-        return findModelCopier(type);
+        ObjectCopier<?> jdkCopier = shallows.contains(type) ? null : findJdkCopier(type);
+        return jdkCopier != null ? jdkCopier : findModelCopier(type);
+    }
+
+    /**
+     * Default copiers of JDK types: immutable objects and objects of the running JVM are shared, some types are
+     * cloned with their {@code clone()} method. Applied after the type policy and custom copiers.
+     */
+    private static ObjectCopier<?> findJdkCopier(Class<?> type) {
+        JdkPlatform platform = JdkPlatform.current();
+        if (platform.isImmutable(type) || platform.isRuntime(type)) {
+            return ObjectCopier.NOOP;
+        }
+        return platform.isCloneable(type) ? ObjectCopier.CLONEABLE : null;
     }
 
     /**
