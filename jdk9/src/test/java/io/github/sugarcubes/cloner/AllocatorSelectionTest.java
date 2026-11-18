@@ -73,7 +73,7 @@ class AllocatorSelectionTest {
 
     @Test
     void allocatorDoesNotCallConstructor() {
-        Cloner cloner = cloner(new ToolsetBuilder().allocator(new ObjenesisInstanceAllocatorFactory()));
+        Cloner cloner = cloner(Toolsets.builder().allocator(new ObjenesisInstanceAllocatorFactory()));
         Counted original = new Counted();
         original.value = 7;
         int constructed = Counted.CONSTRUCTED.get();
@@ -86,7 +86,7 @@ class AllocatorSelectionTest {
 
     @Test
     void constructorFallbackIsUsedForTypesNotSupportedByAllocators() {
-        Cloner cloner = cloner(new ToolsetBuilder().allocator(NOTHING_SUPPORTED).constructorFallback(constructorAllocator));
+        Cloner cloner = cloner(Toolsets.builder().allocator(NOTHING_SUPPORTED).constructorFallback(constructorAllocator));
         int constructed = Counted.CONSTRUCTED.get();
 
         cloner.clone(new Counted());
@@ -96,7 +96,7 @@ class AllocatorSelectionTest {
 
     @Test
     void allocatorsMustNotCallConstructors() {
-        ToolsetBuilder builder = new ToolsetBuilder();
+        ToolsetBuilder builder = Toolsets.builder();
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> builder.allocator(constructorAllocator));
         Assertions.assertThrows(IllegalArgumentException.class,
@@ -105,14 +105,14 @@ class AllocatorSelectionTest {
 
     @Test
     void noAllocatorsAndNoFallbackIsMisconfiguration() {
-        ToolsetBuilder builder = new ToolsetBuilder().allocators().noConstructorFallback();
+        ToolsetBuilder builder = Toolsets.builder().allocators().noConstructorFallback();
 
         Assertions.assertThrows(IllegalStateException.class, builder::build);
     }
 
     @Test
     void superclassWithoutDefaultConstructorDoesNotNeedAllocator() {
-        Cloner cloner = cloner(new ToolsetBuilder().allocators().constructorFallback(constructorAllocator));
+        Cloner cloner = cloner(Toolsets.builder().allocators().constructorFallback(constructorAllocator));
 
         Child clone = cloner.clone(new Child());
 
@@ -121,7 +121,7 @@ class AllocatorSelectionTest {
 
     @Test
     void unsupportedTypeFailsOnCloning() {
-        Cloner cloner = cloner(new ToolsetBuilder().allocators().constructorFallback(constructorAllocator));
+        Cloner cloner = cloner(Toolsets.builder().allocators().constructorFallback(constructorAllocator));
 
         ClonerException error =
             Assertions.assertThrows(ClonerException.class, () -> cloner.clone(new NoDefaultConstructor(7)));

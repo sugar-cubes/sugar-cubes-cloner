@@ -15,52 +15,28 @@
  */
 package io.github.sugarcubes.cloner;
 
-import java.util.Optional;
-
-import io.github.sugarcubes.cloner.platform.ContainerModels;
-import io.github.sugarcubes.cloner.platform.JdkPlatform;
-import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
-import io.github.sugarcubes.cloner.spi.FieldsModel;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
- * Low-level tools of the reflection cloner: reflection, instance allocator and field adapters. The cloner asks them
+ * Low-level tools of the reflection cloner: reflection, instance allocators and field adapters. The cloner asks them
  * how to create an instance and to read and write its fields, everything else is decided by the cloner.
  *
+ * <p>Toolsets are created by the profiles of {@link Toolsets} or by {@link ToolsetBuilder}.</p>
+ *
  * @author Maxim Butov
- * @see ToolsetBuilder
  */
-public class Toolset {
-
-    /**
-     * Creates toolset which works on any JVM without additional permissions.
-     *
-     * @return failsafe toolset
-     */
-    public static Toolset failsafe() {
-        return new ToolsetBuilder().build();
-    }
+public final class Toolset {
 
     private final Reflection reflection;
     private final InstanceAllocatorFactory allocatorFactory;
     private final FieldAdapterFactory fieldAdapterFactory;
-    private final ContainerModels containerModels;
 
-    /**
-     * Constructor.
-     *
-     * @param reflection reflection
-     * @param allocatorFactory instance allocator factory
-     * @param fieldAdapterFactory field adapter factory
-     */
-    public Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldAdapterFactory fieldAdapterFactory) {
+    Toolset(Reflection reflection, InstanceAllocatorFactory allocatorFactory, FieldAdapterFactory fieldAdapterFactory) {
         this.reflection = reflection;
         this.allocatorFactory = allocatorFactory;
         this.fieldAdapterFactory = fieldAdapterFactory;
-        this.containerModels = new ContainerModels();
     }
 
     /**
@@ -88,50 +64,6 @@ public class Toolset {
      */
     public FieldAdapterFactory getFieldAdapterFactory() {
         return fieldAdapterFactory;
-    }
-
-    /**
-     * Tells whether the class is hidden (a hidden class on JDK 15+ or a lambda class): it has no model, its instances
-     * cannot be allocated by name and their final fields are not writable.
-     *
-     * @param type class
-     * @return {@code true} if the class is hidden
-     */
-    public boolean isHidden(Class<?> type) {
-        return JdkPlatform.current().isHidden(type);
-    }
-
-    /**
-     * Creates the low-level model of a type whose state is its fields.
-     *
-     * @param <T> type
-     * @param type type
-     * @return model of the type
-     */
-    public <T> FieldsModel<T> fieldsModel(Class<T> type) {
-        return new FieldsModel<>(type, reflection, allocatorFactory, fieldAdapterFactory);
-    }
-
-    /**
-     * Creates the low-level model of a type whose instances are created from the values of their components.
-     *
-     * @param <T> type
-     * @param type type
-     * @return model of the type, or empty if the type is not such (e.g. not a record)
-     */
-    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type) {
-        return JdkPlatform.current().valuesModel(type, reflection);
-    }
-
-    /**
-     * Returns the low-level model of a container type (a well-known collection or map).
-     *
-     * @param <T> type
-     * @param type type
-     * @return model of the type, or empty if the type is not a supported container
-     */
-    public <T> Optional<ContainerModel<T>> containerModel(Class<T> type) {
-        return containerModels.containerModel(type);
     }
 
 }

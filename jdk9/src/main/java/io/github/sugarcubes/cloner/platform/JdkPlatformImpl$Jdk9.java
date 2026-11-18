@@ -15,6 +15,7 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
+import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,12 +23,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ClonerException;
+import io.github.sugarcubes.cloner.ModuleOpening;
+import io.github.sugarcubes.cloner.fields.VarHandleFieldAdapterImpl;
+import io.github.sugarcubes.cloner.reflection.ClonerAgent;
+import io.github.sugarcubes.cloner.reflection.InstrumentationModuleOpenerImpl;
+import io.github.sugarcubes.cloner.reflection.NarcissusModuleOpenerImpl;
+import io.github.sugarcubes.cloner.reflection.UnsafeModuleOpenerImpl;
+import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.TypeOpener;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
+import io.github.sugarcubes.cloner.util.Checks;
+import io.github.sugarcubes.cloner.util.NarcissusUtils;
 
 /**
  * {@link JdkPlatform} of JDK 9+: modules, {@code jdk.internal.misc.Unsafe}, immutable collections of {@link List#of},
@@ -85,6 +96,41 @@ class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
      */
     List<Object> immutableList(Object[] values) {
         return List.of(values);
+    }
+
+    @Override
+    public TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
+        switch (opening) {
+            case NONE:
+                return TypeOpener.NOOP;
+            case UNSAFE:
+                return new UnsafeModuleOpenerImpl(unsafe.get());
+            case NARCISSUS:
+                if (!NarcissusUtils.isNarcissusAvailable()) {
+                    throw new ClonerException("Narcissus is not available: put it on the classpath.");
+                }
+                return new NarcissusModuleOpenerImpl();
+            case INSTRUMENTATION:
+                Instrumentation instrumentation = ClonerAgent.getInstrumentation();
+                if (instrumentation == null) {
+                    throw new ClonerException("Instrumentation is not available: start the JVM with -javaagent "
+                        + "pointing to the cloner jar.");
+                }
+                return new InstrumentationModuleOpenerImpl(instrumentation);
+            default:
+                throw Checks.mustNotHappen();
+        }
+    }
+
+    @Override
+    public Optional<FieldAdapterFactory> varHandleFieldAdapters() {
+        try {
+            return Optional.of(VarHandleFieldAdapterImpl.FACTORY);
+        }
+        catch (LinkageError e) {
+            throw new ClonerException("VarHandle field access needs the trusted lookup: open java.base/java.lang.invoke "
+                + "to the cloner with --add-opens JVM option.", e);
+        }
     }
 
     @Override

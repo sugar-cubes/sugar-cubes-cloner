@@ -33,7 +33,7 @@ class ToolsetBuilderTest {
 
     @Test
     void defaultsAreFailsafe() throws Exception {
-        Toolset toolset = new ToolsetBuilder().build();
+        Toolset toolset = Toolsets.builder().build();
 
         Assertions.assertSame(JdkPlatform.current().reflection(TypeOpener.NOOP).getClass(), toolset.getReflection().getClass());
         Assertions.assertInstanceOf(ReflectionFieldAdapterImpl.class,
@@ -47,7 +47,7 @@ class ToolsetBuilderTest {
     void singleAllocatorIsUsedAsIs() {
         InstanceAllocatorFactory allocator = new ObjenesisInstanceAllocatorFactory();
 
-        Toolset toolset = new ToolsetBuilder().allocator(allocator).noConstructorFallback().build();
+        Toolset toolset = Toolsets.builder().allocator(allocator).noConstructorFallback().build();
 
         Assertions.assertSame(allocator, toolset.getAllocatorFactory());
     }
@@ -61,7 +61,7 @@ class ToolsetBuilderTest {
             }
         };
 
-        Toolset toolset = new ToolsetBuilder()
+        Toolset toolset = Toolsets.builder()
             .allocators(unsupporting, new ObjenesisInstanceAllocatorFactory())
             .noConstructorFallback()
             .build();
@@ -72,7 +72,7 @@ class ToolsetBuilderTest {
 
     @Test
     void builtToolsetClones() {
-        Cloner cloner = Cloners.builder().toolset(new ToolsetBuilder().build()).build();
+        Cloner cloner = Cloners.builder().toolset(Toolsets.builder().build()).build();
         Date original = new Date();
 
         Date clone = cloner.clone(original);

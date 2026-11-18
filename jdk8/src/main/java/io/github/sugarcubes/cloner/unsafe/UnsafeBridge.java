@@ -17,8 +17,6 @@ package io.github.sugarcubes.cloner.unsafe;
 
 import java.lang.reflect.Field;
 
-import io.github.sugarcubes.cloner.platform.JdkPlatform;
-import io.github.sugarcubes.cloner.spi.Reflection;
 
 /**
  * Bridge to Java Unsafe implementation: {@code jdk.internal.misc.Unsafe} on JDK 9+ if it is exported to the
@@ -29,16 +27,6 @@ import io.github.sugarcubes.cloner.spi.Reflection;
  * @author Maxim Butov
  */
 public interface UnsafeBridge {
-
-    /**
-     * Returns the best {@link UnsafeBridge} available in the current JDK.
-     *
-     * @param reflection reflection to access {@link sun.misc.Unsafe}
-     * @return {@link UnsafeBridge} instance
-     */
-    static UnsafeBridge getInstance(Reflection reflection) {
-        return JdkPlatform.current().unsafeBridge(reflection);
-    }
 
     Object getUnsafe();
 

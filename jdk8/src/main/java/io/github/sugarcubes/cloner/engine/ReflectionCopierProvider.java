@@ -35,6 +35,7 @@ import io.github.sugarcubes.cloner.Toolset;
 import io.github.sugarcubes.cloner.TypeCopier;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
+import io.github.sugarcubes.cloner.spi.FieldsModel;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.util.Checks;
@@ -176,7 +177,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (Copyable.class.isAssignableFrom(type)) {
             return ObjectCopier.COPYABLE;
         }
-        if (toolset.isHidden(type)) {
+        if (JdkPlatform.current().isHidden(type)) {
             // instances of hidden classes (e.g. lambdas) can be neither created nor written, they are shared
             return ObjectCopier.NOOP;
         }
@@ -217,11 +218,11 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private ObjectCopier<?> findModelCopier(Class<?> type) {
         boolean shallow = shallows.contains(type);
-        Optional<? extends ValuesModel<?>> values = toolset.valuesModel(type);
+        Optional<? extends ValuesModel<?>> values = JdkPlatform.current().valuesModel(type, toolset.getReflection());
         if (values.isPresent()) {
             return valuesCopier(values.get(), type, shallow);
         }
-        Optional<? extends ContainerModel<?>> container = toolset.containerModel(type);
+        Optional<? extends ContainerModel<?>> container = JdkPlatform.current().containerModel(type);
         if (container.isPresent()) {
             return containerCopier(container.get(), type, shallow);
         }
@@ -291,7 +292,9 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
             FieldsCopier<?> parent = superType != null ? findFieldsCopier(superType, shallow) : null;
-            copier = new FieldsCopier<>(parent, toolset.fieldsModel(type), fieldPolicy, shallow);
+            FieldsModel<?> model = new FieldsModel<>(type, toolset.getReflection(), toolset.getAllocatorFactory(),
+                toolset.getFieldAdapterFactory());
+            copier = new FieldsCopier<>(parent, model, fieldPolicy, shallow);
             fieldsCopiers.put(key, copier);
         }
         return copier;
