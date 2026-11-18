@@ -51,8 +51,7 @@ class NoOpeningTest {
     }
 
     @Test
-    void defaultsWithoutObjenesis() {
-        Assertions.assertFalse(Toolsets.isAvailable(Allocation.OBJENESIS));
+    void defaults() {
         Assertions.assertTrue(Toolsets.isAvailable(Allocation.REFLECTION_FACTORY));
         Assertions.assertTrue(Toolsets.defaults().toString().contains("allocation=[REFLECTION_FACTORY]"), Toolsets.defaults().toString());
         OpeningTesting.assertClones(Toolsets.defaults());

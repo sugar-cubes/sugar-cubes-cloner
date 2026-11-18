@@ -29,12 +29,6 @@ public enum Allocation {
     REFLECTION_FACTORY,
 
     /**
-     * Objenesis library, must be on the classpath. On HotSpot and OpenJ9 it uses the same mechanism as
-     * {@link #REFLECTION_FACTORY}.
-     */
-    OBJENESIS,
-
-    /**
      * {@code Unsafe.allocateInstance()}, not a memory access method: the JVM does not warn about it.
      */
     UNSAFE,

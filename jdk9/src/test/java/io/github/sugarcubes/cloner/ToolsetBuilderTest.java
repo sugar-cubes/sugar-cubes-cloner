@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.github.sugarcubes.cloner.allocation.CompoundInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ReflectionFactoryAllocatorFactory;
 import io.github.sugarcubes.cloner.fields.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
@@ -37,14 +37,14 @@ class ToolsetBuilderTest {
         Assertions.assertSame(JdkPlatform.current().reflection().getClass(), toolset.getReflection().getClass());
         Assertions.assertInstanceOf(ReflectionFieldAdapterImpl.class,
             toolset.getFieldAdapterFactory().newAdapter(Date.class.getDeclaredField("fastTime")).get());
-        // Objenesis first, constructor is only a fallback: Date() would set the current time
+        // ReflectionFactory first, constructor is only a fallback: Date() would set the current time
         Assertions.assertTrue(toolset.getAllocatorFactory().invokesConstructor());
         Assertions.assertEquals(0, toolset.getAllocatorFactory().newAllocator(Date.class).get().newInstance().getTime());
     }
 
     @Test
     void singleAllocatorIsUsedAsIs() {
-        InstanceAllocatorFactory allocator = new ObjenesisInstanceAllocatorFactory();
+        InstanceAllocatorFactory allocator = new ReflectionFactoryAllocatorFactory();
 
         Toolset toolset = Toolsets.builder().allocator(allocator).noConstructorFallback().build();
 
@@ -61,7 +61,7 @@ class ToolsetBuilderTest {
         };
 
         Toolset toolset = Toolsets.builder()
-            .allocators(unsupporting, new ObjenesisInstanceAllocatorFactory())
+            .allocators(unsupporting, new ReflectionFactoryAllocatorFactory())
             .noConstructorFallback()
             .build();
 

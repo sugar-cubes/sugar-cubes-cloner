@@ -23,7 +23,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import io.github.sugarcubes.cloner.allocation.CompoundInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.ReflectionFactoryAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.ReflectionInstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.allocation.UnsafeAllocatorFactory;
@@ -40,7 +39,6 @@ import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.Lazy;
 import io.github.sugarcubes.cloner.util.NarcissusUtils;
-import io.github.sugarcubes.cloner.util.ObjenesisUtils;
 
 /**
  * Builder of {@link Toolset}. Mechanisms are chosen by variants ({@link Allocation}, {@link FieldAccess},
@@ -48,7 +46,7 @@ import io.github.sugarcubes.cloner.util.ObjenesisUtils;
  * which is not available fails the build with an explanation. Custom implementations of the {@code spi} interfaces may
  * be set instead.
  *
- * <p>Not set mechanisms are the defaults of {@link Toolsets#defaults()}: no module opening, Objenesis (if available)
+ * <p>Not set mechanisms are the defaults of {@link Toolsets#defaults()}: no module opening, {@link Allocation#REFLECTION_FACTORY}
  * as instance allocator with constructors as fallback, reflection field access with {@code Unsafe} for fields which
  * reflection cannot access.</p>
  *
@@ -342,11 +340,6 @@ public final class ToolsetBuilder {
                     throw new ClonerException("ReflectionFactory is not available: add the jdk.unsupported module.");
                 }
                 return new ReflectionFactoryAllocatorFactory();
-            case OBJENESIS:
-                if (!ObjenesisUtils.isObjenesisAvailable()) {
-                    throw new ClonerException("Objenesis is not available: put it on the classpath.");
-                }
-                return new ObjenesisInstanceAllocatorFactory();
             case UNSAFE:
                 return new UnsafeAllocatorFactory(unsafe.get());
             default:
