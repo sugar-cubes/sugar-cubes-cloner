@@ -112,7 +112,8 @@ public final class ToolsetBuilder {
      * @return same builder instance
      */
     public ToolsetBuilder moduleOpening(ModuleOpening moduleOpening) {
-        this.moduleOpening = Checks.argNotNull(moduleOpening, "Module opening");
+        Checks.argNotNull(moduleOpening, "Module opening");
+        this.moduleOpening = moduleOpening;
         return this;
     }
 
@@ -123,7 +124,8 @@ public final class ToolsetBuilder {
      * @return same builder instance
      */
     public ToolsetBuilder reflection(Reflection reflection) {
-        this.reflection = Checks.argNotNull(reflection, "Reflection");
+        Checks.argNotNull(reflection, "Reflection");
+        this.reflection = reflection;
         return this;
     }
 
@@ -185,7 +187,8 @@ public final class ToolsetBuilder {
      * @return same builder instance
      */
     public ToolsetBuilder constructorFallback(InstanceAllocatorFactory constructorFallback) {
-        this.constructorFallback = Checks.argNotNull(constructorFallback, "Constructor fallback");
+        Checks.argNotNull(constructorFallback, "Constructor fallback");
+        this.constructorFallback = constructorFallback;
         this.constructorFallbackDisabled = false;
         return this;
     }
