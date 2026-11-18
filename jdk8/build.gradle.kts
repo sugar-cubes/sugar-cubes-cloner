@@ -26,8 +26,8 @@ java {
 tasks.named<Jar>("jar") {
     manifest.attributes(
         mapOf(
-            "Premain-Class" to "io.github.sugarcubes.cloner.internal.ClonerAgent",
-            "Agent-Class" to "io.github.sugarcubes.cloner.internal.ClonerAgent",
+            "Premain-Class" to "io.github.sugarcubes.cloner.reflection.ClonerAgent",
+            "Agent-Class" to "io.github.sugarcubes.cloner.reflection.ClonerAgent",
         )
     )
 }

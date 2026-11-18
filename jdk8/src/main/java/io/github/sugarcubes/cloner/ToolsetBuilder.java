@@ -19,11 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import io.github.sugarcubes.cloner.internal.CompoundInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.ObjenesisInstanceAllocatorFactory;
-import io.github.sugarcubes.cloner.internal.ReflectionFieldAdapterImpl;
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
-import io.github.sugarcubes.cloner.internal.ReflectionInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.CompoundInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ObjenesisInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.allocation.ReflectionInstanceAllocatorFactory;
+import io.github.sugarcubes.cloner.fields.ReflectionFieldAdapterImpl;
+import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
