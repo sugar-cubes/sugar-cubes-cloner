@@ -15,39 +15,36 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
-import java.lang.reflect.AccessibleObject;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
- * todo
+ * Opens packages to the cloner by the package-private {@code Module.implAddOpens(String, Module)} method (the one
+ * behind {@code --add-opens}, present since JDK 9), which is called through the trusted lookup
+ * {@code MethodHandles.Lookup.IMPL_LOOKUP} read by {@code Unsafe}.
  */
 class UnsafeModuleOpenerImpl extends AbstractModuleOpener {
 
-    private final UnsafeBridge unsafe;
-    private final Method implAddExportsOrOpens;
+    private final MethodHandle implAddOpens;
 
-    public UnsafeModuleOpenerImpl(UnsafeBridge unsafe) {
-        this.unsafe = unsafe;
-        this.implAddExportsOrOpens = ClonerExceptionUtils.replaceException(() -> {
-            Field field = Class.class.getDeclaredField("module");
-            long offset = unsafe.objectFieldOffset(field);
-            unsafe.putObject(UnsafeModuleOpenerImpl.class, offset, Object.class.getModule());
-            Method setAccessible0 = AccessibleObject.class.getDeclaredMethod("setAccessible0", boolean.class);
-            setAccessible0.setAccessible(true);
-            Method implAddExportsOrOpens = Module.class.getDeclaredMethod("implAddExportsOrOpens", String.class, Module.class, boolean.class, boolean.class);
-            setAccessible0.invoke(implAddExportsOrOpens, true);
-            return implAddExportsOrOpens;
+    UnsafeModuleOpenerImpl(UnsafeBridge unsafe) {
+        this.implAddOpens = ClonerExceptionUtils.replaceException(() -> {
+            Field implLookup = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
+            MethodHandles.Lookup lookup = (MethodHandles.Lookup) unsafe.getObject(unsafe.staticFieldBase(implLookup),
+                unsafe.staticFieldOffset(implLookup));
+            MethodType type = MethodType.methodType(void.class, String.class, Module.class);
+            return lookup.findVirtual(Module.class, "implAddOpens", type);
         });
     }
 
     @Override
-    protected void openModule(Module module, String packageName, Module thisModule) throws Exception {
-        implAddExportsOrOpens.invoke(module, packageName, thisModule, false, true);
-        implAddExportsOrOpens.invoke(module, packageName, thisModule, true, true);
+    protected void openModule(Module module, String packageName, Module thisModule) throws Throwable {
+        implAddOpens.invokeExact(module, packageName, thisModule);
     }
 
 }
