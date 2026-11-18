@@ -25,6 +25,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -39,7 +40,7 @@ import com.esotericsoftware.kryo.Kryo;
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Fork(value = 1)
 @Warmup(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
@@ -54,6 +55,12 @@ public class ClonersBenchmark {
     private Cloner varhandle;
     private Kryo kryo;
     private com.rits.cloning.Cloner kk;
+
+    /**
+     * Size of the sample graph: a large one shows the cost per object, a small one the cost per call.
+     */
+    @Param({"large", "small"})
+    private String size;
 
     private Object sample;
 
@@ -70,9 +77,11 @@ public class ClonersBenchmark {
         kryo.setRegistrationRequired(false);
         kk = new com.rits.cloning.Cloner();
 
-        sample = Stream.generate(() -> TestObjectFactory.randomObject(10, 10))
-            .limit(10)
-            .collect(Collectors.toList());
+        // the same graph in every fork and run
+        TestObjectFactory.seed(42);
+        sample = "large".equals(size)
+            ? Stream.generate(() -> TestObjectFactory.randomObject(10, 10)).limit(10).collect(Collectors.toList())
+            : TestObjectFactory.randomObject(4, 3);
 
     }
 

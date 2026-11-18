@@ -56,6 +56,15 @@ public class TestObjectFactory {
 
     private static final Random random = new Random();
 
+    /**
+     * Makes the following random objects reproducible.
+     *
+     * @param seed seed of the random generator
+     */
+    public static void seed(long seed) {
+        random.setSeed(seed);
+    }
+
     public static Object randomObject(int width, int depth) {
         if (depth == 0) {
             return randomSupply(
