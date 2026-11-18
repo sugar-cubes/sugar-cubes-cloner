@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -228,6 +229,17 @@ class RecordComponentsTest {
         Assertions.assertEquals("a", HiddenRecords.name(clone));
         Assertions.assertEquals(List.of("b"), HiddenRecords.items(clone));
         Assertions.assertNotSame(HiddenRecords.items(original), HiddenRecords.items(clone));
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
+    void immutableListWithNulls(CloningMode mode) {
+        List<String> original = Stream.of("a", null).toList();
+
+        List<String> clone = cloner(mode).clone(original);
+
+        Assertions.assertEquals(original, clone);
+        Assertions.assertTrue(clone.contains(null));
     }
 
     private static List<List<Object>> branches(Object shared) {

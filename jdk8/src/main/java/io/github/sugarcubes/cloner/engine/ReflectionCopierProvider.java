@@ -39,6 +39,7 @@ import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.ConcurrentLazyCache;
+import io.github.sugarcubes.cloner.util.Lazy;
 
 /**
  * Copier provider implementation.
@@ -106,9 +107,19 @@ public class ReflectionCopierProvider implements CopierProvider {
     @SuppressWarnings("unchecked")
     public <T> ObjectCopier<T> getCopier(T original) {
         if (objectPolicy != null) {
-            return (ObjectCopier<T>) processAction(objectPolicy.getAction(original), () -> copiers.get(original.getClass()));
+            return choose(original, processAction(objectPolicy.getAction(original), () -> copiers.get(original.getClass())));
         }
-        return (ObjectCopier<T>) copiers.get(original.getClass());
+        return choose(original, copiers.get(original.getClass()));
+    }
+
+    /**
+     * Returns the copier chosen for the object, if the copier of the type chooses.
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> ObjectCopier<T> choose(T original, ObjectCopier<?> copier) {
+        return copier instanceof ChoosingCopier
+            ? ((ChoosingCopier<T>) copier).choose(original)
+            : (ObjectCopier<T>) copier;
     }
 
     /**
@@ -194,13 +205,32 @@ public class ReflectionCopierProvider implements CopierProvider {
         boolean shallow = shallows.contains(type);
         Optional<? extends ValuesModel<?>> values = toolset.valuesModel(type);
         if (values.isPresent()) {
-            return new ValuesCopier<>(values.get(), shallow);
+            return valuesCopier(values.get(), type, shallow);
         }
         Optional<? extends ContainerModel<?>> container = toolset.containerModel(type);
         if (container.isPresent()) {
             return containerCopier(container.get(), type, shallow);
         }
         return findFieldsCopier(type, shallow);
+    }
+
+    /**
+     * Creates objects from values; collections which hash their keys are copied by fields if hash codes of the copied
+     * keys are not known at once.
+     */
+    private <T> ObjectCopier<T> valuesCopier(ValuesModel<T> model, Class<?> type, boolean shallow) {
+        if (!model.hashesKeys()) {
+            return new ValuesCopier<>(model, shallow);
+        }
+        return new HashValuesCopier<>(model, lazyFieldsCopier(type, shallow), shallow);
+    }
+
+    /**
+     * Copier by fields created when first needed: making fields of JDK classes accessible needs opened packages.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> Supplier<FieldsCopier<T>> lazyFieldsCopier(Class<?> type, boolean shallow) {
+        return new Lazy<>(() -> (FieldsCopier<T>) findFieldsCopier(type, shallow));
     }
 
     /**
@@ -211,7 +241,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (!model.hashesKeys()) {
             return new ContainerCopier<>(model, shallow);
         }
-        return new HashContainerCopier<>((FieldsCopier<T>) findFieldsCopier(type, shallow), model, shallow);
+        return new HashContainerCopier<>(lazyFieldsCopier(type, shallow), model, shallow);
     }
 
     /**

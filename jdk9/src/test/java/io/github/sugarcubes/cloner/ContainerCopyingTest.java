@@ -135,4 +135,34 @@ class ContainerCopyingTest {
         Assertions.assertSame(clone, clone.get(1));
     }
 
+    static class ImmutableHolder {
+
+        final IdentityKey identityKey = new IdentityKey();
+        final ValueKey valueKey = new ValueKey("a");
+        final List<Object> mutable = new ArrayList<>(List.of("x"));
+        final Set<IdentityKey> identitySet = Set.of(identityKey);
+        final Map<IdentityKey, String> identityMap = Map.of(identityKey, "v");
+        final Set<ValueKey> valueSet = Set.of(valueKey);
+        final List<Object> list = List.of(mutable, "y");
+        final List<Object> empty = List.of();
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(CloningMode.class)
+    void immutableCollections(CloningMode mode) {
+        ImmutableHolder original = new ImmutableHolder();
+
+        ImmutableHolder clone = Cloners.builder().mode(mode).build().clone(original);
+
+        Assertions.assertNotSame(original.identityKey, clone.identityKey);
+        Assertions.assertTrue(clone.identitySet.contains(clone.identityKey));
+        Assertions.assertEquals("v", clone.identityMap.get(clone.identityKey));
+        Assertions.assertTrue(clone.valueSet.contains(new ValueKey("a")));
+        Assertions.assertSame(clone.mutable, clone.list.get(0));
+        Assertions.assertNotSame(original.mutable, clone.mutable);
+        Assertions.assertEquals(List.of(List.of("x"), "y"), clone.list);
+        Assertions.assertSame(original.empty, clone.empty);
+    }
+
 }

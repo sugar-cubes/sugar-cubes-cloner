@@ -15,27 +15,12 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
-
-import io.github.sugarcubes.cloner.util.ClassUtils;
-import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
-import io.github.sugarcubes.cloner.util.ReflectionUtils;
-
 /**
- * {@link JdkPlatform} of JDK 15+: hidden classes, {@code jdk.internal.misc.Unsafe} with references, archived immutable
- * collections.
+ * {@link JdkPlatform} of JDK 15+: hidden classes, {@code jdk.internal.misc.Unsafe} with references.
  *
  * @author Maxim Butov
  */
 class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
-
-    JdkPlatformImpl$Jdk15() {
-        Class<?> immutableCollectionsClass = ClassUtils.classForName("java.util.ImmutableCollections");
-        Field archivedObjectsField = ReflectionUtils.getField(immutableCollectionsClass, "archivedObjects");
-        Object[] archivedObjects = (Object[]) ClonerExceptionUtils.replaceException(() -> archivedObjectsField.get(null));
-        systemWideSingletons.addAll(Arrays.asList(archivedObjects));
-    }
 
     @Override
     public boolean isHidden(Class<?> type) {
