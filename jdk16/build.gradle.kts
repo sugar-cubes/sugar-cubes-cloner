@@ -58,7 +58,7 @@ dependencies {
     agent(project(":jdk8"))
     "moduleOpeningTestImplementation"("org.junit.jupiter:junit-jupiter:5.10.0")
     "moduleOpeningTestRuntimeOnly"("org.junit.platform:junit-platform-launcher")
-    "moduleOpeningTestImplementation"("io.github.toolfactory:narcissus:1.0.7")
+    "moduleOpeningTestImplementation"("io.github.toolfactory:narcissus:1.0.14")
 }
 
 fun Test.moduleOpeningTest() {
@@ -66,9 +66,10 @@ fun Test.moduleOpeningTest() {
     useJUnitPlatform()
     testClassesDirs = moduleOpeningTest.output.classesDirs
     classpath = moduleOpeningTest.runtimeClasspath
-    // another JDK: -PopeningTestJdk=25
-    val jdk = (findProperty("openingTestJdk") as String?)?.toInt() ?: 17
-    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(jdk)) })
+    // JDK 17 unless -PtestJdk is given, see java-conventions
+    if (findProperty("testJdk") == null) {
+        javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(17)) })
+    }
     // build-utils adds --add-opens to every test task
     jvmArgs = listOf()
     // module opening is global: a fresh JVM for every test class
