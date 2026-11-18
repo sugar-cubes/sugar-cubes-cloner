@@ -22,12 +22,25 @@ import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.toolfactory.narcissus.Narcissus;
 
+/**
+ * Field adapter which reads and writes fields with Narcissus (JNI), regardless of modules and accessibility.
+ *
+ * @author Maxim Butov
+ */
 public class NarcissusFieldAdapterImpl implements FieldAdapter {
 
+    /**
+     * Factory of Narcissus adapters, supports every field.
+     */
     public static final FieldAdapterFactory FACTORY = field -> Optional.of(new NarcissusFieldAdapterImpl(field));
 
     private final Field field;
 
+    /**
+     * Creates the adapter.
+     *
+     * @param field field
+     */
     public NarcissusFieldAdapterImpl(Field field) {
         this.field = field;
     }

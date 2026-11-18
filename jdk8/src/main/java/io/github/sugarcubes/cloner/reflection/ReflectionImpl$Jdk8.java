@@ -21,6 +21,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
+/**
+ * Reflection for JDK 8: plain {@link Class} methods and {@link AccessibleObject#setAccessible(boolean)}.
+ *
+ * @author Maxim Butov
+ */
 public class ReflectionImpl$Jdk8 extends AbstractReflection {
 
     @Override

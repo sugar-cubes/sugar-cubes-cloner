@@ -22,6 +22,13 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
+/**
+ * Reflection used by the cloner to find members and make them accessible. On JDK 9+ the default implementation opens
+ * the package of a member to the cloner before making it accessible if the toolset has a
+ * {@link io.github.sugarcubes.cloner.ModuleOpening module opening} mechanism.
+ *
+ * @author Maxim Butov
+ */
 public interface Reflection {
 
     /**

@@ -21,7 +21,8 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.toolfactory.narcissus.Narcissus;
 
 /**
- * todo
+ * Opens packages to the cloner by the package-private {@code Module.implAddOpens(String, Module)} method called with
+ * Narcissus (JNI), which ignores access checks.
  */
 class NarcissusModuleOpenerImpl extends AbstractModuleOpener {
 
