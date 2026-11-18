@@ -11,8 +11,3 @@ include("jdk9-module")
 include("jdk15")
 include("jdk16")
 include("sugar-cubes-cloner")
-
-if (file("incubator").isDirectory) {
-    // place to test new ideas, out of version control
-    include("incubator")
-}
