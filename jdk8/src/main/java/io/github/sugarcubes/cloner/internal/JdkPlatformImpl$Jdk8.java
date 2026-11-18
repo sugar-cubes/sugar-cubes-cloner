@@ -15,10 +15,12 @@
  */
 package io.github.sugarcubes.cloner.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
@@ -36,34 +38,55 @@ import io.github.sugarcubes.cloner.util.ClassUtils;
 class JdkPlatformImpl$Jdk8 implements JdkPlatform {
 
     /**
-     * JDK immutable types.
+     * Kinds of JDK types.
+     */
+    enum Kind {
+        IMMUTABLE,
+        CLONEABLE,
+        RUNTIME,
+        OTHER,
+    }
+
+    /**
+     * Immutable types: values, canonical instances, classes of stateless singletons. Exact classes.
      */
     protected final Set<Class<?>> immutableTypes = new HashSet<>(Arrays.asList(
-        java.math.BigDecimal.class, java.math.BigInteger.class, Boolean.class, Byte.class,
-        Character.class, Class.class,
-        Double.class, java.time.Duration.class,
-        Float.class,
-        java.net.Inet4Address.class, java.net.Inet6Address.class, java.net.InetSocketAddress.class, java.time.Instant.class,
-        Integer.class,
-        java.time.LocalDate.class, java.time.LocalDateTime.class, java.time.LocalTime.class, Long.class,
-        java.time.MonthDay.class,
-        java.net.NetworkInterface.class,
-        java.time.OffsetDateTime.class, java.time.OffsetTime.class,
-        java.util.regex.Pattern.class, java.time.Period.class,
+        java.math.BigDecimal.class, java.math.BigInteger.class, java.math.MathContext.class,
+        Boolean.class, Byte.class, Character.class, Class.class, Double.class, Float.class, Integer.class, Long.class,
         Short.class, String.class,
-        java.net.URI.class, java.net.URL.class, java.util.UUID.class,
-        java.time.Year.class, java.time.YearMonth.class,
-        java.time.ZonedDateTime.class, java.time.ZoneOffset.class
+        java.io.File.class,
+        java.net.Inet4Address.class, java.net.Inet6Address.class, java.net.InetSocketAddress.class,
+        java.net.NetworkInterface.class, java.net.URI.class, java.net.URL.class,
+        java.time.Duration.class, java.time.Instant.class, java.time.LocalDate.class, java.time.LocalDateTime.class,
+        java.time.LocalTime.class, java.time.MonthDay.class, java.time.OffsetDateTime.class,
+        java.time.OffsetTime.class, java.time.Period.class, java.time.Year.class, java.time.YearMonth.class,
+        java.time.ZonedDateTime.class, java.time.format.DateTimeFormatter.class,
+        java.util.Currency.class, java.util.Locale.class, java.util.UUID.class, java.util.regex.Pattern.class,
+        Collections.emptyEnumeration().getClass(), Collections.emptyIterator().getClass(),
+        Collections.emptyList().getClass(), Collections.emptyListIterator().getClass(),
+        Collections.emptyMap().getClass(), Collections.emptySet().getClass(),
+        Spliterators.emptySpliterator().getClass(), Spliterators.emptyIntSpliterator().getClass(),
+        Spliterators.emptyLongSpliterator().getClass(), Spliterators.emptyDoubleSpliterator().getClass(),
+        String.CASE_INSENSITIVE_ORDER.getClass()
     ));
 
     /**
-     * JDK cloneable types.
+     * Immutable types with all their subtypes: canonical or immutable instances of not public classes.
+     */
+    protected final List<Class<?>> immutableSuperTypes = new ArrayList<>(Arrays.asList(
+        java.nio.charset.Charset.class,
+        java.nio.file.Path.class,
+        java.time.ZoneId.class,
+        java.time.chrono.Chronology.class
+    ));
+
+    /**
+     * Types copied with their public {@code clone()} method. Exact classes.
      */
     protected final Set<Class<?>> cloneableTypes = new HashSet<>(Arrays.asList(
         java.util.BitSet.class,
         java.util.Date.class,
         java.util.GregorianCalendar.class,
-        java.util.Locale.class,
         ClassUtils.classForName("java.util.JumboEnumSet"),
         ClassUtils.classForName("java.util.RegularEnumSet"),
         java.text.ChoiceFormat.class,
@@ -77,37 +100,67 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     ));
 
     /**
-     * System wide singletons.
+     * Objects of the running JVM with all their subtypes: threads, class loaders, reflection objects, references.
+     */
+    protected final List<Class<?>> runtimeSuperTypes = new ArrayList<>(Arrays.asList(
+        Thread.class, ThreadGroup.class, ClassLoader.class, Runtime.class,
+        java.lang.reflect.AccessibleObject.class, java.lang.reflect.Parameter.class,
+        java.lang.invoke.MethodHandle.class, java.lang.invoke.MethodType.class,
+        java.lang.invoke.MethodHandles.Lookup.class,
+        java.lang.ref.Reference.class, java.lang.ref.ReferenceQueue.class
+    ));
+
+    /**
+     * Singleton instances whose classes also have other instances (unmodifiable wrappers).
      */
     protected final Set<Object> systemWideSingletons = Collections.newSetFromMap(new IdentityHashMap<>());
 
+    private final ClassValue<Kind> kinds = new ClassValue<Kind>() {
+        @Override
+        protected Kind computeValue(Class<?> type) {
+            return kindOf(type);
+        }
+    };
+
     JdkPlatformImpl$Jdk8() {
         systemWideSingletons.addAll(Arrays.asList(
-            Collections.emptyEnumeration(),
-            Collections.emptyIterator(),
-            Collections.emptyList(),
-            Collections.emptyListIterator(),
-            Collections.emptyMap(),
             Collections.emptyNavigableMap(),
             Collections.emptyNavigableSet(),
-            Collections.emptySet(),
             Collections.emptySortedMap(),
-            Collections.emptySortedSet(),
-            Spliterators.emptyDoubleSpliterator(),
-            Spliterators.emptyIntSpliterator(),
-            Spliterators.emptyLongSpliterator(),
-            Spliterators.emptySpliterator()
+            Collections.emptySortedSet()
         ));
     }
 
-    @Override
-    public Set<Class<?>> getImmutableTypes() {
-        return Collections.unmodifiableSet(immutableTypes);
+    private Kind kindOf(Class<?> type) {
+        if (immutableTypes.contains(type) || isSubtype(type, immutableSuperTypes)) {
+            return Kind.IMMUTABLE;
+        }
+        if (cloneableTypes.contains(type)) {
+            return Kind.CLONEABLE;
+        }
+        if (isSubtype(type, runtimeSuperTypes)) {
+            return Kind.RUNTIME;
+        }
+        return Kind.OTHER;
+    }
+
+    private static boolean isSubtype(Class<?> type, List<Class<?>> superTypes) {
+        return superTypes.stream().anyMatch(superType -> superType.isAssignableFrom(type));
     }
 
     @Override
-    public Set<Class<?>> getCloneableTypes() {
-        return Collections.unmodifiableSet(cloneableTypes);
+    public boolean isImmutable(Class<?> type) {
+        return kinds.get(type) == Kind.IMMUTABLE;
+    }
+
+    @Override
+    public boolean isCloneable(Class<?> type) {
+        return kinds.get(type) == Kind.CLONEABLE;
+    }
+
+    @Override
+    public boolean isRuntime(Class<?> type) {
+        return kinds.get(type) == Kind.RUNTIME;
     }
 
     @Override

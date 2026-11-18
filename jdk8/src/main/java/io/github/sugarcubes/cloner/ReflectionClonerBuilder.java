@@ -39,7 +39,6 @@ import io.github.sugarcubes.cloner.engine.PredicatePolicy;
 import io.github.sugarcubes.cloner.engine.RecursiveCopyContext;
 import io.github.sugarcubes.cloner.engine.ReflectionCopierProvider;
 import io.github.sugarcubes.cloner.engine.SequentialCopyContext;
-import io.github.sugarcubes.cloner.internal.JdkPlatform;
 import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
@@ -51,25 +50,6 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
 public final class ReflectionClonerBuilder {
-
-    /**
-     * Platform of the running JDK.
-     */
-    private static final JdkPlatform JDK_PLATFORM = JdkPlatform.current();
-
-    /**
-     * Default copiers for well-known JDK types.
-     */
-    private static final Map<Class<?>, ObjectCopier<?>> DEFAULT_COPIERS;
-
-    static {
-        Map<Class<?>, ObjectCopier<?>> defaultCopiers = new LinkedHashMap<>();
-
-        JDK_PLATFORM.getImmutableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.NOOP));
-        JDK_PLATFORM.getCloneableTypes().forEach(type -> defaultCopiers.put(type, ObjectCopier.CLONEABLE));
-
-        DEFAULT_COPIERS = Collections.unmodifiableMap(defaultCopiers);
-    }
 
     private Toolset toolset;
 
@@ -131,7 +111,7 @@ public final class ReflectionClonerBuilder {
     /**
      * Custom copiers for types.
      */
-    private final Map<Class<?>, ObjectCopier<?>> copiers = new LinkedHashMap<>(DEFAULT_COPIERS);
+    private final Map<Class<?>, ObjectCopier<?>> copiers = new LinkedHashMap<>();
 
     /**
      * Predefined clones.
@@ -368,7 +348,7 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder copier(Class<?> type, ObjectCopier<?> copier) {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(copier, "Copier");
-        Checks.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
+        Checks.illegalArg(copiers.containsKey(type), "Copier for %s already set.", type);
         copiers.put(type, copier);
         return this;
     }
@@ -410,7 +390,7 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder shallow(Class<?> type) {
         Checks.argNotNull(type, "Type");
         Checks.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
-        Checks.illegalArg(copiers.get(type) != DEFAULT_COPIERS.get(type), "Copier for %s already set.", type);
+        Checks.illegalArg(copiers.containsKey(type), "Copier for %s already set.", type);
         Checks.illegalArg(shallows.contains(type), "Shallow mode already enabled for %s.", type);
         copiers.remove(type);
         shallows.add(type);

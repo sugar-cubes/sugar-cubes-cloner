@@ -41,6 +41,7 @@ class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
     private final Map<Class<?>, ValuesModel<?>> immutableCollections = new HashMap<>();
 
     JdkPlatformImpl$Jdk9() {
+        runtimeSuperTypes.addAll(Arrays.asList(Module.class, ModuleLayer.class));
         // samples give the classes of the implementations
         Object a = new Object();
         Object b = new Object();
