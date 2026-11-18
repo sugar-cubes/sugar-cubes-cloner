@@ -32,6 +32,7 @@ import io.github.sugarcubes.cloner.fields.ReflectionFieldAdapterImpl;
 import io.github.sugarcubes.cloner.fields.UnsafeFieldAdapterImpl;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
+import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.spi.InstanceAllocatorFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.TypeOpener;
@@ -299,6 +300,10 @@ public final class ToolsetBuilder {
         if (ObjenesisUtils.isObjenesisAvailable()) {
             list.add(new Mechanism<>(Allocation.OBJENESIS.name(), context -> new ObjenesisInstanceAllocatorFactory()));
         }
+        else {
+            list.add(new Mechanism<>(Allocation.UNSAFE.name() + " if available",
+                context -> unsafeAllocatorIfAvailable(context.unsafe)));
+        }
         return list;
     }
 
@@ -365,6 +370,28 @@ public final class ToolsetBuilder {
             default:
                 throw Checks.mustNotHappen();
         }
+    }
+
+    /**
+     * Unsafe allocator created when first needed; if Unsafe is not available, the types are left to the constructor
+     * fallback.
+     */
+    private static InstanceAllocatorFactory unsafeAllocatorIfAvailable(Supplier<UnsafeBridge> unsafe) {
+        Lazy<Optional<InstanceAllocatorFactory>> factory = new Lazy<>(() -> {
+            try {
+                return Optional.of(new UnsafeAllocatorFactory(unsafe.get()));
+            }
+            catch (ClonerException e) {
+                // e.g. a runtime image without jdk.unsupported
+                return Optional.empty();
+            }
+        });
+        return new InstanceAllocatorFactory() {
+            @Override
+            public <T> Optional<InstanceAllocator<T>> newAllocator(Class<T> type) {
+                return factory.get().flatMap(allocators -> allocators.newAllocator(type));
+            }
+        };
     }
 
     /**

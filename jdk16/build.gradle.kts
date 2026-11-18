@@ -38,3 +38,55 @@ val noOpensCheck by tasks.registering(JavaExec::class) {
 tasks.named("check") {
     dependsOn(noOpensCheck)
 }
+
+// module opening and field access mechanisms, tested on JDK 17 without any --add-opens option
+val moduleOpeningTest by sourceSets.creating {
+    val main = sourceSets.main.get()
+    // own classes first: they replace the version-specific aliases of the dependencies
+    compileClasspath = main.output + configurations[compileClasspathConfigurationName]
+    runtimeClasspath = output + main.output + configurations[runtimeClasspathConfigurationName]
+}
+
+configurations[moduleOpeningTest.implementationConfigurationName].extendsFrom(configurations.implementation.get())
+
+// the cloner jar with the agent manifest
+val agent by configurations.creating {
+    isTransitive = false
+}
+
+dependencies {
+    agent(project(":jdk8"))
+    "moduleOpeningTestImplementation"("org.junit.jupiter:junit-jupiter:5.10.0")
+    "moduleOpeningTestRuntimeOnly"("org.junit.platform:junit-platform-launcher")
+    "moduleOpeningTestImplementation"("io.github.toolfactory:narcissus:1.0.7")
+}
+
+fun Test.moduleOpeningTest() {
+    group = "verification"
+    useJUnitPlatform()
+    testClassesDirs = moduleOpeningTest.output.classesDirs
+    classpath = moduleOpeningTest.runtimeClasspath
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(17)) })
+    // build-utils adds --add-opens to every test task
+    jvmArgs = listOf()
+    // module opening is global: a fresh JVM for every test class
+    setForkEvery(1)
+}
+
+val noOpensTest by tasks.registering(Test::class) {
+    description = "Tests module opening mechanisms on JDK 17 without --add-opens."
+    moduleOpeningTest()
+    filter.excludeTestsMatching("*.AgentTest")
+}
+
+val agentTest by tasks.registering(Test::class) {
+    description = "Tests module opening by the cloner agent on JDK 17 without --add-opens."
+    moduleOpeningTest()
+    filter.includeTestsMatching("*.AgentTest")
+    inputs.files(agent)
+    jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-javaagent:${agent.singleFile}") })
+}
+
+tasks.named("check") {
+    dependsOn(noOpensTest, agentTest)
+}
