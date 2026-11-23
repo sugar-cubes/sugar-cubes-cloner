@@ -13,6 +13,7 @@ val clonerModules = listOf(
     project(":jdk9-module"),
     project(":jdk15"),
     project(":jdk16"),
+    project(":jdk24"),
 )
 
 java {
@@ -69,6 +70,10 @@ tasks.named<Jar>("jar") {
 
     into("META-INF/versions/16") {
         from(project(":jdk16").sourceSets.main.get().output)
+    }
+
+    into("META-INF/versions/24") {
+        from(project(":jdk24").sourceSets.main.get().output)
     }
 
     clonerModules.forEach {

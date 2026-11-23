@@ -22,24 +22,14 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import io.github.sugarcubes.cloner.util.ClassUtils;
 
 /**
- * Backend on the ASM library, which must be on the classpath; loading this class needs ASM, check
- * {@link #isAvailable()} first.
+ * Backend on the ASM library, which must be on the classpath; loading this class needs ASM, so its availability is
+ * checked by {@link CopierGenerator} without touching this class.
  *
  * @author Maxim Butov
  */
 public final class AsmBytecodeBackend implements BytecodeBackend {
-
-    /**
-     * Tells whether ASM is on the classpath.
-     *
-     * @return {@code true} if the backend can be used
-     */
-    public static boolean isAvailable() {
-        return ClassUtils.isClassAvailable("org.objectweb.asm.ClassWriter");
-    }
 
     @Override
     public byte[] write(String name, String superName, List<MethodSpec> methods) {

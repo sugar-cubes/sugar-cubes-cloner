@@ -28,6 +28,7 @@ import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
+import io.github.sugarcubes.cloner.util.ClassUtils;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.Lazy;
 
@@ -71,7 +72,8 @@ public final class CopierGenerator {
             return Optional.empty();
         }
         Optional<BytecodeBackend> backend = platform.classFileBackend();
-        if (!backend.isPresent() && AsmBytecodeBackend.isAvailable()) {
+        // ASM classes are checked by name: loading AsmBytecodeBackend without ASM fails
+        if (!backend.isPresent() && ClassUtils.isClassAvailable("org.objectweb.asm.ClassWriter")) {
             backend = Optional.of(new AsmBytecodeBackend());
         }
         return backend.map(writer -> new CopierGenerator(platform, writer));

@@ -29,6 +29,7 @@ import io.github.sugarcubes.cloner.FieldAccess;
 import io.github.sugarcubes.cloner.ModuleOpening;
 import io.github.sugarcubes.cloner.Toolset;
 import io.github.sugarcubes.cloner.Toolsets;
+import io.github.sugarcubes.cloner.generation.CopierGenerator;
 
 /**
  * Mechanisms which do not open modules.
@@ -59,6 +60,12 @@ class NoOpeningTest {
         TreeMap<String, Integer> original = new TreeMap<>(Map.of("a", 1, "b", 2));
 
         Assertions.assertEquals(original, Cloners.clone(original));
+    }
+
+    @Test
+    void noCopierGenerationWithoutAsm() {
+        // JDK 17 without ASM on the classpath: no backend, no failure
+        Assertions.assertFalse(CopierGenerator.instance().isPresent());
     }
 
     @Test
