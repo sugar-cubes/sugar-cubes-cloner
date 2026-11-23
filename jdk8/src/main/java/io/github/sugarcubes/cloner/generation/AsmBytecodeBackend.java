@@ -32,7 +32,7 @@ import org.objectweb.asm.Opcodes;
 public final class AsmBytecodeBackend implements BytecodeBackend {
 
     @Override
-    public byte[] write(String name, String superName, List<MethodSpec> methods) {
+    public byte[] write(int version, String name, String superName, List<MethodSpec> methods) {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
             @Override
             protected String getCommonSuperClass(String type1, String type2) {
@@ -40,7 +40,7 @@ public final class AsmBytecodeBackend implements BytecodeBackend {
                 return "java/lang/Object";
             }
         };
-        writer.visit(CLASS_VERSION, Opcodes.ACC_FINAL | Opcodes.ACC_SUPER | Opcodes.ACC_SYNTHETIC, name, null,
+        writer.visit(version, Opcodes.ACC_FINAL | Opcodes.ACC_SUPER | Opcodes.ACC_SYNTHETIC, name, null,
             superName, null);
         for (MethodSpec method : methods) {
             MethodVisitor visitor = writer.visitMethod(method.getAccess(), method.getName(), method.getDescriptor(), null,

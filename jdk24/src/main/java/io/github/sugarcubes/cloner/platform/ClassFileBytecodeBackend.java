@@ -50,9 +50,9 @@ final class ClassFileBytecodeBackend implements BytecodeBackend {
     }
 
     @Override
-    public byte[] write(String name, String superName, List<MethodSpec> methods) {
+    public byte[] write(int version, String name, String superName, List<MethodSpec> methods) {
         return CLASS_FILE.build(ClassDesc.ofInternalName(name), builder -> {
-            builder.withVersion(CLASS_VERSION, 0);
+            builder.withVersion(version, 0);
             builder.withFlags(ClassFile.ACC_FINAL | ClassFile.ACC_SUPER | ClassFile.ACC_SYNTHETIC);
             builder.withSuperclass(ClassDesc.ofInternalName(superName));
             for (MethodSpec method : methods) {

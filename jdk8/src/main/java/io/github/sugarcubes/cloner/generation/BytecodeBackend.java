@@ -25,18 +25,14 @@ import java.util.List;
 public interface BytecodeBackend {
 
     /**
-     * Class file version of the generated classes: JDK 15, the first one with hidden classes.
-     */
-    int CLASS_VERSION = 59;
-
-    /**
      * Writes a final synthetic class.
      *
+     * @param version class file version
      * @param name internal name of the class
      * @param superName internal name of the super class
      * @param methods methods
      * @return class file
      */
-    byte[] write(String name, String superName, List<MethodSpec> methods);
+    byte[] write(int version, String name, String superName, List<MethodSpec> methods);
 
 }

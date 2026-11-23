@@ -147,9 +147,10 @@ final class CopierTemplate {
      * Writes the class.
      *
      * @param backend bytecode backend
+     * @param version class file version
      * @return class file
      */
-    byte[] write(BytecodeBackend backend) {
+    byte[] write(BytecodeBackend backend, int version) {
         String copyFields = Descriptors.method(void.class, Object.class, Object.class, CopyContext.class);
         String setField = Descriptors.method(void.class, int.class, Object.class, Object.class);
         List<MethodSpec> methods = Arrays.asList(
@@ -157,7 +158,7 @@ final class CopierTemplate {
             new MethodSpec(Modifier.PROTECTED, "copyFields", copyFields, this::copyFields),
             new MethodSpec(Modifier.PROTECTED, "setField", setField, this::setField)
         );
-        return backend.write(className(), SUPER, methods);
+        return backend.write(version, className(), SUPER, methods);
     }
 
     /**

@@ -15,7 +15,6 @@
  */
 package io.github.sugarcubes.cloner.generation;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -76,11 +75,10 @@ class ClassFileBackendTest {
 
         for (BytecodeBackend backend : new BytecodeBackend[] {new AsmBytecodeBackend(),
             JdkPlatform.current().classFileBackend().orElseThrow()}) {
-            MethodHandles.Lookup lookup = JdkPlatform.current().defineNestmate(Item.class, template.write(backend),
-                GeneratedFieldsCopier.class);
-            TwoPhaseObjectCopier<Item> copier = (TwoPhaseObjectCopier<Item>) lookup.findConstructor(
-                lookup.lookupClass(), MethodType.methodType(void.class, InstanceAllocator.class,
-                    TwoPhaseObjectCopier.class, FieldAdapter[].class))
+            MethodType constructor = MethodType.methodType(void.class, InstanceAllocator.class,
+                TwoPhaseObjectCopier.class, FieldAdapter[].class);
+            TwoPhaseObjectCopier<Item> copier = (TwoPhaseObjectCopier<Item>) JdkPlatform.current()
+                .defineNestmate(Item.class, template.write(backend, 59), GeneratedFieldsCopier.class, constructor)
                 .invoke(model.getAllocator().orElseThrow(), null, template.adapters());
 
             Item clone = Cloners.builder().copier(Item.class, copier).build().clone(original);

@@ -15,7 +15,9 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
@@ -27,6 +29,8 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
  */
 class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
 
+    private static final int JAVA_15_CLASS_VERSION = 59;
+
     @Override
     public boolean isHidden(Class<?> type) {
         // lambda classes are hidden classes too
@@ -34,19 +38,30 @@ class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
     }
 
     @Override
-    public boolean supportsHiddenClasses() {
+    public boolean canDefineNestmates() {
         return true;
     }
 
     @Override
-    public MethodHandles.Lookup defineNestmate(Class<?> host, byte[] bytes, Class<?> support) {
+    public int nestmateClassVersion() {
+        return JAVA_15_CLASS_VERSION;
+    }
+
+    /**
+     * Defines a hidden class in the nest of the host.
+     */
+    @Override
+    public MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor) {
         Module cloner = support.getModule();
         if (!cloner.isExported(support.getPackageName(), host.getModule())) {
             // the caller is in the module of the cloner, so it may export the package
             cloner.addExports(support.getPackageName(), host.getModule());
         }
-        return ClonerExceptionUtils.replaceException(
-            () -> fullAccess(host).defineHiddenClass(bytes, true, MethodHandles.Lookup.ClassOption.NESTMATE));
+        return ClonerExceptionUtils.replaceException(() -> {
+            MethodHandles.Lookup lookup = fullAccess(host)
+                .defineHiddenClass(bytes, true, MethodHandles.Lookup.ClassOption.NESTMATE);
+            return lookup.findConstructor(lookup.lookupClass(), constructor);
+        });
     }
 
     /**

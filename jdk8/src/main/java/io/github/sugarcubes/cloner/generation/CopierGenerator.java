@@ -16,7 +16,6 @@
 package io.github.sugarcubes.cloner.generation;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.util.Optional;
@@ -35,8 +34,9 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.Lazy;
 
 /**
- * Generates copiers of classes listed by {@link GenerationTargets}: a hidden class in the nest of the copied class,
- * JDK 15+, written by the ClassFile API on JDK 24+ or by ASM if it is on the classpath.
+ * Generates copiers of classes listed by {@link GenerationTargets}: a class with the private access of the copied
+ * class (an anonymous class of {@code sun.misc.Unsafe} on JDK 8-14, a hidden class in its nest on JDK 15+), written by
+ * the ClassFile API on JDK 24+ or by ASM if it is on the classpath.
  *
  * @author Maxim Butov
  */
@@ -73,7 +73,7 @@ public final class CopierGenerator {
     }
 
     /**
-     * Returns the generator if the JDK defines hidden classes and a bytecode backend is available.
+     * Returns the generator if the JDK defines classes with the private access of a host and a backend is available.
      *
      * @return generator
      */
@@ -83,7 +83,7 @@ public final class CopierGenerator {
 
     private static Optional<CopierGenerator> create() {
         JdkPlatform platform = JdkPlatform.current();
-        if (!platform.supportsHiddenClasses()) {
+        if (!platform.canDefineNestmates()) {
             return Optional.empty();
         }
         Optional<BytecodeBackend> backend = platform.classFileBackend();
@@ -141,11 +141,10 @@ public final class CopierGenerator {
      */
     private Optional<MethodHandle> define(Class<?> type, CopierTemplate template) {
         try {
-            MethodHandles.Lookup lookup = platform.defineNestmate(type, template.write(backend),
-                GeneratedFieldsCopier.class);
-            return Optional.of(lookup.findConstructor(lookup.lookupClass(), CONSTRUCTOR));
+            byte[] bytes = template.write(backend, platform.nestmateClassVersion());
+            return Optional.of(platform.defineNestmate(type, bytes, GeneratedFieldsCopier.class, CONSTRUCTOR));
         }
-        catch (ClonerException | LinkageError | ReflectiveOperationException e) {
+        catch (ClonerException | LinkageError e) {
             return Optional.empty();
         }
     }

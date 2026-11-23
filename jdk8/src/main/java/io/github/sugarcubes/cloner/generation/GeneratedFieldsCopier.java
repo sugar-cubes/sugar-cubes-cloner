@@ -21,12 +21,13 @@ import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 
 /**
- * Super class of generated copiers. A generated copier is a hidden class in the nest of the copied class: it reads all
- * fields and writes non-final ones directly; final fields are written by field adapters, since only the declaring
- * class may write them.
+ * Super class of generated copiers. A generated copier has the private access of the copied class (a hidden class in
+ * its nest on JDK 15+, an anonymous class of {@code sun.misc.Unsafe} on JDK 8-14): it reads all fields and writes
+ * non-final ones directly; final fields are written by field adapters, since only the declaring class may write them.
  *
  * <p>The copier of a class copies the fields declared by the class, the copier of the super class copies the
- * inherited ones. Public, so a hidden class in another module can extend it.</p>
+ * inherited ones. The class, its constructor and the methods the generated code calls are public: a hidden class may
+ * be in another module, an anonymous class is checked for access as its host, which is no subclass of this one.</p>
  *
  * @param <T> type
  * @author Maxim Butov
@@ -46,7 +47,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param parent copier of the super type or {@code null}
      * @param adapters adapters of the final fields, in the order of their indices in the generated code
      */
-    protected GeneratedFieldsCopier(InstanceAllocator<T> allocator, TwoPhaseObjectCopier<? super T> parent,
+    public GeneratedFieldsCopier(InstanceAllocator<T> allocator, TwoPhaseObjectCopier<? super T> parent,
         FieldAdapter[] adapters) {
         this.allocator = allocator;
         this.parent = parent;
@@ -95,7 +96,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @return the clone of the value, or {@code null} if it will be set later
      * @throws Exception if copying fails
      */
-    protected final Object copyReference(CopyContext context, Object value, Object target, int index) throws Exception {
+    public final Object copyReference(CopyContext context, Object value, Object target, int index) throws Exception {
         Object copy = context.copyNow(value);
         if (copy != CopyContext.PENDING) {
             return copy;
@@ -113,7 +114,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param adapter index of the adapter
      * @throws Exception if copying fails
      */
-    protected final void copyFinalReference(CopyContext context, Object value, Object target, int adapter)
+    public final void copyFinalReference(CopyContext context, Object value, Object target, int adapter)
         throws Exception {
         Object copy = context.copyNow(value);
         FieldAdapter fieldAdapter = adapters[adapter];
@@ -133,7 +134,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalObject(int adapter, Object target, Object value) throws Exception {
+    public final void setFinalObject(int adapter, Object target, Object value) throws Exception {
         adapters[adapter].setObject(target, value);
     }
 
@@ -145,7 +146,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalBoolean(int adapter, Object target, boolean value) throws Exception {
+    public final void setFinalBoolean(int adapter, Object target, boolean value) throws Exception {
         adapters[adapter].setBoolean(target, value);
     }
 
@@ -157,7 +158,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalByte(int adapter, Object target, byte value) throws Exception {
+    public final void setFinalByte(int adapter, Object target, byte value) throws Exception {
         adapters[adapter].setByte(target, value);
     }
 
@@ -169,7 +170,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalChar(int adapter, Object target, char value) throws Exception {
+    public final void setFinalChar(int adapter, Object target, char value) throws Exception {
         adapters[adapter].setChar(target, value);
     }
 
@@ -181,7 +182,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalShort(int adapter, Object target, short value) throws Exception {
+    public final void setFinalShort(int adapter, Object target, short value) throws Exception {
         adapters[adapter].setShort(target, value);
     }
 
@@ -193,7 +194,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalInt(int adapter, Object target, int value) throws Exception {
+    public final void setFinalInt(int adapter, Object target, int value) throws Exception {
         adapters[adapter].setInt(target, value);
     }
 
@@ -205,7 +206,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalLong(int adapter, Object target, long value) throws Exception {
+    public final void setFinalLong(int adapter, Object target, long value) throws Exception {
         adapters[adapter].setLong(target, value);
     }
 
@@ -217,7 +218,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalFloat(int adapter, Object target, float value) throws Exception {
+    public final void setFinalFloat(int adapter, Object target, float value) throws Exception {
         adapters[adapter].setFloat(target, value);
     }
 
@@ -229,7 +230,7 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param value value
      * @throws Exception if the field cannot be written
      */
-    protected final void setFinalDouble(int adapter, Object target, double value) throws Exception {
+    public final void setFinalDouble(int adapter, Object target, double value) throws Exception {
         adapters[adapter].setDouble(target, value);
     }
 

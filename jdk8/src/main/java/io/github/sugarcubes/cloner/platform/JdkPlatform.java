@@ -15,7 +15,9 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -77,24 +79,33 @@ public interface JdkPlatform {
     MethodHandles.Lookup trustedLookup();
 
     /**
-     * Tells whether the JDK defines hidden classes, JDK 15+.
+     * Tells whether the JDK defines classes with the private access of a host class: anonymous classes of
+     * {@code sun.misc.Unsafe} on JDK 8-14, hidden classes in the nest of the host on JDK 15+.
      *
      * @return {@code true} if {@link #defineNestmate} works
      */
-    boolean supportsHiddenClasses();
+    boolean canDefineNestmates();
 
     /**
-     * Defines a hidden class in the nest of the host class, so it can access private members of the host; the
-     * package of the support class (the super class of the hidden one) is exported to the module of the host if
-     * needed.
+     * Returns the version of the class files {@link #defineNestmate} takes: 49 (Java 5, without stack map frames) for
+     * anonymous classes, 59 (JDK 15) for hidden ones.
+     *
+     * @return class file version
+     */
+    int nestmateClassVersion();
+
+    /**
+     * Defines a class with the private access of the host class; the package of the support class (the super class
+     * of the defined one) is exported to the module of the host if needed.
      *
      * @param host host class
      * @param bytes class file of a class in the package of the host
-     * @param support class of the cloner the hidden class uses
-     * @return lookup of the hidden class with full access
+     * @param support class of the cloner the defined class uses
+     * @param constructor type of the constructor of the defined class
+     * @return the constructor
      * @throws io.github.sugarcubes.cloner.ClonerException if the class cannot be defined
      */
-    MethodHandles.Lookup defineNestmate(Class<?> host, byte[] bytes, Class<?> support);
+    MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor);
 
     /**
      * Returns the backend of the ClassFile API, JDK 24+.
