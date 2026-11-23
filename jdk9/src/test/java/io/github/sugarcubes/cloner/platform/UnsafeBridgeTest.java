@@ -26,7 +26,7 @@ class UnsafeBridgeTest {
     @Test
     void prefersJdkInternalMiscUnsafeWhenExported() throws Exception {
         // tests run with --add-opens java.base/jdk.internal.misc=ALL-UNNAMED
-        UnsafeBridge unsafe = JdkPlatform.current().lowLevelAccess().unsafeBridge(JdkPlatform.current().lowLevelAccess().reflection());
+        UnsafeBridge unsafe = JdkPlatform.current().lowLevelAccess().unsafeBridge();
 
         Assertions.assertInstanceOf(JdkInternalMiscUnsafeBridge9.class, unsafe);
         Assertions.assertInstanceOf(Object.class, unsafe.allocateInstance(Object.class));
@@ -34,7 +34,7 @@ class UnsafeBridgeTest {
 
     @Test
     void sunMiscUnsafeBridgeWorks() throws Exception {
-        UnsafeBridge unsafe = new SunMiscUnsafeBridge(JdkPlatform.current().lowLevelAccess().reflection());
+        UnsafeBridge unsafe = new SunMiscUnsafeBridge();
 
         Assertions.assertInstanceOf(SunMiscUnsafeBridge.class, unsafe);
         Assertions.assertInstanceOf(Object.class, unsafe.allocateInstance(Object.class));

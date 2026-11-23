@@ -37,7 +37,7 @@ class CompoundFieldAdapterFactoryTest {
     private final FieldAdapterFactory reflective = ReflectionFieldAdapterImpl.factory(reflection);
 
     private final FieldAdapterFactory unsafe =
-        UnsafeFieldAdapterImpl.factory(JdkPlatform.current().lowLevelAccess().unsafeBridge(reflection));
+        UnsafeFieldAdapterImpl.factory(JdkPlatform.current().lowLevelAccess().unsafeBridge());
 
     @Test
     void reflectionCannotAccessFieldOfNotOpenedPackage() throws Exception {

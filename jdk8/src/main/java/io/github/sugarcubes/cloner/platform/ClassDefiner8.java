@@ -24,7 +24,6 @@ import java.util.Optional;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.generation.BytecodeBackend;
-import io.github.sugarcubes.cloner.reflection.ReflectionImpl8;
 import io.github.sugarcubes.cloner.unsafe.SunMiscUnsafeBridge;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.Lazy;
@@ -73,7 +72,7 @@ class ClassDefiner8 implements ClassDefiner {
         Method define = DEFINE_ANONYMOUS_CLASS.get()
             .orElseThrow(() -> new ClonerException("Unsafe.defineAnonymousClass() is not available."));
         return ClonerExceptionUtils.replaceException(() -> {
-            Object unsafe = new SunMiscUnsafeBridge(new ReflectionImpl8()).getUnsafe();
+            Object unsafe = new SunMiscUnsafeBridge().getUnsafe();
             Class<?> anonymous = (Class<?>) define.invoke(unsafe, host, bytes, null);
             // not public: its constructor is made accessible
             Constructor<?> declared = anonymous.getDeclaredConstructor(constructor.parameterArray());

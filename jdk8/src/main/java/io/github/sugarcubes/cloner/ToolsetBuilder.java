@@ -284,8 +284,7 @@ public final class ToolsetBuilder {
 
     private static UnsafeBridge unsafeBridge(JdkPlatform platform) {
         try {
-            // reading sun.misc.Unsafe needs no module opening
-            return platform.lowLevelAccess().unsafeBridge(platform.lowLevelAccess().reflection());
+            return platform.lowLevelAccess().unsafeBridge();
         }
         catch (LinkageError e) {
             throw new ClonerException("Unsafe is not available.", e);

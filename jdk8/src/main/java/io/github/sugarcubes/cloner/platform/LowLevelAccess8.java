@@ -25,6 +25,7 @@ import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.unsafe.SunMiscUnsafeBridge;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
+import io.github.sugarcubes.cloner.util.Lazy;
 
 /**
  * {@link LowLevelAccess} of JDK 8: no modules, {@code sun.misc.Unsafe}.
@@ -39,9 +40,23 @@ class LowLevelAccess8 implements LowLevelAccess {
         return new ReflectionImpl8();
     }
 
+    /**
+     * The bridge, created when first needed.
+     */
+    private final Lazy<UnsafeBridge> unsafeBridge = new Lazy<>(this::newUnsafeBridge);
+
     @Override
-    public UnsafeBridge unsafeBridge(Reflection reflection) {
-        return new SunMiscUnsafeBridge(reflection);
+    public UnsafeBridge unsafeBridge() {
+        return unsafeBridge.get();
+    }
+
+    /**
+     * Creates the bridge to {@code Unsafe} of this JDK version.
+     *
+     * @return Unsafe bridge
+     */
+    UnsafeBridge newUnsafeBridge() {
+        return new SunMiscUnsafeBridge();
     }
 
     @Override

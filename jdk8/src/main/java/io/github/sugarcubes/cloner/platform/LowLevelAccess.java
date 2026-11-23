@@ -54,13 +54,14 @@ public interface LowLevelAccess {
     }
 
     /**
-     * Creates the bridge to {@code Unsafe}: {@code jdk.internal.misc.Unsafe} on JDK 9+ if it is exported to the
-     * cloner, {@code sun.misc.Unsafe} otherwise.
+     * Returns the bridge to {@code Unsafe}, one per JVM: {@code jdk.internal.misc.Unsafe} on JDK 9+ if it is exported
+     * to the cloner, {@code sun.misc.Unsafe} otherwise.
      *
-     * @param reflection reflection to read {@code sun.misc.Unsafe}
      * @return Unsafe bridge
+     * @throws LinkageError if {@code Unsafe} is not available, e.g. in a runtime image without
+     *     {@code jdk.unsupported}
      */
-    UnsafeBridge unsafeBridge(Reflection reflection);
+    UnsafeBridge unsafeBridge();
 
     /**
      * Returns the factory of field adapters using {@code VarHandle}, JDK 9+.

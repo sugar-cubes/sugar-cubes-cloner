@@ -17,7 +17,6 @@ package io.github.sugarcubes.cloner.unsafe;
 
 import java.lang.reflect.Field;
 
-import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import sun.misc.Unsafe;
 
@@ -34,13 +33,15 @@ public class SunMiscUnsafeBridge implements UnsafeBridge {
     private final sun.misc.Unsafe unsafe;
 
     /**
-     * Reads {@code sun.misc.Unsafe.theUnsafe}.
-     *
-     * @param reflection reflection to make the field accessible
+     * Reads {@code sun.misc.Unsafe.theUnsafe}: the module {@code jdk.unsupported} opens {@code sun.misc} to everybody,
+     * so plain reflection works.
      */
-    public SunMiscUnsafeBridge(Reflection reflection) {
-        Field theUnsafe = reflection.makeAccessible(reflection.getDeclaredField(Unsafe.class, "theUnsafe"));
-        this.unsafe = (sun.misc.Unsafe) ClonerExceptionUtils.replaceException(() -> theUnsafe.get(null));
+    public SunMiscUnsafeBridge() {
+        this.unsafe = (sun.misc.Unsafe) ClonerExceptionUtils.replaceException(() -> {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            return theUnsafe.get(null);
+        });
     }
 
     @Override

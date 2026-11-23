@@ -75,13 +75,13 @@ class LowLevelAccess9 extends LowLevelAccess8 {
     }
 
     @Override
-    public UnsafeBridge unsafeBridge(Reflection reflection) {
+    UnsafeBridge newUnsafeBridge() {
         try {
             return newJdkInternalMiscUnsafeBridge();
         }
         catch (LinkageError | ClonerException e) {
             // IllegalAccessError when jdk.internal.misc is not exported, fallback to sun.misc.Unsafe
-            return super.unsafeBridge(reflection);
+            return super.newUnsafeBridge();
         }
     }
 
