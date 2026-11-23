@@ -60,7 +60,7 @@ public class GeneratedCopiersBenchmark {
 
     @Setup
     public void setup() {
-        reflection = Cloners.builder().build();
+        reflection = Cloners.builder().generatedCopiers(false).build();
         generated = Cloners.builder().generatedCopiers(true).build();
         int orders = "large".equals(size) ? 1000 : 1;
         int productCount = 100;

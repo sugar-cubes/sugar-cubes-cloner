@@ -175,7 +175,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @return object copier
      */
     private ObjectCopier<?> findCopierForType(Class<?> type) {
-        if (Enum.class.isAssignableFrom(type)) {
+        if (sharesInstances(type)) {
             return ObjectCopier.NOOP;
         }
         if (type.isArray()) {
@@ -194,6 +194,66 @@ public class ReflectionCopierProvider implements CopierProvider {
         }
         ObjectCopier<?> jdkCopier = shallows.contains(type) ? null : findJdkCopier(type);
         return jdkCopier != null ? jdkCopier : findModelCopier(type);
+    }
+
+    /**
+     * Tells whether instances of the type are shared by default, without creating any copier: enums, types annotated
+     * with {@link NoopCopier}, hidden classes, immutable objects and objects of the running JVM unless the type is
+     * copied in shallow mode. The same order as in {@link #findCopierForType(Class)}.
+     *
+     * @param type type
+     * @return {@code true} if the copier of the type is {@link ObjectCopier#NOOP}
+     */
+    private boolean sharesInstances(Class<?> type) {
+        if (Enum.class.isAssignableFrom(type)) {
+            return true;
+        }
+        if (type.isArray()) {
+            return false;
+        }
+        TypeCopier annotation = type.getDeclaredAnnotation(TypeCopier.class);
+        if (annotation != null) {
+            return annotation.value() == NoopCopier.class;
+        }
+        if (Copyable.class.isAssignableFrom(type)) {
+            return false;
+        }
+        JdkPlatform platform = JdkPlatform.current();
+        // instances of hidden classes (e.g. lambdas) can be neither created nor written
+        return platform.isHidden(type)
+            || !shallows.contains(type) && (platform.isImmutable(type) || platform.isRuntime(type));
+    }
+
+    /**
+     * Tells whether every value of a field of the declared type is copied as is, so the field may be copied as
+     * {@link CopyAction#ORIGINAL}: no object policy decides per object, the type is exact (all values are of this very
+     * class) and its copier is {@link ObjectCopier#NOOP}. Decided without creating copiers: it is called while a
+     * copier is being created.
+     *
+     * @param type declared type of a field
+     * @return {@code true} if the values are always shared
+     */
+    private boolean sharesValues(Class<?> type) {
+        if (objectPolicy != null || type.isPrimitive() || !isExact(type)) {
+            return false;
+        }
+        ObjectCopier<?> known = copiers.getIfPresent(type);
+        if (known != null) {
+            return known == ObjectCopier.NOOP;
+        }
+        CopyAction action = typePolicy.getAction(type);
+        return action == CopyAction.DEFAULT ? sharesInstances(type) : action == CopyAction.ORIGINAL;
+    }
+
+    /**
+     * Tells whether values of the declared type are of this very class: a final class or an enum whose constants
+     * have no bodies.
+     */
+    private static boolean isExact(Class<?> type) {
+        if (type.isEnum()) {
+            return Arrays.stream(type.getEnumConstants()).allMatch(constant -> constant.getClass() == type);
+        }
+        return Modifier.isFinal(type.getModifiers());
     }
 
     /**
@@ -320,8 +380,13 @@ public class ReflectionCopierProvider implements CopierProvider {
                 toolset.getFieldAdapterFactory());
             CopyPolicy<Field> policy = shallow ? CopyPolicy.compound(Arrays.asList(fieldPolicy, CopyPolicy.original()))
                 : fieldPolicy;
-            copier = generatedCopier(model, policy, parent)
-                .orElseGet(() -> new FieldsCopier<>(parent, model, fieldPolicy, shallow));
+            // values of immutable final types are copied as is, without asking the context
+            CopyPolicy<Field> effective = field -> {
+                CopyAction action = policy.getAction(field);
+                return action == CopyAction.DEFAULT && sharesValues(field.getType()) ? CopyAction.ORIGINAL : action;
+            };
+            copier = generatedCopier(model, effective, parent)
+                .orElseGet(() -> new FieldsCopier<>(parent, model, effective, false));
             fieldsCopiers.put(key, copier);
         }
         return copier;
