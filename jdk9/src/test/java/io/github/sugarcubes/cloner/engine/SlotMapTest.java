@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -42,9 +42,9 @@ class SlotMapTest {
         SlotMap map = newMap(type);
         String a = new String("a");
         String b = new String("a");
-        CloneSlot slot = new SingleThreadCloneSlot(a);
+        CloneSlot slot = new SingleThreadCloneSlot(a, a);
 
-        map.put(a, slot);
+        map.put(slot);
 
         Assertions.assertSame(slot, map.get(a));
         Assertions.assertNull(map.get(b));
@@ -56,9 +56,9 @@ class SlotMapTest {
         SlotMap map = newMap(type);
         Object key = new Object();
         int[] created = new int[1];
-        Supplier<CloneSlot> factory = () -> {
+        Function<Object, CloneSlot> factory = original -> {
             created[0]++;
-            return new SingleThreadCloneSlot(key);
+            return new SingleThreadCloneSlot(original);
         };
 
         CloneSlot first = map.getOrCreate(key, factory);
@@ -77,7 +77,7 @@ class SlotMapTest {
         for (int i = 0; i < 100_000; i++) {
             Object key = new Object();
             keys.add(key);
-            slots.add(map.getOrCreate(key, () -> new SingleThreadCloneSlot(key)));
+            slots.add(map.getOrCreate(key, SingleThreadCloneSlot::new));
         }
 
         for (int i = 0; i < keys.size(); i++) {
@@ -91,10 +91,10 @@ class SlotMapTest {
     void putReplaces(String type) {
         SlotMap map = newMap(type);
         Object key = new Object();
-        CloneSlot replacement = new SingleThreadCloneSlot(key);
+        CloneSlot replacement = new SingleThreadCloneSlot(key, key);
 
-        map.getOrCreate(key, () -> new SingleThreadCloneSlot(key));
-        map.put(key, replacement);
+        map.getOrCreate(key, SingleThreadCloneSlot::new);
+        map.put(replacement);
 
         Assertions.assertSame(replacement, map.get(key));
     }
@@ -165,6 +165,37 @@ class SlotMapTest {
             }
             for (Future<?> result : results) {
                 result.get();
+            }
+        }
+        finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    void concurrentInsertionsDuringResizes() throws Exception {
+        SlotMap map = new ConcurrentSlotMap();
+        int threads = 8;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<List<Object>>> results = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                results.add(executor.submit(() -> {
+                    List<Object> keys = new ArrayList<>();
+                    for (int i = 0; i < 200_000; i++) {
+                        Object key = new Object();
+                        CloneSlot slot = map.getOrCreate(key, ConcurrentCloneSlot::new);
+                        Assertions.assertSame(key, slot.original);
+                        Assertions.assertSame(slot, map.get(key));
+                        keys.add(key);
+                    }
+                    return keys;
+                }));
+            }
+            for (Future<List<Object>> result : results) {
+                for (Object key : result.get()) {
+                    Assertions.assertSame(key, map.get(key).original);
+                }
             }
         }
         finally {

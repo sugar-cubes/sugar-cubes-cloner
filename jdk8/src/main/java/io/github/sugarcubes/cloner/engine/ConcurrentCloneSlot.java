@@ -28,6 +28,20 @@ import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
  */
 final class ConcurrentCloneSlot extends CloneSlot {
 
+    /**
+     * Thread which creates or completes the clone, {@code null} if nobody does.
+     */
+    private Thread busyThread;
+
+    /**
+     * Creates a slot for an object which is not copied yet.
+     *
+     * @param original original object
+     */
+    ConcurrentCloneSlot(Object original) {
+        super(original);
+    }
+
     @Override
     protected void signalChange() {
         // called under the monitor by the synchronized methods below
@@ -63,7 +77,18 @@ final class ConcurrentCloneSlot extends CloneSlot {
 
     @Override
     synchronized Thread getBusyThread() {
-        return super.getBusyThread();
+        return busyThread;
+    }
+
+    @Override
+    synchronized boolean isBusyByCurrentThread() {
+        return busyThread == Thread.currentThread();
+    }
+
+    @Override
+    synchronized void setBusy(boolean busy) {
+        super.setBusy(busy);
+        busyThread = busy ? Thread.currentThread() : null;
     }
 
     @Override

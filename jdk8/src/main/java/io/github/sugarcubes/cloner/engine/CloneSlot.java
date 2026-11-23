@@ -56,14 +56,20 @@ abstract class CloneSlot {
 
     private static final int SECOND_PHASE_DONE = 8;
 
+    /**
+     * A thread creates or completes the clone.
+     */
+    private static final int BUSY = 16;
+
+    /**
+     * The original object, the key of the slot in a {@link SlotMap}; final, so a slot published by a race is seen
+     * with its original.
+     */
+    final Object original;
+
     private Object clone;
 
     private int state;
-
-    /**
-     * Thread which creates or completes the clone, {@code null} if nobody does.
-     */
-    private Thread busyThread;
 
     /**
      * Copier of the second phase, set when the first phase is done.
@@ -110,16 +116,21 @@ abstract class CloneSlot {
 
     /**
      * Creates a slot for an object which is not copied yet.
+     *
+     * @param original original object
      */
-    CloneSlot() {
+    CloneSlot(Object original) {
+        this.original = original;
     }
 
     /**
      * Creates a completed slot for a predefined clone.
      *
+     * @param original original object
      * @param clone clone
      */
-    CloneSlot(Object clone) {
+    CloneSlot(Object original, Object clone) {
+        this.original = original;
         this.clone = clone;
         this.state = COMPLETED;
     }
@@ -180,8 +191,31 @@ abstract class CloneSlot {
         return is(CLAIMABLE);
     }
 
-    Thread getBusyThread() {
-        return busyThread;
+    boolean isBusy() {
+        return is(BUSY);
+    }
+
+    /**
+     * Returns the thread which creates or completes the clone.
+     *
+     * @return busy thread or {@code null} if nobody is busy with the slot
+     */
+    abstract Thread getBusyThread();
+
+    /**
+     * Tells whether the current thread creates or completes the clone.
+     *
+     * @return {@code true} if the current thread is busy with the slot
+     */
+    abstract boolean isBusyByCurrentThread();
+
+    /**
+     * Marks the current thread busy with the slot or not; a slot used by several threads remembers the thread.
+     *
+     * @param busy whether the current thread is busy with the slot
+     */
+    void setBusy(boolean busy) {
+        state = busy ? state | BUSY : state & ~BUSY;
     }
 
     CloneSlot[] getBlockers() {
@@ -198,10 +232,10 @@ abstract class CloneSlot {
      * @return {@code true} if the current thread must copy the object
      */
     boolean start() {
-        if (clone != null || is(FAILED) || busyThread != null) {
+        if (clone != null || is(FAILED) || is(BUSY)) {
             return false;
         }
-        busyThread = Thread.currentThread();
+        setBusy(true);
         return true;
     }
 
@@ -231,7 +265,7 @@ abstract class CloneSlot {
         this.clone = clone;
         this.copier = copier;
         this.state |= CLAIMABLE;
-        this.busyThread = null;
+        setBusy(false);
         signalChange();
         return takeSubscriptions();
     }
@@ -277,7 +311,7 @@ abstract class CloneSlot {
             return false;
         }
         state &= ~CLAIMABLE;
-        busyThread = Thread.currentThread();
+        setBusy(true);
         return true;
     }
 
@@ -286,7 +320,7 @@ abstract class CloneSlot {
      */
     void completed() {
         state |= COMPLETED;
-        busyThread = null;
+        setBusy(false);
         signalChange();
     }
 
@@ -295,7 +329,7 @@ abstract class CloneSlot {
      */
     void secondPhaseDone() {
         state |= SECOND_PHASE_DONE;
-        busyThread = null;
+        setBusy(false);
         completeIfNoHoles();
     }
 
@@ -346,10 +380,10 @@ abstract class CloneSlot {
      * @return subscriptions which will never get the clone, if the slot has failed
      */
     List<Subscription> release(boolean done) {
-        if (busyThread != Thread.currentThread()) {
+        if (!isBusyByCurrentThread()) {
             return Collections.emptyList();
         }
-        busyThread = null;
+        setBusy(false);
         if (!done) {
             state |= FAILED;
         }

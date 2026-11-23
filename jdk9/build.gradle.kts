@@ -28,3 +28,19 @@ java {
 jmh {
     jvmArgs.addAll(utils.modulesJvmArgs("--add-opens"))
 }
+
+// identity hash codes of all objects are equal: lookups must compare the objects, not only the hash codes
+val hashCollisionTest = tasks.register<Test>("hashCollisionTest") {
+    description = "Runs IdentityHashCollisionTest with equal identity hash codes of all objects (HotSpot only)."
+    group = "verification"
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    filter.includeTestsMatching("*.IdentityHashCollisionTest")
+    jvmArgs("-XX:+UnlockExperimentalVMOptions", "-XX:hashCode=2")
+    systemProperty("cloner.test.hashCollisions", "true")
+}
+
+tasks.named("check") {
+    dependsOn(hashCollisionTest)
+}

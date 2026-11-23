@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
@@ -64,7 +64,7 @@ public abstract class AbstractCopyContext implements CopyContext {
      * Creates slots for {@link SlotMap#getOrCreate}; kept in a field, a lambda capturing {@code this} would be
      * allocated for every copied object.
      */
-    private final Supplier<CloneSlot> slotFactory = this::newSlot;
+    private final Function<Object, CloneSlot> slotFactory = this::newSlot;
 
     /**
      * Slots which threads are waiting for, created on the first wait.
@@ -86,15 +86,16 @@ public abstract class AbstractCopyContext implements CopyContext {
     AbstractCopyContext(CopierProvider copierProvider, SlotMap slots, Map<Object, Object> clones) {
         this.copierProvider = copierProvider;
         this.clones = slots;
-        clones.forEach((key, value) -> slots.put(key, new SingleThreadCloneSlot(value)));
+        clones.forEach((key, value) -> slots.put(new SingleThreadCloneSlot(key, value)));
     }
 
     /**
      * Creates a slot for an object which is not copied yet.
      *
+     * @param original original object
      * @return new slot
      */
-    abstract CloneSlot newSlot();
+    abstract CloneSlot newSlot(Object original);
 
     /**
      * Returns the slot whose second phase the current thread runs.

@@ -15,10 +15,11 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
- * Identity map from original objects to their {@link CloneSlot slots}.
+ * Identity map from original objects to their {@link CloneSlot slots}; a slot holds its original, so the slot is the
+ * whole entry.
  */
 interface SlotMap {
 
@@ -34,17 +35,16 @@ interface SlotMap {
      * Returns the slot of the original, creating it if the original has no slot.
      *
      * @param original original object
-     * @param factory creates a new slot
+     * @param factory creates a new slot for the original
      * @return slot
      */
-    CloneSlot getOrCreate(Object original, Supplier<CloneSlot> factory);
+    CloneSlot getOrCreate(Object original, Function<Object, CloneSlot> factory);
 
     /**
-     * Sets the slot of the original.
+     * Puts the slot, replacing the slot of the same original; for predefined clones, before copying starts.
      *
-     * @param original original object
      * @param slot slot
      */
-    void put(Object original, CloneSlot slot);
+    void put(CloneSlot slot);
 
 }

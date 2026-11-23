@@ -40,8 +40,8 @@ public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContex
     }
 
     @Override
-    CloneSlot newSlot() {
-        return new SingleThreadCloneSlot();
+    CloneSlot newSlot(Object original) {
+        return new SingleThreadCloneSlot(original);
     }
 
     @Override

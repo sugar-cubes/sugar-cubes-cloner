@@ -29,17 +29,32 @@ final class SingleThreadCloneSlot extends CloneSlot {
 
     /**
      * Creates a slot for an object which is not copied yet.
+     *
+     * @param original original object
      */
-    SingleThreadCloneSlot() {
+    SingleThreadCloneSlot(Object original) {
+        super(original);
     }
 
     /**
      * Creates a completed slot for a predefined clone.
      *
+     * @param original original object
      * @param clone clone
      */
-    SingleThreadCloneSlot(Object clone) {
-        super(clone);
+    SingleThreadCloneSlot(Object original, Object clone) {
+        super(original, clone);
+    }
+
+    @Override
+    Thread getBusyThread() {
+        // only the current thread uses the slot
+        return isBusy() ? Thread.currentThread() : null;
+    }
+
+    @Override
+    boolean isBusyByCurrentThread() {
+        return isBusy();
     }
 
     @Override

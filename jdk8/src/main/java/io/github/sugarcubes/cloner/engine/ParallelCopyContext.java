@@ -63,8 +63,8 @@ public class ParallelCopyContext extends AbstractCopyContext {
     }
 
     @Override
-    CloneSlot newSlot() {
-        return new ConcurrentCloneSlot();
+    CloneSlot newSlot(Object original) {
+        return new ConcurrentCloneSlot(original);
     }
 
     @Override

@@ -15,11 +15,12 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
- * Slot map for one thread: open addressing with linear probing over one array of keys and values, as in
- * {@link java.util.IdentityHashMap}, so a lookup allocates nothing.
+ * Slot map for one thread: open addressing with linear probing over parallel arrays of identity hash codes and
+ * slots. A probe compares hash codes only, a slot is read when its hash code matches, so a lookup touches one array
+ * and allocates nothing.
  */
 final class IdentitySlotMap implements SlotMap {
 
@@ -29,19 +30,22 @@ final class IdentitySlotMap implements SlotMap {
     private static final int DEFAULT_CAPACITY = 32;
 
     /**
-     * Shared table of an empty map: the smallest one, never written, the first insertion replaces it.
+     * Shared tables of an empty map, never written: the first insertion always resizes them.
      */
-    private static final Object[] EMPTY = new Object[2];
+    private static final int[] EMPTY_HASHES = new int[1];
+    private static final CloneSlot[] EMPTY_SLOTS = new CloneSlot[1];
 
     /**
-     * Keys at even indices, values at the following odd ones; the length is twice the capacity.
+     * Identity hash codes with the high bit set, zero marks an empty cell.
      */
-    private Object[] table = EMPTY;
+    private int[] hashes = EMPTY_HASHES;
+
+    private CloneSlot[] slots = EMPTY_SLOTS;
 
     private int size;
 
     /**
-     * Length of the table created on the first insertion.
+     * Length of the tables created on the first insertion.
      */
     private final int initialLength;
 
@@ -58,86 +62,93 @@ final class IdentitySlotMap implements SlotMap {
      * @param capacity initial capacity, a power of two
      */
     IdentitySlotMap(int capacity) {
-        initialLength = capacity * 2;
+        initialLength = capacity;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private static int hash(Object key, int length) {
-        // same as IdentityHashMap: an even index, low bits spread
-        int h = System.identityHashCode(key);
-        return ((h << 1) - (h << 8)) & (length - 1);
+    private static int hash(Object original) {
+        return System.identityHashCode(original) | Integer.MIN_VALUE;
     }
 
     /**
-     * Finds the index of the key or of the empty cell where it should be.
+     * Finds the index of the original or of the empty cell where it should be.
      */
-    private static int indexOf(Object[] table, Object key) {
-        int length = table.length;
-        int i = hash(key, length);
+    private int indexOf(Object original, int hash) {
+        int[] hashes = this.hashes;
+        int mask = hashes.length - 1;
+        int i = hash & mask;
         while (true) {
-            Object item = table[i];
-            if (item == key || item == null) {
+            int h = hashes[i];
+            if (h == 0 || h == hash && slots[i].original == original) {
                 return i;
             }
-            i = i + 2 < length ? i + 2 : 0;
+            i = (i + 1) & mask;
         }
     }
 
     @Override
     public CloneSlot get(Object original) {
-        Object[] table = this.table;
-        return (CloneSlot) table[indexOf(table, original) + 1];
+        return slots[indexOf(original, hash(original))];
     }
 
     @Override
-    public CloneSlot getOrCreate(Object original, Supplier<CloneSlot> factory) {
-        Object[] table = this.table;
-        int i = indexOf(table, original);
-        if (table[i] != null) {
-            return (CloneSlot) table[i + 1];
+    public CloneSlot getOrCreate(Object original, Function<Object, CloneSlot> factory) {
+        int hash = hash(original);
+        int i = indexOf(original, hash);
+        CloneSlot slot = slots[i];
+        if (slot == null) {
+            slot = factory.apply(original);
+            insert(i, hash, slot);
         }
-        CloneSlot slot = factory.get();
-        insert(i, original, slot);
         return slot;
     }
 
     @Override
-    public void put(Object original, CloneSlot slot) {
-        int i = indexOf(table, original);
-        if (table[i] != null) {
-            table[i + 1] = slot;
+    public void put(CloneSlot slot) {
+        int hash = hash(slot.original);
+        int i = indexOf(slot.original, hash);
+        if (slots[i] != null) {
+            slots[i] = slot;
         }
         else {
-            insert(i, original, slot);
+            insert(i, hash, slot);
         }
     }
 
-    private void insert(int index, Object key, CloneSlot slot) {
+    private void insert(int index, int hash, CloneSlot slot) {
         int newSize = size + 1;
-        // keeps the load factor at most 2/3; the empty table is always replaced
-        if (newSize + (newSize << 1) > table.length) {
+        // keeps the load factor at most 2/3; the empty tables are always replaced
+        if (newSize + (newSize << 1) > hashes.length << 1) {
             resize();
-            index = indexOf(table, key);
+            index = indexOf(slot.original, hash);
         }
-        // the value first: a cell with a key always has its value
-        table[index + 1] = slot;
-        table[index] = key;
+        hashes[index] = hash;
+        slots[index] = slot;
         size = newSize;
     }
 
+    /**
+     * Doubles the tables; the originals are distinct, so they are placed by their hash codes alone.
+     */
     private void resize() {
-        Object[] oldTable = table;
-        int oldTableLength = oldTable.length;
-        Object[] newTable = new Object[oldTableLength < initialLength ? initialLength : oldTableLength * 2];
-        for (int j = 0; j < oldTableLength; j += 2) {
-            Object key = oldTable[j];
-            if (key != null) {
-                int i = indexOf(newTable, key);
-                newTable[i + 1] = oldTable[j + 1];
-                newTable[i] = key;
+        int[] oldHashes = hashes;
+        CloneSlot[] oldSlots = slots;
+        int length = oldHashes == EMPTY_HASHES ? initialLength : oldHashes.length * 2;
+        int[] newHashes = new int[length];
+        CloneSlot[] newSlots = new CloneSlot[length];
+        int mask = length - 1;
+        for (int j = 0; j < oldHashes.length; j++) {
+            int h = oldHashes[j];
+            if (h != 0) {
+                int i = h & mask;
+                while (newHashes[i] != 0) {
+                    i = (i + 1) & mask;
+                }
+                newHashes[i] = h;
+                newSlots[i] = oldSlots[j];
             }
         }
-        table = newTable;
+        hashes = newHashes;
+        slots = newSlots;
     }
 
 }
