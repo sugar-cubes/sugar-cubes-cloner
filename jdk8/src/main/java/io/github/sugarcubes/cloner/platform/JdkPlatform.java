@@ -15,25 +15,11 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import io.github.sugarcubes.cloner.ModuleOpening;
-import io.github.sugarcubes.cloner.generation.BytecodeBackend;
-import io.github.sugarcubes.cloner.spi.ContainerModel;
-import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
-import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.ValuesModel;
-import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
-import io.github.sugarcubes.cloner.util.Checks;
-
 /**
- * Everything which differs between JDK versions. The implementation for the running JDK is chosen by the
- * multi-release jar: {@code JdkPlatformImpl$Jdk8}, {@code $Jdk9}, {@code $Jdk15}, {@code $Jdk16}, each listing the
- * differences of its version.
+ * Everything which differs between JDK versions, in four parts: {@link TypeKinds}, {@link TypeModels},
+ * {@link LowLevelAccess} and {@link ClassDefiner}. Every part has a chain of versions ({@code TypeKinds8},
+ * {@code TypeKinds9}, ...), the class {@code JdkPlatformImpl} of the running JDK, chosen by the multi-release jar,
+ * combines the parts of its version. The directory of a version contains only the parts which change in it.
  *
  * @author Maxim Butov
  */
@@ -49,139 +35,32 @@ public interface JdkPlatform {
     }
 
     /**
-     * Creates reflection which opens packages to the cloner with the mechanism before making members accessible (JDK
-     * 9+), fails with {@link io.github.sugarcubes.cloner.ClonerException} if the mechanism is not available.
+     * Returns the kinds of types: immutable, cloneable, objects of the running JVM, hidden classes.
      *
-     * @param opening module opening mechanism
-     * @param unsafe Unsafe bridge, requested only if the mechanism needs it
-     * @return reflection
+     * @return type kinds
      */
-    Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe);
+    TypeKinds typeKinds();
 
     /**
-     * Creates reflection which opens nothing.
+     * Returns the low-level models of types: containers, immutable collections, records.
      *
-     * @return reflection
+     * @return type models
      */
-    default Reflection reflection() {
-        return reflection(ModuleOpening.NONE, () -> {
-            throw Checks.mustNotHappen();
-        });
-    }
+    TypeModels typeModels();
 
     /**
-     * Returns the trusted lookup {@code MethodHandles.Lookup.IMPL_LOOKUP}, read by reflection: on JDK 9+ it needs
-     * {@code java.base/java.lang.invoke} opened to the cloner.
+     * Returns the low-level access: reflection opening modules, {@code Unsafe}, {@code VarHandle}, the trusted lookup.
      *
-     * @return trusted lookup
-     * @throws LinkageError if the lookup cannot be read
+     * @return low-level access
      */
-    MethodHandles.Lookup trustedLookup();
+    LowLevelAccess lowLevelAccess();
 
     /**
-     * Tells whether the JDK defines classes with the private access of a host class: anonymous classes of
-     * {@code sun.misc.Unsafe} on JDK 8-14, hidden classes in the nest of the host on JDK 15+.
+     * Returns the definition of classes with the private access of a host class.
      *
-     * @return {@code true} if {@link #defineNestmate} works
+     * @return class definer
      */
-    boolean canDefineNestmates();
-
-    /**
-     * Returns the version of the class files {@link #defineNestmate} takes: 49 (Java 5, without stack map frames) for
-     * anonymous classes, 59 (JDK 15) for hidden ones.
-     *
-     * @return class file version
-     */
-    int nestmateClassVersion();
-
-    /**
-     * Defines a class with the private access of the host class; the package of the support class (the super class
-     * of the defined one) is exported to the module of the host if needed.
-     *
-     * @param host host class
-     * @param bytes class file of a class in the package of the host
-     * @param support class of the cloner the defined class uses
-     * @param constructor type of the constructor of the defined class
-     * @return the constructor
-     * @throws io.github.sugarcubes.cloner.ClonerException if the class cannot be defined
-     */
-    MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor);
-
-    /**
-     * Returns the backend of the ClassFile API, JDK 24+.
-     *
-     * @return backend or empty on older JDKs
-     */
-    Optional<BytecodeBackend> classFileBackend();
-
-    /**
-     * Returns the factory of field adapters using {@code VarHandle}, JDK 9+.
-     *
-     * @return factory or empty on JDK 8
-     */
-    Optional<FieldAdapterFactory> varHandleFieldAdapters();
-
-    /**
-     * Returns the container model of a well-known JDK collection or map.
-     *
-     * @param <T> type
-     * @param type type
-     * @return model or empty if the type is not a supported container
-     */
-    <T> Optional<ContainerModel<T>> containerModel(Class<T> type);
-
-    /**
-     * Creates the best Unsafe bridge available.
-     *
-     * @param reflection reflection to access {@code sun.misc.Unsafe}
-     * @return Unsafe bridge
-     */
-    UnsafeBridge unsafeBridge(Reflection reflection);
-
-    /**
-     * Tells whether the class is hidden (a hidden class on JDK 15+ or a lambda class): it cannot be found by name, its
-     * instances cannot be allocated by name and their final fields are not writable.
-     *
-     * @param type class
-     * @return {@code true} if the class is hidden
-     */
-    boolean isHidden(Class<?> type);
-
-    /**
-     * Returns the values model of the type, e.g. of a record (JDK 16+).
-     *
-     * @param <T> type
-     * @param type type
-     * @param reflection reflection to access members of the type
-     * @return model or empty if instances of the type are not created from values
-     */
-    <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection);
-
-    /**
-     * Tells whether instances of the type are immutable and may be shared: values, canonical instances (e.g. locales,
-     * currencies, charsets, zones), classes of stateless singletons.
-     *
-     * @param type type
-     * @return {@code true} if instances are immutable
-     */
-    boolean isImmutable(Class<?> type);
-
-    /**
-     * Tells whether instances of the type are copied with their public {@code clone()} method.
-     *
-     * @param type type
-     * @return {@code true} if instances are copied with {@code clone()}
-     */
-    boolean isCloneable(Class<?> type);
-
-    /**
-     * Tells whether instances of the type are objects of the running JVM (threads, class loaders, modules, reflection
-     * objects, references), which cannot be copied meaningfully.
-     *
-     * @param type type
-     * @return {@code true} for objects of the running JVM
-     */
-    boolean isRuntime(Class<?> type);
+    ClassDefiner classDefiner();
 
     /**
      * Holder of the current platform, not for direct use.

@@ -68,7 +68,7 @@ class AllocatorSelectionTest {
     };
 
     private final ReflectionInstanceAllocatorFactory constructorAllocator =
-        new ReflectionInstanceAllocatorFactory(JdkPlatform.current().reflection());
+        new ReflectionInstanceAllocatorFactory(JdkPlatform.current().lowLevelAccess().reflection());
 
     @Test
     void allocatorDoesNotCallConstructor() {

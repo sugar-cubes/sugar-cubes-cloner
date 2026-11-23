@@ -52,7 +52,7 @@ public class CloneableCopier<T extends Cloneable> implements ObjectCopier<T> {
      * {@link Object#clone()} made accessible when first needed.
      */
     private static final Lazy<Method> OBJECT_CLONE = new Lazy<>(() -> {
-        Reflection reflection = JdkPlatform.current().reflection();
+        Reflection reflection = JdkPlatform.current().lowLevelAccess().reflection();
         return reflection.makeAccessible(reflection.getDeclaredMethod(Object.class, CLONE));
     });
 

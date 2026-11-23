@@ -62,7 +62,7 @@ final class HashKeys {
             return true;
         }
         Class<?> type = key.getClass();
-        return JdkPlatform.current().isImmutable(type) || !HASHED_BY_STATE.get(type);
+        return JdkPlatform.current().typeKinds().isImmutable(type) || !HASHED_BY_STATE.get(type);
     }
 
     private HashKeys() {

@@ -34,7 +34,7 @@ class ToolsetBuilderTest {
     void defaultsAreFailsafe() throws Exception {
         Toolset toolset = Toolsets.builder().build();
 
-        Assertions.assertSame(JdkPlatform.current().reflection().getClass(), toolset.getReflection().getClass());
+        Assertions.assertSame(JdkPlatform.current().lowLevelAccess().reflection().getClass(), toolset.getReflection().getClass());
         Assertions.assertInstanceOf(ReflectionFieldAdapterImpl.class,
             toolset.getFieldAdapterFactory().newAdapter(Date.class.getDeclaredField("fastTime")).get());
         // ReflectionFactory first, constructor is only a fallback: Date() would set the current time

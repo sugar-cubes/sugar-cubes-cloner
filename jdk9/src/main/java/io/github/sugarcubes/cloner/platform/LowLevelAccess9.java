@@ -16,13 +16,7 @@
 package io.github.sugarcubes.cloner.platform;
 
 import java.lang.instrument.Instrumentation;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ClonerException;
@@ -30,72 +24,20 @@ import io.github.sugarcubes.cloner.ModuleOpening;
 import io.github.sugarcubes.cloner.reflection.ClonerAgent;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.ValuesModel;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.NarcissusUtils;
 
 /**
- * {@link JdkPlatform} of JDK 9+: modules, {@code jdk.internal.misc.Unsafe}, immutable collections of {@link List#of},
- * {@link Set#of} and {@link Map#of} rebuilt from their elements.
+ * {@link LowLevelAccess} of JDK 9+: reflection opening modules, {@code VarHandle}, {@code jdk.internal.misc.Unsafe}.
  *
  * @author Maxim Butov
  */
-class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
-
-    /**
-     * Objects of the running JVM which appeared in JDK 9, with all their subtypes.
-     */
-    private static final List<Class<?>> RUNTIME_SUPER_TYPES = unmodifiableList(Module.class, ModuleLayer.class);
-
-    /**
-     * Models of immutable collections by their classes (the classes are not public).
-     */
-    private final Map<Class<?>, ValuesModel<?>> immutableCollections = immutableCollectionModels();
-
-    private Map<Class<?>, ValuesModel<?>> immutableCollectionModels() {
-        Map<Class<?>, ValuesModel<?>> models = new HashMap<>();
-        // samples give the classes of the implementations
-        Object a = new Object();
-        Object b = new Object();
-        Object c = new Object();
-        for (List<?> list : Arrays.asList(List.of(), List.of(a), List.of(a, b, c))) {
-            models.put(list.getClass(), ImmutableCollectionModel.list(list.getClass(), this::immutableList));
-        }
-        for (Set<?> set : Arrays.asList(Set.of(), Set.of(a), Set.of(a, b, c))) {
-            models.put(set.getClass(), ImmutableCollectionModel.set(set.getClass()));
-        }
-        for (Map<?, ?> map : Arrays.asList(Map.of(), Map.of(a, a), Map.of(a, a, b, b))) {
-            models.put(map.getClass(), ImmutableCollectionModel.map(map.getClass()));
-        }
-        return Collections.unmodifiableMap(models);
-    }
-
-    @Override
-    Kind kindOf(Class<?> type) {
-        return isSubtype(type, RUNTIME_SUPER_TYPES) ? Kind.RUNTIME : super.kindOf(type);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
-        ValuesModel<T> model = (ValuesModel<T>) immutableCollections.get(type);
-        return model != null ? Optional.of(model) : super.valuesModel(type, reflection);
-    }
-
-    /**
-     * Creates an immutable list of the elements.
-     *
-     * @param values elements
-     * @return immutable list
-     */
-    List<Object> immutableList(Object[] values) {
-        return List.of(values);
-    }
+class LowLevelAccess9 extends LowLevelAccess8 {
 
     @Override
     public Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
-        return new ReflectionImpl$Jdk9(typeOpener(opening, unsafe));
+        return new ReflectionImpl9(typeOpener(opening, unsafe));
     }
 
     private static TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
@@ -149,7 +91,7 @@ class JdkPlatformImpl$Jdk9 extends JdkPlatformImpl$Jdk8 {
      * @return Unsafe bridge
      */
     UnsafeBridge newJdkInternalMiscUnsafeBridge() {
-        return new JdkInternalMiscUnsafeBridge$Jdk9();
+        return new JdkInternalMiscUnsafeBridge9();
     }
 
 }

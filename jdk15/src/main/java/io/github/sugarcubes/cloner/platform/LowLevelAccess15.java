@@ -18,20 +18,15 @@ package io.github.sugarcubes.cloner.platform;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 
 /**
- * Implementation of {@link UnsafeBridge} which calls {@link jdk.internal.misc.Unsafe}.
+ * {@link LowLevelAccess} of JDK 15+: {@code jdk.internal.misc.Unsafe} with the reference methods of this version.
  *
  * @author Maxim Butov
  */
-class JdkInternalMiscUnsafeBridge$Jdk15 extends JdkInternalMiscUnsafeBridge$Jdk9 {
+class LowLevelAccess15 extends LowLevelAccess9 {
 
     @Override
-    public Object getObject(Object o, long offset) {
-        return unsafe.getReference(o, offset);
-    }
-
-    @Override
-    public void putObject(Object o, long offset, Object x) {
-        unsafe.putReference(o, offset, x);
+    UnsafeBridge newJdkInternalMiscUnsafeBridge() {
+        return new JdkInternalMiscUnsafeBridge15();
     }
 
 }

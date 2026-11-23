@@ -20,14 +20,14 @@ import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Member;
 
 import io.github.sugarcubes.cloner.ClonerException;
-import io.github.sugarcubes.cloner.reflection.ReflectionImpl$Jdk8;
+import io.github.sugarcubes.cloner.reflection.ReflectionImpl8;
 
 /**
  * Reflection for JDK 9+: before making a member accessible opens its package to the cloner.
  *
  * @author Maxim Butov
  */
-class ReflectionImpl$Jdk9 extends ReflectionImpl$Jdk8 {
+class ReflectionImpl9 extends ReflectionImpl8 {
 
     private final TypeOpener opener;
 
@@ -36,7 +36,7 @@ class ReflectionImpl$Jdk9 extends ReflectionImpl$Jdk8 {
      *
      * @param opener opener of packages for deep reflection
      */
-    ReflectionImpl$Jdk9(TypeOpener opener) {
+    ReflectionImpl9(TypeOpener opener) {
         this.opener = opener;
     }
 

@@ -16,10 +16,14 @@
 package io.github.sugarcubes.cloner.platform;
 
 /**
- * Platform of the running JDK, chosen by the multi-release jar.
+ * Platform of JDK 16+, chosen by the multi-release jar: records.
  *
  * @author Maxim Butov
  */
-final class JdkPlatformImpl extends JdkPlatformImpl$Jdk16 {
+final class JdkPlatformImpl extends AbstractJdkPlatform {
+
+    JdkPlatformImpl() {
+        super(new TypeKinds15(), new TypeModels16(), new LowLevelAccess15(), new ClassDefiner15());
+    }
 
 }

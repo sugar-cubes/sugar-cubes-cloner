@@ -264,7 +264,7 @@ public final class ToolsetBuilder {
         Lazy<UnsafeBridge> unsafe = new Lazy<>(() -> unsafeBridge(platform));
         Reflection reflection = this.reflection != null
             ? this.reflection
-            : platform.reflection(moduleOpening, unsafe);
+            : platform.lowLevelAccess().reflection(moduleOpening, unsafe);
         Context context = new Context(platform, reflection, unsafe);
 
         List<Mechanism<InstanceAllocatorFactory>> allocators = this.allocators != null
@@ -285,7 +285,7 @@ public final class ToolsetBuilder {
     private static UnsafeBridge unsafeBridge(JdkPlatform platform) {
         try {
             // reading sun.misc.Unsafe needs no module opening
-            return platform.unsafeBridge(platform.reflection());
+            return platform.lowLevelAccess().unsafeBridge(platform.lowLevelAccess().reflection());
         }
         catch (LinkageError e) {
             throw new ClonerException("Unsafe is not available.", e);
@@ -362,7 +362,7 @@ public final class ToolsetBuilder {
             case UNSAFE:
                 return UnsafeFieldAdapterImpl.factory(context.unsafe.get());
             case VAR_HANDLE:
-                return context.platform.varHandleFieldAdapters()
+                return context.platform.lowLevelAccess().varHandleFieldAdapters()
                     .orElseThrow(() -> new ClonerException("VarHandle field access needs JDK 9+."));
             case NARCISSUS:
                 if (!NarcissusUtils.isNarcissusAvailable()) {

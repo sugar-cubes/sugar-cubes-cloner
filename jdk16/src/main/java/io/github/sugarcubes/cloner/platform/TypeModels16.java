@@ -24,12 +24,12 @@ import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
- * {@link JdkPlatform} of JDK 16+: records are created from the values of their components, immutable lists may
- * contain nulls ({@link java.util.stream.Stream#toList()}).
+ * {@link TypeModels} of JDK 16+: records are created from the values of their components, immutable lists may contain
+ * nulls ({@link java.util.stream.Stream#toList()}).
  *
  * @author Maxim Butov
  */
-class JdkPlatformImpl$Jdk16 extends JdkPlatformImpl$Jdk15 {
+class TypeModels16 extends TypeModels9 {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})

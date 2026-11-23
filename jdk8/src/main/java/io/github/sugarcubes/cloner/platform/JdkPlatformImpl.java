@@ -16,10 +16,14 @@
 package io.github.sugarcubes.cloner.platform;
 
 /**
- * Platform of the running JDK, chosen by the multi-release jar.
+ * Platform of JDK 8+, chosen by the multi-release jar: the parts of JDK 8.
  *
  * @author Maxim Butov
  */
-final class JdkPlatformImpl extends JdkPlatformImpl$Jdk8 {
+final class JdkPlatformImpl extends AbstractJdkPlatform {
+
+    JdkPlatformImpl() {
+        super(new TypeKinds8(), new TypeModels8(), new LowLevelAccess8(), new ClassDefiner8());
+    }
 
 }

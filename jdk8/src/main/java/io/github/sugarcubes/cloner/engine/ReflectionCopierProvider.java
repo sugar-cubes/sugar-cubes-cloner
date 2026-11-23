@@ -188,7 +188,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (Copyable.class.isAssignableFrom(type)) {
             return ObjectCopier.COPYABLE;
         }
-        if (JdkPlatform.current().isHidden(type)) {
+        if (JdkPlatform.current().typeKinds().isHidden(type)) {
             // instances of hidden classes (e.g. lambdas) can be neither created nor written, they are shared
             return ObjectCopier.NOOP;
         }
@@ -220,8 +220,8 @@ public class ReflectionCopierProvider implements CopierProvider {
         }
         JdkPlatform platform = JdkPlatform.current();
         // instances of hidden classes (e.g. lambdas) can be neither created nor written
-        return platform.isHidden(type)
-            || !shallows.contains(type) && (platform.isImmutable(type) || platform.isRuntime(type));
+        return platform.typeKinds().isHidden(type)
+            || !shallows.contains(type) && (platform.typeKinds().isImmutable(type) || platform.typeKinds().isRuntime(type));
     }
 
     /**
@@ -262,10 +262,10 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private static ObjectCopier<?> findJdkCopier(Class<?> type) {
         JdkPlatform platform = JdkPlatform.current();
-        if (platform.isImmutable(type) || platform.isRuntime(type)) {
+        if (platform.typeKinds().isImmutable(type) || platform.typeKinds().isRuntime(type)) {
             return ObjectCopier.NOOP;
         }
-        return platform.isCloneable(type) ? ObjectCopier.CLONEABLE : null;
+        return platform.typeKinds().isCloneable(type) ? ObjectCopier.CLONEABLE : null;
     }
 
     /**
@@ -289,11 +289,11 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private ObjectCopier<?> findModelCopier(Class<?> type) {
         boolean shallow = shallows.contains(type);
-        Optional<? extends ValuesModel<?>> values = JdkPlatform.current().valuesModel(type, toolset.getReflection());
+        Optional<? extends ValuesModel<?>> values = JdkPlatform.current().typeModels().valuesModel(type, toolset.getReflection());
         if (values.isPresent()) {
             return valuesCopier(values.get(), type, shallow);
         }
-        Optional<? extends ContainerModel<?>> container = JdkPlatform.current().containerModel(type);
+        Optional<? extends ContainerModel<?>> container = JdkPlatform.current().typeModels().containerModel(type);
         if (container.isPresent()) {
             return containerCopier(container.get(), type, shallow);
         }

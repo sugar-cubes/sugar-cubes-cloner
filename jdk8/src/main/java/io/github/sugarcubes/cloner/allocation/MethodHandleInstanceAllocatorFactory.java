@@ -37,7 +37,7 @@ public class MethodHandleInstanceAllocatorFactory implements InstanceAllocatorFa
     /**
      * Trusted {@link MethodHandles.Lookup} instance.
      */
-    private static final MethodHandles.Lookup LOOKUP = JdkPlatform.current().trustedLookup();
+    private static final MethodHandles.Lookup LOOKUP = JdkPlatform.current().lowLevelAccess().trustedLookup();
 
     /**
      * Constructor's method type.

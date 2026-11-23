@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
  *
  * @author Maxim Butov
  */
-public class ReflectionImpl$Jdk8 extends AbstractReflection {
+public class ReflectionImpl8 extends AbstractReflection {
 
     @Override
     protected Field getDeclaredFieldImpl(Class<?> type, String name) throws Exception {

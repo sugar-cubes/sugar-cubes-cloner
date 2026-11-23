@@ -18,32 +18,27 @@ package io.github.sugarcubes.cloner.platform;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Optional;
 
-import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
+import io.github.sugarcubes.cloner.generation.BytecodeBackend;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
- * {@link JdkPlatform} of JDK 15+: hidden classes, {@code jdk.internal.misc.Unsafe} with references.
+ * {@link ClassDefiner} of JDK 15+: hidden classes in the nest of the host.
  *
  * @author Maxim Butov
  */
-class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
+class ClassDefiner15 implements ClassDefiner {
 
     private static final int JAVA_15_CLASS_VERSION = 59;
 
     @Override
-    public boolean isHidden(Class<?> type) {
-        // lambda classes are hidden classes too
-        return type.isHidden();
-    }
-
-    @Override
-    public boolean canDefineNestmates() {
+    public boolean isAvailable() {
         return true;
     }
 
     @Override
-    public int nestmateClassVersion() {
+    public int classVersion() {
         return JAVA_15_CLASS_VERSION;
     }
 
@@ -74,7 +69,7 @@ class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
             return lookup;
         }
         try {
-            return trustedLookup().in(host);
+            return TrustedLookup.byReflection().in(host);
         }
         catch (LinkageError e) {
             throw new IllegalAccessException(String.format("No full access to %s: open java.base/java.lang.invoke to "
@@ -83,8 +78,8 @@ class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
     }
 
     @Override
-    UnsafeBridge newJdkInternalMiscUnsafeBridge() {
-        return new JdkInternalMiscUnsafeBridge$Jdk15();
+    public Optional<BytecodeBackend> classFileBackend() {
+        return Optional.empty();
     }
 
 }

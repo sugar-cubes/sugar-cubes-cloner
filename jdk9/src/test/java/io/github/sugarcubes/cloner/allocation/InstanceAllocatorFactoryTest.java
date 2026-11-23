@@ -44,13 +44,13 @@ class InstanceAllocatorFactoryTest {
 
     private static final Class<?>[] NOT_INSTANTIABLE = {List.class, AbstractList.class, int[].class, int.class};
 
-    private final Reflection reflection = JdkPlatform.current().reflection();
+    private final Reflection reflection = JdkPlatform.current().lowLevelAccess().reflection();
 
     @Test
     void allocatorsWithoutConstructorSupportAnyConcreteClass() throws Exception {
         InstanceAllocatorFactory[] factories = {
             new ReflectionFactoryAllocatorFactory(),
-            new UnsafeAllocatorFactory(JdkPlatform.current().unsafeBridge(reflection)),
+            new UnsafeAllocatorFactory(JdkPlatform.current().lowLevelAccess().unsafeBridge(reflection)),
         };
         for (InstanceAllocatorFactory factory : factories) {
             Assertions.assertInstanceOf(NoDefaultConstructor.class,

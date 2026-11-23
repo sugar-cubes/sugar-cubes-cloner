@@ -16,10 +16,14 @@
 package io.github.sugarcubes.cloner.platform;
 
 /**
- * Platform of the running JDK, chosen by the multi-release jar.
+ * Platform of JDK 9+, chosen by the multi-release jar: modules, immutable collections, {@code jdk.internal.misc.Unsafe}.
  *
  * @author Maxim Butov
  */
-final class JdkPlatformImpl extends JdkPlatformImpl$Jdk9 {
+final class JdkPlatformImpl extends AbstractJdkPlatform {
+
+    JdkPlatformImpl() {
+        super(new TypeKinds9(), new TypeModels9(), new LowLevelAccess9(), new ClassDefiner8());
+    }
 
 }

@@ -32,12 +32,12 @@ import io.github.sugarcubes.cloner.spi.Reflection;
  */
 class CompoundFieldAdapterFactoryTest {
 
-    private final Reflection reflection = JdkPlatform.current().reflection();
+    private final Reflection reflection = JdkPlatform.current().lowLevelAccess().reflection();
 
     private final FieldAdapterFactory reflective = ReflectionFieldAdapterImpl.factory(reflection);
 
     private final FieldAdapterFactory unsafe =
-        UnsafeFieldAdapterImpl.factory(JdkPlatform.current().unsafeBridge(reflection));
+        UnsafeFieldAdapterImpl.factory(JdkPlatform.current().lowLevelAccess().unsafeBridge(reflection));
 
     @Test
     void reflectionCannotAccessFieldOfNotOpenedPackage() throws Exception {

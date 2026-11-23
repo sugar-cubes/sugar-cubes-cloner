@@ -16,7 +16,7 @@
 package io.github.sugarcubes.cloner.platform;
 
 /**
- * Opens the package of a type to the cloner for deep reflection, a part of {@link ReflectionImpl$Jdk9 reflection} on
+ * Opens the package of a type to the cloner for deep reflection, a part of {@link ReflectionImpl9 reflection} on
  * JDK 9+.
  */
 interface TypeOpener {

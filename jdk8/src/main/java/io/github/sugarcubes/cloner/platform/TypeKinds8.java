@@ -15,40 +15,21 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
-import java.util.function.Supplier;
 
-import io.github.sugarcubes.cloner.ClonerException;
-import io.github.sugarcubes.cloner.ModuleOpening;
-import io.github.sugarcubes.cloner.generation.BytecodeBackend;
-import io.github.sugarcubes.cloner.reflection.ReflectionImpl$Jdk8;
-import io.github.sugarcubes.cloner.spi.ContainerModel;
-import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
-import io.github.sugarcubes.cloner.spi.Reflection;
-import io.github.sugarcubes.cloner.spi.ValuesModel;
-import io.github.sugarcubes.cloner.unsafe.SunMiscUnsafeBridge;
-import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
 import io.github.sugarcubes.cloner.util.ClassUtils;
-import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
-import io.github.sugarcubes.cloner.util.Lazy;
 
 /**
- * {@link JdkPlatform} of JDK 8.
+ * {@link TypeKinds} of JDK 8.
  *
  * @author Maxim Butov
  */
-class JdkPlatformImpl$Jdk8 implements JdkPlatform {
+class TypeKinds8 implements TypeKinds {
 
     /**
      * Kinds of JDK types.
@@ -125,27 +106,6 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
         java.lang.ref.Reference.class, java.lang.ref.ReferenceQueue.class
     );
 
-    private static final ContainerModels CONTAINER_MODELS = new ContainerModels();
-
-    /**
-     * Version of anonymous classes: Java 5, verified by type inference without stack map frames. Frames would name
-     * the class itself, and an anonymous class cannot be loaded by name.
-     */
-    private static final int ANONYMOUS_CLASS_VERSION = 49;
-
-    /**
-     * {@code sun.misc.Unsafe.defineAnonymousClass(Class, byte[], Object[])}, removed in JDK 17.
-     */
-    private static final Lazy<Optional<Method>> DEFINE_ANONYMOUS_CLASS = new Lazy<>(() -> {
-        try {
-            return Optional.of(sun.misc.Unsafe.class.getMethod("defineAnonymousClass", Class.class, byte[].class,
-                Object[].class));
-        }
-        catch (NoSuchMethodException | LinkageError e) {
-            return Optional.empty();
-        }
-    });
-
     /**
      * Kinds of classes, computed once by {@link #kindOf(Class)}.
      */
@@ -217,72 +177,9 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     }
 
     @Override
-    public Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
-        // no modules, nothing to open
-        return new ReflectionImpl$Jdk8();
-    }
-
-    @Override
-    public boolean canDefineNestmates() {
-        return DEFINE_ANONYMOUS_CLASS.get().isPresent();
-    }
-
-    @Override
-    public int nestmateClassVersion() {
-        return ANONYMOUS_CLASS_VERSION;
-    }
-
-    /**
-     * Defines an anonymous class of {@code sun.misc.Unsafe}, which has the access of its host class; JDK 8-16.
-     */
-    @Override
-    public MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor) {
-        Method define = DEFINE_ANONYMOUS_CLASS.get()
-            .orElseThrow(() -> new ClonerException("Unsafe.defineAnonymousClass() is not available."));
-        return ClonerExceptionUtils.replaceException(() -> {
-            Object unsafe = new SunMiscUnsafeBridge(reflection()).getUnsafe();
-            Class<?> anonymous = (Class<?>) define.invoke(unsafe, host, bytes, null);
-            // not public: its constructor is made accessible
-            Constructor<?> declared = anonymous.getDeclaredConstructor(constructor.parameterArray());
-            declared.setAccessible(true);
-            return MethodHandles.lookup().unreflectConstructor(declared);
-        });
-    }
-
-    @Override
-    public Optional<BytecodeBackend> classFileBackend() {
-        return Optional.empty();
-    }
-
-    @Override
-    public MethodHandles.Lookup trustedLookup() {
-        return TrustedLookup.byReflection();
-    }
-
-    @Override
-    public Optional<FieldAdapterFactory> varHandleFieldAdapters() {
-        return Optional.empty();
-    }
-
-    @Override
-    public <T> Optional<ContainerModel<T>> containerModel(Class<T> type) {
-        return CONTAINER_MODELS.containerModel(type);
-    }
-
-    @Override
-    public UnsafeBridge unsafeBridge(Reflection reflection) {
-        return new SunMiscUnsafeBridge(reflection);
-    }
-
-    @Override
     public boolean isHidden(Class<?> type) {
         // lambda classes are synthetic VM anonymous classes
         return type.isSynthetic() && type.getName().contains("$$Lambda");
-    }
-
-    @Override
-    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
-        return Optional.empty();
     }
 
 }

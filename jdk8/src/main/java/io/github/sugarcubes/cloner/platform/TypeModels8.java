@@ -17,18 +17,27 @@ package io.github.sugarcubes.cloner.platform;
 
 import java.util.Optional;
 
-import io.github.sugarcubes.cloner.generation.BytecodeBackend;
+import io.github.sugarcubes.cloner.spi.ContainerModel;
+import io.github.sugarcubes.cloner.spi.Reflection;
+import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
- * {@link JdkPlatform} of JDK 24+: classes are written by the ClassFile API, no library is needed.
+ * {@link TypeModels} of JDK 8: containers.
  *
  * @author Maxim Butov
  */
-class JdkPlatformImpl$Jdk24 extends JdkPlatformImpl$Jdk16 {
+class TypeModels8 implements TypeModels {
+
+    private static final ContainerModels CONTAINER_MODELS = new ContainerModels();
 
     @Override
-    public Optional<BytecodeBackend> classFileBackend() {
-        return Optional.of(new ClassFileBytecodeBackend());
+    public <T> Optional<ContainerModel<T>> containerModel(Class<T> type) {
+        return CONTAINER_MODELS.containerModel(type);
+    }
+
+    @Override
+    public <T> Optional<ValuesModel<T>> valuesModel(Class<T> type, Reflection reflection) {
+        return Optional.empty();
     }
 
 }

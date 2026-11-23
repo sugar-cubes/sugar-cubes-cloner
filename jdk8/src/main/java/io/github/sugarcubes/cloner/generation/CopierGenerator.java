@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyPolicy;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
+import io.github.sugarcubes.cloner.platform.ClassDefiner;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
@@ -70,12 +71,12 @@ public final class CopierGenerator {
     private static final MethodType CONSTRUCTOR = MethodType.methodType(void.class, InstanceAllocator.class,
         TwoPhaseObjectCopier.class, FieldAdapter[].class);
 
-    private final JdkPlatform platform;
+    private final ClassDefiner definer;
 
     private final BytecodeBackend backend;
 
-    private CopierGenerator(JdkPlatform platform, BytecodeBackend backend) {
-        this.platform = platform;
+    private CopierGenerator(ClassDefiner definer, BytecodeBackend backend) {
+        this.definer = definer;
         this.backend = backend;
     }
 
@@ -89,16 +90,16 @@ public final class CopierGenerator {
     }
 
     private static Optional<CopierGenerator> create() {
-        JdkPlatform platform = JdkPlatform.current();
-        if (!platform.canDefineNestmates()) {
+        ClassDefiner definer = JdkPlatform.current().classDefiner();
+        if (!definer.isAvailable()) {
             return Optional.empty();
         }
-        Optional<BytecodeBackend> backend = platform.classFileBackend();
+        Optional<BytecodeBackend> backend = definer.classFileBackend();
         // ASM classes are checked by name: loading AsmBytecodeBackend without ASM fails
         if (!backend.isPresent() && ClassUtils.isClassAvailable("org.objectweb.asm.ClassWriter")) {
             backend = Optional.of(new AsmBytecodeBackend());
         }
-        return backend.map(writer -> new CopierGenerator(platform, writer));
+        return backend.map(writer -> new CopierGenerator(definer, writer));
     }
 
     /**
@@ -195,8 +196,8 @@ public final class CopierGenerator {
             return Optional.empty();
         }
         try {
-            byte[] bytes = template.write(backend, platform.nestmateClassVersion());
-            return Optional.of(platform.defineNestmate(type, bytes, GeneratedFieldsCopier.class, CONSTRUCTOR));
+            byte[] bytes = template.write(backend, definer.classVersion());
+            return Optional.of(definer.defineNestmate(type, bytes, GeneratedFieldsCopier.class, CONSTRUCTOR));
         }
         catch (ClonerException | LinkageError e) {
             return Optional.empty();
