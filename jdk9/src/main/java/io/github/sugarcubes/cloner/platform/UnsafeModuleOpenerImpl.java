@@ -27,7 +27,7 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
  * behind {@code --add-opens}, present since JDK 9), which is called through the trusted lookup
  * {@code MethodHandles.Lookup.IMPL_LOOKUP} read by {@code Unsafe}.
  */
-class UnsafeModuleOpenerImpl extends AbstractModuleOpener {
+class UnsafeModuleOpenerImpl extends ModuleOpener {
 
     private final MethodHandle implAddOpens;
 
@@ -40,8 +40,8 @@ class UnsafeModuleOpenerImpl extends AbstractModuleOpener {
     }
 
     @Override
-    protected void openModule(Module module, String packageName, Module thisModule) throws Throwable {
-        implAddOpens.invokeExact(module, packageName, thisModule);
+    void openPackage(Module module, String packageName, Module cloner) throws Throwable {
+        implAddOpens.invokeExact(module, packageName, cloner);
     }
 
 }

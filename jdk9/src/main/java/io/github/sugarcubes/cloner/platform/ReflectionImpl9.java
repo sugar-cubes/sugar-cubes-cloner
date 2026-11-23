@@ -29,14 +29,14 @@ import io.github.sugarcubes.cloner.reflection.ReflectionImpl8;
  */
 class ReflectionImpl9 extends ReflectionImpl8 {
 
-    private final TypeOpener opener;
+    private final ModuleOpener opener;
 
     /**
      * Constructor.
      *
      * @param opener opener of packages for deep reflection
      */
-    ReflectionImpl9(TypeOpener opener) {
+    ReflectionImpl9(ModuleOpener opener) {
         this.opener = opener;
     }
 

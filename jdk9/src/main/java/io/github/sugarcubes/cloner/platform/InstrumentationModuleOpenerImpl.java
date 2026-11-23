@@ -23,7 +23,7 @@ import java.util.Set;
  * Opens packages to the cloner by {@link Instrumentation#redefineModule}, the supported way, available when the
  * cloner agent is loaded (see {@link io.github.sugarcubes.cloner.reflection.ClonerAgent}).
  */
-class InstrumentationModuleOpenerImpl extends AbstractModuleOpener {
+class InstrumentationModuleOpenerImpl extends ModuleOpener {
 
     private final Instrumentation instrumentation;
 
@@ -32,8 +32,8 @@ class InstrumentationModuleOpenerImpl extends AbstractModuleOpener {
     }
 
     @Override
-    protected void openModule(Module module, String packageName, Module thisModule) throws Exception {
-        Map<String, Set<Module>> extra = Map.of(packageName, Set.of(thisModule));
+    void openPackage(Module module, String packageName, Module cloner) {
+        Map<String, Set<Module>> extra = Map.of(packageName, Set.of(cloner));
         instrumentation.redefineModule(module, Set.of(), extra, extra, Set.of(), Map.of());
     }
 

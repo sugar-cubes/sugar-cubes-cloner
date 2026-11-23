@@ -45,13 +45,13 @@ class LowLevelAccess9 extends LowLevelAccess8 {
             // makes members accessible itself, opens nothing
             return new NarcissusReflection();
         }
-        return new ReflectionImpl9(typeOpener(opening, unsafe));
+        return new ReflectionImpl9(moduleOpener(opening, unsafe));
     }
 
-    private static TypeOpener typeOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
+    private static ModuleOpener moduleOpener(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
         switch (opening) {
             case NONE:
-                return TypeOpener.NOOP;
+                return ModuleOpener.NONE;
             case UNSAFE:
                 return new UnsafeModuleOpenerImpl(unsafe.get());
             case NARCISSUS:

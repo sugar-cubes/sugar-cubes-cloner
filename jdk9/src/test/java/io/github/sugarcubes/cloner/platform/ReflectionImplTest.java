@@ -26,13 +26,17 @@ import io.github.sugarcubes.cloner.spi.Reflection;
 
 class ReflectionImplTest {
 
-    static class RecordingOpener implements TypeOpener {
+    static class RecordingOpener extends ModuleOpener {
 
         final List<Class<?>> opened = new ArrayList<>();
 
         @Override
-        public void open(Class<?> type) {
+        void open(Class<?> type) {
             opened.add(type);
+        }
+
+        @Override
+        void openPackage(Module module, String packageName, Module cloner) {
         }
 
     }
