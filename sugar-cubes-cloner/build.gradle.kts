@@ -57,11 +57,10 @@ tasks.named<Jar>("jar") {
     from(project(":jdk8").sourceSets.main.get().output)
 
     into("META-INF/versions/9") {
-        from(project(":jdk9").sourceSets.main.get().output)
         from(project(":jdk9-module").sourceSets.main.get().output) {
-            // exclude placeholder
-            exclude("**/$$$.*")
+            include("module-info.class")
         }
+        from(project(":jdk9").sourceSets.main.get().output)
     }
 
     into("META-INF/versions/15") {
