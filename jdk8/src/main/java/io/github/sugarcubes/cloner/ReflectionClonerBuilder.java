@@ -126,7 +126,7 @@ public final class ReflectionClonerBuilder {
     /**
      * Whether copiers by fields are generated.
      */
-    private boolean generatedCopiers;
+    private boolean generatedCopiers = true;
 
     /**
      * Creates a builder.
@@ -391,8 +391,8 @@ public final class ReflectionClonerBuilder {
      * for the first time: a class with the private access of the copied class, which reads all fields and writes
      * non-final ones directly, bypassing the field access of the toolset; final fields are written by the toolset.
      * Generated classes are shared by cloners with the same field policies. Needs the ClassFile API (JDK 24+) or ASM on
-     * the classpath; classes which cannot get a generated copier (e.g. JDK classes without opened packages) are copied
-     * as usual. Disabled by default.
+     * the classpath; classes which cannot get a generated copier (e.g. JDK classes, whose class loader does not see the
+     * cloner) are copied as usual. Enabled by default.
      *
      * @param enabled whether copiers are generated
      * @return same builder instance

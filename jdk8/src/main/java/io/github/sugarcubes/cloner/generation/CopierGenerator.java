@@ -172,11 +172,28 @@ public final class CopierGenerator {
     }
 
     /**
+     * Tells whether the class loader resolves the super class of the generated classes to the one of the cloner.
+     */
+    private static boolean seesCloner(ClassLoader loader) {
+        try {
+            return loader != null && Class.forName(GeneratedFieldsCopier.class.getName(), false, loader)
+                == GeneratedFieldsCopier.class;
+        }
+        catch (ClassNotFoundException | LinkageError e) {
+            return false;
+        }
+    }
+
+    /**
      * Writes and defines the class of the template.
      *
      * @return constructor of the class, or empty if it cannot be defined
      */
     private Optional<MethodHandle> define(Class<?> type, CopierTemplate template) {
+        if (!seesCloner(type.getClassLoader())) {
+            // e.g. JDK classes: the generated class could not extend GeneratedFieldsCopier
+            return Optional.empty();
+        }
         try {
             byte[] bytes = template.write(backend, platform.nestmateClassVersion());
             return Optional.of(platform.defineNestmate(type, bytes, GeneratedFieldsCopier.class, CONSTRUCTOR));
