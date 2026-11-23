@@ -29,6 +29,6 @@ module io.github.sugarcubes.cloner {
     requires static jdk.unsupported;
 
     requires static io.github.toolfactory.narcissus;
-
+    requires static org.objectweb.asm;
 
 }
