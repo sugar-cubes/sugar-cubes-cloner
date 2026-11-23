@@ -113,6 +113,7 @@ tasks.withType<Javadoc> {
     exclude("io/github/sugarcubes/cloner/allocation/**")
     exclude("io/github/sugarcubes/cloner/engine/**")
     exclude("io/github/sugarcubes/cloner/fields/**")
+    exclude("io/github/sugarcubes/cloner/generation/**")
     exclude("io/github/sugarcubes/cloner/platform/**")
     exclude("io/github/sugarcubes/cloner/reflection/**")
     exclude("io/github/sugarcubes/cloner/unsafe/**")
