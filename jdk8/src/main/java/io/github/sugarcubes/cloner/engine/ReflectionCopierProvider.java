@@ -18,6 +18,7 @@ package io.github.sugarcubes.cloner.engine;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +33,10 @@ import io.github.sugarcubes.cloner.NoopCopier;
 import io.github.sugarcubes.cloner.NullCopier;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.Toolset;
+import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
 import io.github.sugarcubes.cloner.TypeCopier;
+import io.github.sugarcubes.cloner.generation.CopierGenerator;
+import io.github.sugarcubes.cloner.generation.GenerationTargets;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
@@ -83,7 +87,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     /**
      * Cache of reflection copiers.
      */
-    private final Map<Map.Entry<Class<?>, Boolean>, FieldsCopier<?>> fieldsCopiers = new ConcurrentHashMap<>();
+    private final Map<Map.Entry<Class<?>, Boolean>, TwoPhaseObjectCopier<?>> fieldsCopiers = new ConcurrentHashMap<>();
 
     /**
      * Constructor.
@@ -244,8 +248,8 @@ public class ReflectionCopierProvider implements CopierProvider {
      * Copier by fields created when first needed: making fields of JDK classes accessible needs opened packages.
      */
     @SuppressWarnings("unchecked")
-    private <T> Supplier<FieldsCopier<T>> lazyFieldsCopier(Class<?> type, boolean shallow) {
-        return new Lazy<>(() -> (FieldsCopier<T>) findFieldsCopier(type, shallow));
+    private <T> Supplier<TwoPhaseObjectCopier<T>> lazyFieldsCopier(Class<?> type, boolean shallow) {
+        return new Lazy<>(() -> (TwoPhaseObjectCopier<T>) findFieldsCopier(type, shallow));
     }
 
     /**
@@ -281,20 +285,39 @@ public class ReflectionCopierProvider implements CopierProvider {
     }
 
     /**
-     * Returns {@link FieldsCopier} instance for the type.
+     * Generates the copier of the fields declared by the type if the type is listed by {@link GenerationTargets}.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Optional<TwoPhaseObjectCopier<?>> generatedCopier(FieldsModel model, CopyPolicy<Field> policy,
+        TwoPhaseObjectCopier<?> parent) {
+        if (!GenerationTargets.isTarget(model.getType())) {
+            return Optional.empty();
+        }
+        TwoPhaseObjectCopier withFields = FieldsCopier.withFields(parent);
+        return CopierGenerator.instance().flatMap(generator -> (Optional) generator.generate(model, policy, withFields));
+    }
+
+    /**
+     * Returns the copier by fields of the type: generated if the type is listed by {@link GenerationTargets} and the
+     * copier can be generated, otherwise {@link FieldsCopier}.
      *
      * @param type object type
+     * @param shallow shallow mode
      * @return copier instance
      */
-    private FieldsCopier<?> findFieldsCopier(Class<?> type, boolean shallow) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private TwoPhaseObjectCopier<?> findFieldsCopier(Class<?> type, boolean shallow) {
         Map.Entry<Class<?>, Boolean> key = (Map.Entry) Collections.singletonMap(type, shallow).entrySet().iterator().next();
-        FieldsCopier<?> copier = fieldsCopiers.get(key);
+        TwoPhaseObjectCopier<?> copier = fieldsCopiers.get(key);
         if (copier == null) {
             Class<?> superType = type.getSuperclass();
-            FieldsCopier<?> parent = superType != null ? findFieldsCopier(superType, shallow) : null;
+            TwoPhaseObjectCopier<?> parent = superType != null ? findFieldsCopier(superType, shallow) : null;
             FieldsModel<?> model = new FieldsModel<>(type, toolset.getReflection(), toolset.getAllocatorFactory(),
                 toolset.getFieldAdapterFactory());
-            copier = new FieldsCopier<>(parent, model, fieldPolicy, shallow);
+            CopyPolicy<Field> policy = shallow ? CopyPolicy.compound(Arrays.asList(fieldPolicy, CopyPolicy.original()))
+                : fieldPolicy;
+            copier = generatedCopier(model, policy, parent)
+                .orElseGet(() -> new FieldsCopier<>(parent, model, fieldPolicy, shallow));
             fieldsCopiers.put(key, copier);
         }
         return copier;

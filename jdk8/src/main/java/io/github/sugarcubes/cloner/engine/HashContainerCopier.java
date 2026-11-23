@@ -42,7 +42,7 @@ public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
 
     private final ContainerCopier<T> rebuilding;
 
-    private final Supplier<FieldsCopier<T>> fields;
+    private final Supplier<TwoPhaseObjectCopier<T>> fields;
 
     private final ContainerModel<T> model;
 
@@ -55,7 +55,7 @@ public class HashContainerCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param model low-level model of the container
      * @param shallow shallow mode: keys are the original ones
      */
-    public HashContainerCopier(Supplier<FieldsCopier<T>> fields, ContainerModel<T> model, boolean shallow) {
+    public HashContainerCopier(Supplier<TwoPhaseObjectCopier<T>> fields, ContainerModel<T> model, boolean shallow) {
         this.rebuilding = new ContainerCopier<>(model, shallow);
         this.fields = fields;
         this.model = model;

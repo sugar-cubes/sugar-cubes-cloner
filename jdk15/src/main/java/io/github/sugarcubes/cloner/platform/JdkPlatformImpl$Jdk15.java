@@ -15,7 +15,10 @@
  */
 package io.github.sugarcubes.cloner.platform;
 
+import java.lang.invoke.MethodHandles;
+
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
+import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
  * {@link JdkPlatform} of JDK 15+: hidden classes, {@code jdk.internal.misc.Unsafe} with references.
@@ -28,6 +31,40 @@ class JdkPlatformImpl$Jdk15 extends JdkPlatformImpl$Jdk9 {
     public boolean isHidden(Class<?> type) {
         // lambda classes are hidden classes too
         return type.isHidden();
+    }
+
+    @Override
+    public boolean supportsHiddenClasses() {
+        return true;
+    }
+
+    @Override
+    public MethodHandles.Lookup defineNestmate(Class<?> host, byte[] bytes, Class<?> support) {
+        Module cloner = support.getModule();
+        if (!cloner.isExported(support.getPackageName(), host.getModule())) {
+            // the caller is in the module of the cloner, so it may export the package
+            cloner.addExports(support.getPackageName(), host.getModule());
+        }
+        return ClonerExceptionUtils.replaceException(
+            () -> fullAccess(host).defineHiddenClass(bytes, true, MethodHandles.Lookup.ClassOption.NESTMATE));
+    }
+
+    /**
+     * Lookup with full access to the host: a private one if the host is in the module of the cloner (both on the
+     * classpath), otherwise the trusted lookup if it is available.
+     */
+    private MethodHandles.Lookup fullAccess(Class<?> host) throws IllegalAccessException {
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(host, MethodHandles.lookup());
+        if (lookup.hasFullPrivilegeAccess()) {
+            return lookup;
+        }
+        try {
+            return trustedLookup().in(host);
+        }
+        catch (LinkageError e) {
+            throw new IllegalAccessException(String.format("No full access to %s: open java.base/java.lang.invoke to "
+                + "the cloner.", host.getName()));
+        }
     }
 
     @Override

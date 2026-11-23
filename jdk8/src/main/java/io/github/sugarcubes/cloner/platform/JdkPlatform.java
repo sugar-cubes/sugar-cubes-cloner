@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ModuleOpening;
+import io.github.sugarcubes.cloner.generation.BytecodeBackend;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
@@ -74,6 +75,33 @@ public interface JdkPlatform {
      * @throws LinkageError if the lookup cannot be read
      */
     MethodHandles.Lookup trustedLookup();
+
+    /**
+     * Tells whether the JDK defines hidden classes, JDK 15+.
+     *
+     * @return {@code true} if {@link #defineNestmate} works
+     */
+    boolean supportsHiddenClasses();
+
+    /**
+     * Defines a hidden class in the nest of the host class, so it can access private members of the host; the
+     * package of the support class (the super class of the hidden one) is exported to the module of the host if
+     * needed.
+     *
+     * @param host host class
+     * @param bytes class file of a class in the package of the host
+     * @param support class of the cloner the hidden class uses
+     * @return lookup of the hidden class with full access
+     * @throws io.github.sugarcubes.cloner.ClonerException if the class cannot be defined
+     */
+    MethodHandles.Lookup defineNestmate(Class<?> host, byte[] bytes, Class<?> support);
+
+    /**
+     * Returns the backend of the ClassFile API, JDK 24+.
+     *
+     * @return backend or empty on older JDKs
+     */
+    Optional<BytecodeBackend> classFileBackend();
 
     /**
      * Returns the factory of field adapters using {@code VarHandle}, JDK 9+.

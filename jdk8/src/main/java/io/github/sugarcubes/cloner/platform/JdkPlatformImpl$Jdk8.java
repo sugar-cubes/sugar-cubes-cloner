@@ -25,7 +25,9 @@ import java.util.Set;
 import java.util.Spliterators;
 import java.util.function.Supplier;
 
+import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.ModuleOpening;
+import io.github.sugarcubes.cloner.generation.BytecodeBackend;
 import io.github.sugarcubes.cloner.reflection.ReflectionImpl$Jdk8;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
@@ -193,6 +195,21 @@ class JdkPlatformImpl$Jdk8 implements JdkPlatform {
     public Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
         // no modules, nothing to open
         return new ReflectionImpl$Jdk8();
+    }
+
+    @Override
+    public boolean supportsHiddenClasses() {
+        return false;
+    }
+
+    @Override
+    public MethodHandles.Lookup defineNestmate(Class<?> host, byte[] bytes, Class<?> support) {
+        throw new ClonerException("Hidden classes need JDK 15+.");
+    }
+
+    @Override
+    public Optional<BytecodeBackend> classFileBackend() {
+        return Optional.empty();
     }
 
     @Override

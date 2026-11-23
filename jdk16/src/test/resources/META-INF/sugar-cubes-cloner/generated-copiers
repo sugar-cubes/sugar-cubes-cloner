@@ -1,0 +1,3 @@
+# copiers of the test model are generated
+io.github.sugarcubes.cloner.generated.model.**
+!io.github.sugarcubes.cloner.generated.model.NotGenerated

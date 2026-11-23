@@ -17,6 +17,7 @@ dependencies {
 
     testImplementation("org.jeasy:easy-random:5.0.0")
     testImplementation("org.jeasy:easy-random-core:5.0.0")
+    testImplementation("org.ow2.asm:asm:9.11.1")
 
 
 }

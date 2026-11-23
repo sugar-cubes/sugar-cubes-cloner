@@ -18,6 +18,7 @@ package io.github.sugarcubes.cloner.engine;
 import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ObjectCopier;
+import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
 
 /**
@@ -33,7 +34,7 @@ public class HashValuesCopier<T> extends ChoosingCopier<T> {
 
     private final ValuesCopier<T> values;
 
-    private final Supplier<FieldsCopier<T>> fields;
+    private final Supplier<TwoPhaseObjectCopier<T>> fields;
 
     private final ValuesModel<T> model;
 
@@ -46,7 +47,7 @@ public class HashValuesCopier<T> extends ChoosingCopier<T> {
      * @param fields copier of the collection fields, needed only for keys hashed by their state
      * @param shallow shallow mode: keys are the original ones
      */
-    public HashValuesCopier(ValuesModel<T> model, Supplier<FieldsCopier<T>> fields, boolean shallow) {
+    public HashValuesCopier(ValuesModel<T> model, Supplier<TwoPhaseObjectCopier<T>> fields, boolean shallow) {
         this.values = new ValuesCopier<>(model, shallow);
         this.fields = fields;
         this.model = model;

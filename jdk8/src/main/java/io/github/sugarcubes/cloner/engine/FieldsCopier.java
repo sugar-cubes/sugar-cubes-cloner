@@ -50,7 +50,7 @@ public class FieldsCopier<T> extends TwoPhaseObjectCopier<T> {
     /**
      * Copier of the super type, {@code null} if the super types have no fields to copy.
      */
-    private final FieldsCopier<? super T> parent;
+    private final TwoPhaseObjectCopier<? super T> parent;
 
     /**
      * Copying of the fields declared by the type.
@@ -66,18 +66,30 @@ public class FieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param shallow shallow mode: references are copied as is
      */
     @SuppressWarnings("unchecked")
-    public FieldsCopier(FieldsCopier<?> parent, FieldsModel<T> model, CopyPolicy<Field> policy, boolean shallow) {
+    public FieldsCopier(TwoPhaseObjectCopier<?> parent, FieldsModel<T> model, CopyPolicy<Field> policy, boolean shallow) {
         Class<T> type = model.getType();
         // abstract superclasses and classes without suitable allocator fail only if somebody tries to create them
         this.allocator = model.getAllocator().orElseGet(() -> () -> {
             throw new ClonerException(String.format("No instance allocator supports %s.", type.getName()));
         });
-        this.parent = (FieldsCopier<? super T>) (parent != null && parent.steps.length == 0 ? parent.parent : parent);
+        this.parent = (TwoPhaseObjectCopier<? super T>) withFields(parent);
         CopyPolicy<Field> fieldPolicy = shallow ? CopyPolicy.compound(policy, CopyPolicy.original()) : policy;
         this.steps = Arrays.stream(model.getFields())
             .map(field -> FieldStep.of(model, field, fieldPolicy.getAction(field)))
             .filter(Objects::nonNull)
             .toArray(FieldStep[]::new);
+    }
+
+    /**
+     * Skips a copier of a super type which has no fields to copy.
+     *
+     * @param parent copier of a super type or {@code null}
+     * @return the nearest copier which copies fields, or {@code null}
+     */
+    public static TwoPhaseObjectCopier<?> withFields(TwoPhaseObjectCopier<?> parent) {
+        return parent instanceof FieldsCopier && ((FieldsCopier<?>) parent).steps.length == 0
+            ? ((FieldsCopier<?>) parent).parent
+            : parent;
     }
 
     @Override
