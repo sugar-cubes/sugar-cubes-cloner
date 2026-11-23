@@ -34,7 +34,8 @@ public enum ModuleOpening {
     UNSAFE,
 
     /**
-     * Opens packages with the Narcissus library, which must be on the classpath.
+     * Narcissus library, which must be on the classpath: makes the members the cloner uses accessible directly (JNI),
+     * without opening packages or changing modules.
      * Narcissus loads a native library: since JDK 24 the JVM warns about it unless started with
      * {@code --enable-native-access=ALL-UNNAMED} (or the module of Narcissus), a future JDK will deny it.
      */

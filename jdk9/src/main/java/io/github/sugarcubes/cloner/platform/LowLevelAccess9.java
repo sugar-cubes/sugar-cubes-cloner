@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.ModuleOpening;
 import io.github.sugarcubes.cloner.reflection.ClonerAgent;
+import io.github.sugarcubes.cloner.reflection.NarcissusReflection;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.unsafe.UnsafeBridge;
@@ -37,6 +38,13 @@ class LowLevelAccess9 extends LowLevelAccess8 {
 
     @Override
     public Reflection reflection(ModuleOpening opening, Supplier<UnsafeBridge> unsafe) {
+        if (opening == ModuleOpening.NARCISSUS) {
+            if (!NarcissusUtils.isNarcissusAvailable()) {
+                throw new ClonerException("Narcissus is not available: put it on the classpath.");
+            }
+            // makes members accessible itself, opens nothing
+            return new NarcissusReflection();
+        }
         return new ReflectionImpl9(typeOpener(opening, unsafe));
     }
 
@@ -47,10 +55,8 @@ class LowLevelAccess9 extends LowLevelAccess8 {
             case UNSAFE:
                 return new UnsafeModuleOpenerImpl(unsafe.get());
             case NARCISSUS:
-                if (!NarcissusUtils.isNarcissusAvailable()) {
-                    throw new ClonerException("Narcissus is not available: put it on the classpath.");
-                }
-                return new NarcissusModuleOpenerImpl();
+                // see reflection()
+                throw Checks.mustNotHappen();
             case INSTRUMENTATION:
                 Instrumentation instrumentation = ClonerAgent.getInstrumentation();
                 if (instrumentation == null) {

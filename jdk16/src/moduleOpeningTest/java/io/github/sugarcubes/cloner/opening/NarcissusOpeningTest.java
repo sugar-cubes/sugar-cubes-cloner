@@ -24,7 +24,7 @@ import io.github.sugarcubes.cloner.ModuleOpening;
 import io.github.sugarcubes.cloner.Toolsets;
 
 /**
- * Module opening by Narcissus.
+ * Reflection on Narcissus: members are accessible, packages stay closed.
  */
 class NarcissusOpeningTest {
 
@@ -40,6 +40,8 @@ class NarcissusOpeningTest {
             .moduleOpening(ModuleOpening.NARCISSUS)
             .fieldAccess(FieldAccess.REFLECTION)
             .build());
+        // only the members became accessible
+        OpeningTesting.assertNoAddOpens();
     }
 
 }
