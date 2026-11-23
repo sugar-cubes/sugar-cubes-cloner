@@ -17,6 +17,7 @@ package io.github.sugarcubes.cloner.generation;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,17 +46,23 @@ public final class CopierGenerator {
     private static final Lazy<Optional<CopierGenerator>> INSTANCE = new Lazy<>(CopierGenerator::create);
 
     /**
-     * Constructors of the generated classes of a type by the signatures of their templates, empty if the class cannot
-     * be defined. Cloners share the classes: everything else a copier needs is passed to its constructor. The cache
-     * lives as long as the type and holds only the hidden classes in the nest of the type.
+     * Constructors of the generated classes of a type by the signatures of their templates, {@link #FAILED} if the
+     * class cannot be defined. Cloners share the classes: everything else a copier needs is passed to its
+     * constructor. A constructor is referenced weakly here and strongly by the copiers, so a class nobody uses any
+     * more is unloaded.
      */
-    private static final ClassValue<ConcurrentMap<String, Optional<MethodHandle>>> CONSTRUCTORS =
-        new ClassValue<ConcurrentMap<String, Optional<MethodHandle>>>() {
+    private static final ClassValue<ConcurrentMap<String, Object>> CONSTRUCTORS =
+        new ClassValue<ConcurrentMap<String, Object>>() {
             @Override
-            protected ConcurrentMap<String, Optional<MethodHandle>> computeValue(Class<?> type) {
+            protected ConcurrentMap<String, Object> computeValue(Class<?> type) {
                 return new ConcurrentHashMap<>();
             }
         };
+
+    /**
+     * Cached result of a class which cannot be defined.
+     */
+    private static final Object FAILED = new Object();
 
     /**
      * Type of the constructor of the generated classes.
@@ -121,8 +128,7 @@ public final class CopierGenerator {
             return Optional.empty();
         }
         Class<T> type = model.getType();
-        Optional<MethodHandle> constructor = CONSTRUCTORS.get(type)
-            .computeIfAbsent(template.signature(), signature -> define(type, template));
+        Optional<MethodHandle> constructor = constructor(type, template);
         if (!constructor.isPresent()) {
             return Optional.empty();
         }
@@ -130,8 +136,39 @@ public final class CopierGenerator {
             throw new ClonerException(String.format("No instance allocator supports %s.", type.getName()));
         });
         FieldAdapter[] adapters = template.adapters();
-        return Optional.of((TwoPhaseObjectCopier<T>) ClonerExceptionUtils.replaceException(
-            () -> constructor.get().invoke(allocator, parent, adapters)));
+        GeneratedFieldsCopier<T> copier = (GeneratedFieldsCopier<T>) ClonerExceptionUtils.replaceException(
+            () -> constructor.get().invoke(allocator, parent, adapters));
+        copier.keep(constructor.get());
+        return Optional.of(copier);
+    }
+
+    /**
+     * Returns the constructor of the class of the template from the cache, defines the class if needed.
+     *
+     * @return constructor, or empty if the class cannot be defined
+     */
+    @SuppressWarnings("unchecked")
+    private Optional<MethodHandle> constructor(Class<?> type, CopierTemplate template) {
+        ConcurrentMap<String, Object> constructors = CONSTRUCTORS.get(type);
+        while (true) {
+            // a constructor defined now is held here until a copier holds it
+            MethodHandle[] defined = new MethodHandle[1];
+            Object cached = constructors.compute(template.signature(), (signature, current) -> {
+                if (current == FAILED || current != null && ((WeakReference<?>) current).get() != null) {
+                    return current;
+                }
+                defined[0] = define(type, template).orElse(null);
+                return defined[0] != null ? new WeakReference<>(defined[0]) : FAILED;
+            });
+            if (cached == FAILED) {
+                return Optional.empty();
+            }
+            MethodHandle constructor = defined[0] != null ? defined[0] : ((WeakReference<MethodHandle>) cached).get();
+            if (constructor != null) {
+                return Optional.of(constructor);
+            }
+            // collected right after the lookup: define the class again
+        }
     }
 
     /**

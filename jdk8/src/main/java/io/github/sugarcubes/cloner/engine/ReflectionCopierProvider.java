@@ -36,7 +36,6 @@ import io.github.sugarcubes.cloner.Toolset;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
 import io.github.sugarcubes.cloner.TypeCopier;
 import io.github.sugarcubes.cloner.generation.CopierGenerator;
-import io.github.sugarcubes.cloner.generation.GenerationTargets;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
@@ -85,6 +84,11 @@ public class ReflectionCopierProvider implements CopierProvider {
     private final Set<Class<?>> shallows;
 
     /**
+     * Generator of copiers by fields, empty if they are not generated.
+     */
+    private final Optional<CopierGenerator> generator;
+
+    /**
      * Cache of reflection copiers.
      */
     private final Map<Map.Entry<Class<?>, Boolean>, TwoPhaseObjectCopier<?>> fieldsCopiers = new ConcurrentHashMap<>();
@@ -98,15 +102,18 @@ public class ReflectionCopierProvider implements CopierProvider {
      * @param fieldPolicy field policy
      * @param copiers predefined copiers
      * @param shallows shallow-mode types
+     * @param generatedCopiers whether copiers by fields are generated
      */
     public ReflectionCopierProvider(Toolset toolset, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
-        CopyPolicy<Field> fieldPolicy, Map<Class<?>, ObjectCopier<?>> copiers, Set<Class<?>> shallows) {
+        CopyPolicy<Field> fieldPolicy, Map<Class<?>, ObjectCopier<?>> copiers, Set<Class<?>> shallows,
+        boolean generatedCopiers) {
         this.toolset = toolset;
         this.objectPolicy = objectPolicy;
         this.typePolicy = typePolicy;
         this.fieldPolicy = fieldPolicy;
         this.copiers.putAll(copiers);
         this.shallows = shallows;
+        this.generator = generatedCopiers ? CopierGenerator.instance() : Optional.empty();
     }
 
     @Override
@@ -285,21 +292,18 @@ public class ReflectionCopierProvider implements CopierProvider {
     }
 
     /**
-     * Generates the copier of the fields declared by the type if the type is listed by {@link GenerationTargets}.
+     * Generates the copier of the fields declared by the type if copiers are generated.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Optional<TwoPhaseObjectCopier<?>> generatedCopier(FieldsModel model, CopyPolicy<Field> policy,
+    private Optional<TwoPhaseObjectCopier<?>> generatedCopier(FieldsModel model, CopyPolicy<Field> policy,
         TwoPhaseObjectCopier<?> parent) {
-        if (!GenerationTargets.isTarget(model.getType())) {
-            return Optional.empty();
-        }
         TwoPhaseObjectCopier withFields = FieldsCopier.withFields(parent);
-        return CopierGenerator.instance().flatMap(generator -> (Optional) generator.generate(model, policy, withFields));
+        return generator.flatMap(copierGenerator -> (Optional) copierGenerator.generate(model, policy, withFields));
     }
 
     /**
-     * Returns the copier by fields of the type: generated if the type is listed by {@link GenerationTargets} and the
-     * copier can be generated, otherwise {@link FieldsCopier}.
+     * Returns the copier by fields of the type: generated if copiers are generated and the copier of the type can be
+     * generated, otherwise {@link FieldsCopier}.
      *
      * @param type object type
      * @param shallow shallow mode

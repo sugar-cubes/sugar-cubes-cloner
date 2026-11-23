@@ -15,6 +15,7 @@
  */
 package io.github.sugarcubes.cloner.generated;
 
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,11 +30,11 @@ import io.github.sugarcubes.cloner.CloningMode;
 import io.github.sugarcubes.cloner.CopyAction;
 import io.github.sugarcubes.cloner.CopyPolicy;
 import io.github.sugarcubes.cloner.ObjectCopier;
+import io.github.sugarcubes.cloner.ReflectionClonerBuilder;
 import io.github.sugarcubes.cloner.Toolsets;
 import io.github.sugarcubes.cloner.engine.FieldsCopier;
 import io.github.sugarcubes.cloner.engine.ReflectionCopierProvider;
 import io.github.sugarcubes.cloner.generated.model.Node;
-import io.github.sugarcubes.cloner.generated.model.NotGenerated;
 import io.github.sugarcubes.cloner.generated.model.Sample;
 import io.github.sugarcubes.cloner.generation.CopierGenerator;
 import io.github.sugarcubes.cloner.generation.GeneratedFieldsCopier;
@@ -43,38 +44,46 @@ import io.github.sugarcubes.cloner.generation.GeneratedFieldsCopier;
  */
 class GeneratedCopierTest {
 
-    private static ObjectCopier<Object> copierOf(Object original) {
+    private static ObjectCopier<Object> copierOf(Object original, boolean generated) {
         ReflectionCopierProvider provider = new ReflectionCopierProvider(Toolsets.defaults(), null,
-            CopyPolicy.defaultPolicy(), CopyPolicy.defaultPolicy(), Collections.emptyMap(), Collections.emptySet());
+            CopyPolicy.defaultPolicy(), CopyPolicy.defaultPolicy(), Collections.emptyMap(), Collections.emptySet(),
+            generated);
         return provider.getCopier(original);
     }
 
+    private static ReflectionClonerBuilder generating() {
+        return Cloners.builder().generatedCopiers(true);
+    }
+
     @Test
-    void copiersOfListedClassesAreGenerated() {
+    void copiersAreGeneratedIfEnabled() {
         Assertions.assertTrue(CopierGenerator.instance().isPresent(), "ASM is on the test classpath");
 
-        ObjectCopier<Object> copier = copierOf(new Sample(1, null));
+        ObjectCopier<Object> copier = copierOf(new Sample(1, null), true);
 
         Assertions.assertInstanceOf(GeneratedFieldsCopier.class, copier);
         Assertions.assertTrue(copier.getClass().isHidden());
         Assertions.assertSame(Sample.class, copier.getClass().getNestHost());
-        Assertions.assertInstanceOf(FieldsCopier.class, copierOf(new NotGenerated()));
+        Assertions.assertInstanceOf(FieldsCopier.class, copierOf(new Sample(1, null), false));
     }
 
     @Test
     void clonersShareGeneratedClasses() {
         Sample original = new Sample(1, null);
-        Class<?> generated = copierOf(original).getClass();
+        // a living copier keeps its class in the shared cache
+        ObjectCopier<Object> copier = copierOf(original, true);
+        Class<?> generated = copier.getClass();
         ReflectionCopierProvider skippingText = new ReflectionCopierProvider(Toolsets.defaults(), null,
             CopyPolicy.defaultPolicy(), field -> field.getName().equals("text") ? CopyAction.SKIP : CopyAction.DEFAULT,
-            Collections.emptyMap(), Collections.emptySet());
+            Collections.emptyMap(), Collections.emptySet(), true);
 
         Class<?> another = skippingText.getCopier(original).getClass();
 
         // another cloner with the same policies gets the same class, another policy gets another one
-        Assertions.assertSame(generated, copierOf(original).getClass());
+        Assertions.assertSame(generated, copierOf(original, true).getClass());
         Assertions.assertNotSame(generated, another);
         Assertions.assertTrue(another.isHidden());
+        Assertions.assertNotNull(copier);
     }
 
     @ParameterizedTest
@@ -86,7 +95,7 @@ class GeneratedCopierTest {
         partner.partner = original;
         original.samples = new Sample[] {partner, original};
 
-        Sample clone = Cloners.builder().mode(mode).build().clone(original);
+        Sample clone = generating().mode(mode).build().clone(original);
 
         Assertions.assertNotSame(original, clone);
         Assertions.assertTrue(clone.z);
@@ -125,7 +134,7 @@ class GeneratedCopierTest {
         new Node(root, "a");
         new Node(root, "b");
 
-        Node clone = Cloners.builder().mode(mode).build().clone(root);
+        Node clone = generating().mode(mode).build().clone(root);
 
         Assertions.assertEquals(2, clone.getChildren().size());
         for (Node child : clone.getChildren()) {
@@ -138,7 +147,7 @@ class GeneratedCopierTest {
     void fieldPolicies() {
         Sample original = new Sample(1, null);
         original.partner = new Sample(2, null);
-        Cloner cloner = Cloners.builder()
+        Cloner cloner = generating()
             .fieldAction(Sample.class, "text", CopyAction.SKIP)
             .fieldAction(Sample.class, "any", CopyAction.NULL)
             .fieldAction(Sample.class, "partner", CopyAction.ORIGINAL)
@@ -158,12 +167,26 @@ class GeneratedCopierTest {
     void shallowCopy() {
         Sample original = new Sample(1, null);
 
-        Sample clone = Cloners.builder().shallow(Sample.class).build().clone(original);
+        Sample clone = generating().shallow(Sample.class).build().clone(original);
 
         Assertions.assertNotSame(original, clone);
         Assertions.assertSame(original.any, clone.any);
         Assertions.assertSame(original.getFinalList(), clone.getFinalList());
         Assertions.assertSame(original, clone.self);
+    }
+
+    @Test
+    void unusedClassesAreUnloaded() throws InterruptedException {
+        WeakReference<Class<?>> generated = new WeakReference<>(copierOf(new Sample(1, null), true).getClass());
+
+        // no cloner holds a copier: the shared cache does not keep the class
+        for (int i = 0; i < 50 && generated.get() != null; i++) {
+            System.gc();
+            Thread.sleep(20);
+        }
+
+        Assertions.assertNull(generated.get());
+        Assertions.assertInstanceOf(GeneratedFieldsCopier.class, copierOf(new Sample(1, null), true));
     }
 
 }

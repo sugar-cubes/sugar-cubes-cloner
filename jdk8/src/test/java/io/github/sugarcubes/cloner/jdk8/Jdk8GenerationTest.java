@@ -41,7 +41,8 @@ class Jdk8GenerationTest {
     void copierIsGenerated() {
         Assertions.assertTrue(CopierGenerator.instance().isPresent());
         ReflectionCopierProvider provider = new ReflectionCopierProvider(Toolsets.defaults(), null,
-            CopyPolicy.defaultPolicy(), CopyPolicy.defaultPolicy(), Collections.emptyMap(), Collections.emptySet());
+            CopyPolicy.defaultPolicy(), CopyPolicy.defaultPolicy(), Collections.emptyMap(), Collections.emptySet(),
+            true);
 
         ObjectCopier<Account> copier = provider.getCopier(new Account(1, 2, null));
 
@@ -57,7 +58,7 @@ class Jdk8GenerationTest {
         account.setLinked(parent);
         parent.setLinked(account);
 
-        Account clone = Cloners.builder().mode(mode).build().clone(account);
+        Account clone = Cloners.builder().generatedCopiers(true).mode(mode).build().clone(account);
 
         Assertions.assertNotSame(account, clone);
         Assertions.assertEquals(2, clone.getNumber());

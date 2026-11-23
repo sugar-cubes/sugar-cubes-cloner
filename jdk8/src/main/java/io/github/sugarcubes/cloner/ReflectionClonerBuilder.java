@@ -124,6 +124,11 @@ public final class ReflectionClonerBuilder {
     private final Set<Class<?>> shallows = new HashSet<>();
 
     /**
+     * Whether copiers by fields are generated.
+     */
+    private boolean generatedCopiers;
+
+    /**
      * Creates a builder.
      */
     public ReflectionClonerBuilder() {
@@ -382,6 +387,22 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
+     * Enables or disables generated copiers. A class copied by its fields gets a generated copier when it is copied
+     * for the first time: a class with the private access of the copied class, which reads all fields and writes
+     * non-final ones directly, bypassing the field access of the toolset; final fields are written by the toolset.
+     * Generated classes are shared by cloners with the same field policies. Needs the ClassFile API (JDK 24+) or ASM on
+     * the classpath; classes which cannot get a generated copier (e.g. JDK classes without opened packages) are copied
+     * as usual. Disabled by default.
+     *
+     * @param enabled whether copiers are generated
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder generatedCopiers(boolean enabled) {
+        this.generatedCopiers = enabled;
+        return this;
+    }
+
+    /**
      * Registers type to be copied in shallow mode, i.e. field values won't be cloned.
      *
      * @param type type
@@ -475,8 +496,8 @@ public final class ReflectionClonerBuilder {
 
         Toolset toolset = this.toolset != null ? this.toolset : Toolsets.defaults();
 
-        ReflectionCopierProvider provider =
-            new ReflectionCopierProvider(toolset, objectPolicy, typePolicy, fieldPolicy, copiers, shallows);
+        ReflectionCopierProvider provider = new ReflectionCopierProvider(toolset, objectPolicy, typePolicy,
+            fieldPolicy, copiers, shallows, generatedCopiers);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;

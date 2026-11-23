@@ -41,6 +41,11 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
     private final FieldAdapter[] adapters;
 
     /**
+     * Constructor of the generated class: while a copier lives, the shared cache keeps the class.
+     */
+    private Object constructor;
+
+    /**
      * Creates the copier.
      *
      * @param allocator object allocator of the type
@@ -52,6 +57,15 @@ public abstract class GeneratedFieldsCopier<T> extends TwoPhaseObjectCopier<T> {
         this.allocator = allocator;
         this.parent = parent;
         this.adapters = adapters;
+    }
+
+    /**
+     * Keeps the constructor of the generated class alive, see {@link CopierGenerator}.
+     *
+     * @param constructor constructor of the generated class
+     */
+    void keep(Object constructor) {
+        this.constructor = constructor;
     }
 
     @Override

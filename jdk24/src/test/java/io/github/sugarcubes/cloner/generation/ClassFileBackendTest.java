@@ -52,7 +52,7 @@ class ClassFileBackendTest {
         owner.setNext(item);
         item.setNext(owner);
 
-        Item clone = Cloners.clone(item);
+        Item clone = Cloners.builder().generatedCopiers(true).build().clone(item);
 
         Assertions.assertEquals(2, clone.getId());
         Assertions.assertEquals("item", clone.getName());
