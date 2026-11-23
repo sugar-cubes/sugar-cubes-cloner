@@ -61,6 +61,22 @@ class GeneratedCopierTest {
         Assertions.assertInstanceOf(FieldsCopier.class, copierOf(new NotGenerated()));
     }
 
+    @Test
+    void clonersShareGeneratedClasses() {
+        Sample original = new Sample(1, null);
+        Class<?> generated = copierOf(original).getClass();
+        ReflectionCopierProvider skippingText = new ReflectionCopierProvider(Toolsets.defaults(), null,
+            CopyPolicy.defaultPolicy(), field -> field.getName().equals("text") ? CopyAction.SKIP : CopyAction.DEFAULT,
+            Collections.emptyMap(), Collections.emptySet());
+
+        Class<?> another = skippingText.getCopier(original).getClass();
+
+        // another cloner with the same policies gets the same class, another policy gets another one
+        Assertions.assertSame(generated, copierOf(original).getClass());
+        Assertions.assertNotSame(generated, another);
+        Assertions.assertTrue(another.isHidden());
+    }
+
     @ParameterizedTest
     @EnumSource(CloningMode.class)
     void allKindsOfFields(CloningMode mode) {

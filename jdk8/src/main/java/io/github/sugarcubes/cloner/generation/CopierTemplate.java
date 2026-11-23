@@ -71,6 +71,11 @@ final class CopierTemplate {
     private final List<FieldPlan> holes = new ArrayList<>();
 
     /**
+     * Actions of the declared fields in their order, the class file depends on nothing else of the type.
+     */
+    private final StringBuilder signature = new StringBuilder();
+
+    /**
      * Plans the copying of the fields declared by the type.
      *
      * @param model fields model of the type
@@ -81,6 +86,7 @@ final class CopierTemplate {
         this.owner = Descriptors.internalName(type);
         for (Field field : model.getFields()) {
             CopyAction action = policy.getAction(field);
+            signature.append(action.name().charAt(0));
             if (action == CopyAction.SKIP) {
                 continue;
             }
@@ -99,6 +105,15 @@ final class CopierTemplate {
             }
             fields.add(plan);
         }
+    }
+
+    /**
+     * Returns the actions of the declared fields: copiers of the type with the same signature are the same class.
+     *
+     * @return one letter of the action per field
+     */
+    String signature() {
+        return signature.toString();
     }
 
     /**

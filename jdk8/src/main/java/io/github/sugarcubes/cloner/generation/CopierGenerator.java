@@ -20,6 +20,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyPolicy;
@@ -41,6 +43,19 @@ import io.github.sugarcubes.cloner.util.Lazy;
 public final class CopierGenerator {
 
     private static final Lazy<Optional<CopierGenerator>> INSTANCE = new Lazy<>(CopierGenerator::create);
+
+    /**
+     * Constructors of the generated classes of a type by the signatures of their templates, empty if the class cannot
+     * be defined. Cloners share the classes: everything else a copier needs is passed to its constructor. The cache
+     * lives as long as the type and holds only the hidden classes in the nest of the type.
+     */
+    private static final ClassValue<ConcurrentMap<String, Optional<MethodHandle>>> CONSTRUCTORS =
+        new ClassValue<ConcurrentMap<String, Optional<MethodHandle>>>() {
+            @Override
+            protected ConcurrentMap<String, Optional<MethodHandle>> computeValue(Class<?> type) {
+                return new ConcurrentHashMap<>();
+            }
+        };
 
     /**
      * Type of the constructor of the generated classes.
@@ -106,16 +121,29 @@ public final class CopierGenerator {
             return Optional.empty();
         }
         Class<T> type = model.getType();
+        Optional<MethodHandle> constructor = CONSTRUCTORS.get(type)
+            .computeIfAbsent(template.signature(), signature -> define(type, template));
+        if (!constructor.isPresent()) {
+            return Optional.empty();
+        }
         InstanceAllocator<T> allocator = model.getAllocator().orElseGet(() -> () -> {
             throw new ClonerException(String.format("No instance allocator supports %s.", type.getName()));
         });
+        FieldAdapter[] adapters = template.adapters();
+        return Optional.of((TwoPhaseObjectCopier<T>) ClonerExceptionUtils.replaceException(
+            () -> constructor.get().invoke(allocator, parent, adapters)));
+    }
+
+    /**
+     * Writes and defines the class of the template.
+     *
+     * @return constructor of the class, or empty if it cannot be defined
+     */
+    private Optional<MethodHandle> define(Class<?> type, CopierTemplate template) {
         try {
             MethodHandles.Lookup lookup = platform.defineNestmate(type, template.write(backend),
                 GeneratedFieldsCopier.class);
-            MethodHandle constructor = lookup.findConstructor(lookup.lookupClass(), CONSTRUCTOR);
-            FieldAdapter[] adapters = template.adapters();
-            return Optional.of((TwoPhaseObjectCopier<T>) ClonerExceptionUtils.replaceException(
-                () -> constructor.invoke(allocator, parent, adapters)));
+            return Optional.of(lookup.findConstructor(lookup.lookupClass(), CONSTRUCTOR));
         }
         catch (ClonerException | LinkageError | ReflectiveOperationException e) {
             return Optional.empty();
