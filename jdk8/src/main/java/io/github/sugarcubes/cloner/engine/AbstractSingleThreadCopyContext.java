@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner.engine;
 
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Context which is used by single thread.
@@ -42,6 +43,21 @@ public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContex
     @Override
     CloneSlot newSlot(Object original) {
         return new SingleThreadCloneSlot(original);
+    }
+
+    /**
+     * Nobody else can complete a slot which is not ready: the current thread works on it up the stack or it waits
+     * for such a slot, so it is a reference cycle.
+     */
+    @Override
+    boolean await(CloneSlot slot, Object original, Predicate<CloneSlot> ready) {
+        if (ready.test(slot)) {
+            return true;
+        }
+        if (slot.isFailed()) {
+            throw failed(original);
+        }
+        return slot.isClaimable();
     }
 
     @Override

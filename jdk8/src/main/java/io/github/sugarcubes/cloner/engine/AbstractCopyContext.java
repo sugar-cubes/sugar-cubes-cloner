@@ -15,16 +15,10 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -37,18 +31,13 @@ import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
  * Abstract copy context. Contains common code for the context implementations.
  *
  * <p>Every original object gets a {@link CloneSlot} which tracks whether its clone is created and completed and
- * which thread works on it. A second phase which meets an object being created right now subscribes to its clone
- * instead of waiting. A thread which has to wait for something which in turn waits for this thread (through busy
- * threads, holes and waiting threads) has found a reference cycle which cannot be copied.</p>
+ * whether somebody works on it. A second phase which meets an object being created right now subscribes to its clone
+ * instead of waiting. Waiting for a slot is up to the context: in a single thread a slot which is not ready is a
+ * reference cycle which cannot be copied, the parallel context waits for other threads.</p>
  *
  * @author Maxim Butov
  */
 public abstract class AbstractCopyContext implements CopyContext {
-
-    /**
-     * Maximal time of a single wait, after which the waiting thread checks for a reference cycle again.
-     */
-    private static final long CYCLE_CHECK_INTERVAL_MILLIS = 100;
 
     /**
      * Copier provider.
@@ -65,11 +54,6 @@ public abstract class AbstractCopyContext implements CopyContext {
      * allocated for every copied object.
      */
     private final Function<Object, CloneSlot> slotFactory = this::newSlot;
-
-    /**
-     * Slots which threads are waiting for, created on the first wait.
-     */
-    private Map<Thread, CloneSlot> waits;
 
     /**
      * Tasks invoked when the whole graph is copied, created on the first task.
@@ -340,67 +324,22 @@ public abstract class AbstractCopyContext implements CopyContext {
     /**
      * Waits until the slot is ready or its second phase can be claimed.
      *
+     * @param slot slot
+     * @param original original object of the slot
+     * @param ready readiness of the slot
      * @return {@code false} if waiting would never end because of a reference cycle
+     * @throws InterruptedException if the waiting thread is interrupted
      */
-    private boolean await(CloneSlot slot, Object original, Predicate<CloneSlot> ready) throws InterruptedException {
-        Thread current = Thread.currentThread();
-        Map<Thread, CloneSlot> waits = waits();
-        waits.put(current, slot);
-        try {
-            while (!ready.test(slot)) {
-                if (slot.isFailed()) {
-                    throw new ClonerException(String.format("Copying of %s failed.", describe(original)));
-                }
-                if (slot.isClaimable()) {
-                    return true;
-                }
-                if (dependsOn(slot, current, waits)) {
-                    return false;
-                }
-                slot.awaitChange(ready, CYCLE_CHECK_INTERVAL_MILLIS);
-            }
-            return true;
-        }
-        finally {
-            waits.remove(current);
-        }
-    }
-
-    private synchronized Map<Thread, CloneSlot> waits() {
-        if (waits == null) {
-            waits = new ConcurrentHashMap<>();
-        }
-        return waits;
-    }
+    abstract boolean await(CloneSlot slot, Object original, Predicate<CloneSlot> ready) throws InterruptedException;
 
     /**
-     * Tells whether the slot waits, directly or transitively, for the given thread: through the thread busy with a
-     * slot, the holes of a slot and the slot a thread waits for.
+     * Exception for an original whose copying has failed in another place.
+     *
+     * @param original original object
+     * @return exception
      */
-    private static boolean dependsOn(CloneSlot start, Thread thread, Map<Thread, CloneSlot> waits) {
-        Set<CloneSlot> visited = Collections.newSetFromMap(new IdentityHashMap<>());
-        Deque<CloneSlot> pending = new ArrayDeque<>();
-        pending.push(start);
-        while (!pending.isEmpty()) {
-            CloneSlot slot = pending.pop();
-            if (!visited.add(slot)) {
-                continue;
-            }
-            Thread busy = slot.getBusyThread();
-            if (busy == thread) {
-                return true;
-            }
-            if (busy != null) {
-                CloneSlot awaited = waits.get(busy);
-                if (awaited != null) {
-                    pending.push(awaited);
-                }
-            }
-            for (CloneSlot blocker : slot.getBlockers()) {
-                pending.push(blocker);
-            }
-        }
-        return false;
+    static ClonerException failed(Object original) {
+        return new ClonerException(String.format("Copying of %s failed.", describe(original)));
     }
 
     private static ClonerException cycle(Object original) {
@@ -409,7 +348,7 @@ public abstract class AbstractCopyContext implements CopyContext {
             + "(records, Copyable, custom single-phase copiers) do not support such cycles.", describe(original)));
     }
 
-    private static String describe(Object original) {
+    static String describe(Object original) {
         return String.format("%s@%x", original.getClass().getName(), System.identityHashCode(original));
     }
 

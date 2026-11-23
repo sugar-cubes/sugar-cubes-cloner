@@ -15,13 +15,20 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 
 /**
  * Copy context for parallel copying.
@@ -49,6 +56,16 @@ public class ParallelCopyContext extends AbstractCopyContext {
      * Slot whose second phase the thread is running.
      */
     private final ThreadLocal<CloneSlot> owner = new ThreadLocal<>();
+
+    /**
+     * Maximal time of a single wait, after which the waiting thread checks for a reference cycle again.
+     */
+    private static final long CYCLE_CHECK_INTERVAL_MILLIS = 100;
+
+    /**
+     * Slots which threads are waiting for, created on the first wait.
+     */
+    private Map<Thread, CloneSlot> waits;
 
     /**
      * Creates an instance.
@@ -114,6 +131,72 @@ public class ParallelCopyContext extends AbstractCopyContext {
         for (Future<?> future; (future = futures.poll()) != null; ) {
             future.cancel(false);
         }
+    }
+
+    /**
+     * Waits for other threads; a thread which has to wait for something which in turn waits for this thread (through
+     * busy threads, holes and waiting threads) has found a reference cycle which cannot be copied.
+     */
+    @Override
+    boolean await(CloneSlot slot, Object original, Predicate<CloneSlot> ready) throws InterruptedException {
+        Thread current = Thread.currentThread();
+        Map<Thread, CloneSlot> waits = waits();
+        waits.put(current, slot);
+        try {
+            while (!ready.test(slot)) {
+                if (slot.isFailed()) {
+                    throw failed(original);
+                }
+                if (slot.isClaimable()) {
+                    return true;
+                }
+                if (dependsOn(slot, current, waits)) {
+                    return false;
+                }
+                slot.awaitChange(ready, CYCLE_CHECK_INTERVAL_MILLIS);
+            }
+            return true;
+        }
+        finally {
+            waits.remove(current);
+        }
+    }
+
+    private synchronized Map<Thread, CloneSlot> waits() {
+        if (waits == null) {
+            waits = new ConcurrentHashMap<>();
+        }
+        return waits;
+    }
+
+    /**
+     * Tells whether the slot waits, directly or transitively, for the given thread: through the thread busy with a
+     * slot, the holes of a slot and the slot a thread waits for.
+     */
+    private static boolean dependsOn(CloneSlot start, Thread thread, Map<Thread, CloneSlot> waits) {
+        Set<CloneSlot> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+        Deque<CloneSlot> pending = new ArrayDeque<>();
+        pending.push(start);
+        while (!pending.isEmpty()) {
+            CloneSlot slot = pending.pop();
+            if (!visited.add(slot)) {
+                continue;
+            }
+            Thread busy = slot.getBusyThread();
+            if (busy == thread) {
+                return true;
+            }
+            if (busy != null) {
+                CloneSlot awaited = waits.get(busy);
+                if (awaited != null) {
+                    pending.push(awaited);
+                }
+            }
+            for (CloneSlot blocker : slot.getBlockers()) {
+                pending.push(blocker);
+            }
+        }
+        return false;
     }
 
 }
