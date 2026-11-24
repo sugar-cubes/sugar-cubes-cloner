@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner.generated;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -64,6 +65,10 @@ class GeneratedCopierTest {
         Assertions.assertInstanceOf(GeneratedFieldsCopier.class, copier);
         Assertions.assertTrue(copier.getClass().isHidden());
         Assertions.assertSame(Sample.class, copier.getClass().getNestHost());
+        // finalInt and finalLong are written by setters from the class data, finalList and finalPartner get clones
+        Assertions.assertEquals(2, Arrays.stream(copier.getClass().getDeclaredFields())
+            .filter(field -> field.getName().startsWith("$setter"))
+            .count());
         Assertions.assertInstanceOf(FieldsCopier.class, copierOf(new Sample(1, null), false));
     }
 

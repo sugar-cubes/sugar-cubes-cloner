@@ -21,6 +21,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 
 /**
@@ -32,7 +33,7 @@ import org.objectweb.asm.Opcodes;
 public final class AsmBytecodeBackend implements BytecodeBackend {
 
     @Override
-    public byte[] write(int version, String name, String superName, List<MethodSpec> methods) {
+    public byte[] write(int version, String name, String superName, List<FieldSpec> fields, List<MethodSpec> methods) {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
             @Override
             protected String getCommonSuperClass(String type1, String type2) {
@@ -42,6 +43,9 @@ public final class AsmBytecodeBackend implements BytecodeBackend {
         };
         writer.visit(version, Opcodes.ACC_FINAL | Opcodes.ACC_SUPER | Opcodes.ACC_SYNTHETIC, name, null,
             superName, null);
+        for (FieldSpec field : fields) {
+            writer.visitField(field.getAccess(), field.getName(), field.getDescriptor(), null, null).visitEnd();
+        }
         for (MethodSpec method : methods) {
             MethodVisitor visitor = writer.visitMethod(method.getAccess(), method.getName(), method.getDescriptor(), null,
                 null);
@@ -123,6 +127,31 @@ public final class AsmBytecodeBackend implements BytecodeBackend {
         @Override
         public void putField(String owner, String name, String descriptor) {
             visitor.visitFieldInsn(Opcodes.PUTFIELD, owner, name, descriptor);
+        }
+
+        @Override
+        public void loadString(String value) {
+            visitor.visitLdcInsn(value);
+        }
+
+        @Override
+        public void loadClass(String type) {
+            visitor.visitLdcInsn(Type.getObjectType(type));
+        }
+
+        @Override
+        public void getStatic(String owner, String name, String descriptor) {
+            visitor.visitFieldInsn(Opcodes.GETSTATIC, owner, name, descriptor);
+        }
+
+        @Override
+        public void putStatic(String owner, String name, String descriptor) {
+            visitor.visitFieldInsn(Opcodes.PUTSTATIC, owner, name, descriptor);
+        }
+
+        @Override
+        public void invokeStatic(String owner, String name, String descriptor) {
+            visitor.visitMethodInsn(Opcodes.INVOKESTATIC, owner, name, descriptor, false);
         }
 
         @Override

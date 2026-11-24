@@ -16,9 +16,15 @@
 package io.github.sugarcubes.cloner.generation;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -31,6 +37,7 @@ import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
+import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.util.ClassUtils;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.Lazy;
@@ -64,6 +71,12 @@ public final class CopierGenerator {
      * Cached result of a class which cannot be defined.
      */
     private static final Object FAILED = new Object();
+
+    /**
+     * Reflection which makes fields accessible for their setters.
+     */
+    private static final Lazy<Reflection> REFLECTION = new Lazy<>(
+        () -> JdkPlatform.current().lowLevelAccess().reflection());
 
     /**
      * Type of the constructor of the generated classes.
@@ -124,7 +137,7 @@ public final class CopierGenerator {
     @SuppressWarnings("unchecked")
     public <T> Optional<TwoPhaseObjectCopier<T>> generate(FieldsModel<T> model, CopyPolicy<Field> policy,
         TwoPhaseObjectCopier<? super T> parent) {
-        CopierTemplate template = new CopierTemplate(model, policy);
+        CopierTemplate template = new CopierTemplate(model, policy, definer.supportsClassData() && finalsAccessible(model));
         if (template.isEmpty()) {
             return Optional.empty();
         }
@@ -186,6 +199,16 @@ public final class CopierGenerator {
     }
 
     /**
+     * Tells whether the final fields declared by the type can be made accessible, so their setters can be created.
+     */
+    private static boolean finalsAccessible(FieldsModel<?> model) {
+        Reflection reflection = REFLECTION.get();
+        return Arrays.stream(model.getFields())
+            .filter(field -> Modifier.isFinal(field.getModifiers()))
+            .allMatch(field -> reflection.tryMakeAccessible(field).isPresent());
+    }
+
+    /**
      * Writes and defines the class of the template.
      *
      * @return constructor of the class, or empty if it cannot be defined
@@ -196,10 +219,15 @@ public final class CopierGenerator {
             return Optional.empty();
         }
         try {
+            List<MethodHandle> setters = new ArrayList<>();
+            for (Field field : template.setterFields()) {
+                setters.add(MethodHandles.lookup().unreflectSetter(field));
+            }
             byte[] bytes = template.write(backend, definer.classVersion());
-            return Optional.of(definer.defineNestmate(type, bytes, GeneratedFieldsCopier.class, CONSTRUCTOR));
+            return Optional.of(definer.defineNestmate(type, bytes, GeneratedFieldsCopier.class, CONSTRUCTOR,
+                setters.isEmpty() ? null : Collections.unmodifiableList(setters)));
         }
-        catch (ClonerException | LinkageError e) {
+        catch (ClonerException | LinkageError | IllegalAccessException e) {
             return Optional.empty();
         }
     }

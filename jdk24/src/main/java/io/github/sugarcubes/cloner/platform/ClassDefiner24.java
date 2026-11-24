@@ -24,7 +24,7 @@ import io.github.sugarcubes.cloner.generation.BytecodeBackend;
  *
  * @author Maxim Butov
  */
-class ClassDefiner24 extends ClassDefiner15 {
+class ClassDefiner24 extends ClassDefiner16 {
 
     @Override
     public Optional<BytecodeBackend> classFileBackend() {

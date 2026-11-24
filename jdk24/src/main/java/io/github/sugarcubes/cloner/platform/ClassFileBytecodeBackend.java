@@ -29,6 +29,7 @@ import java.util.List;
 import io.github.sugarcubes.cloner.generation.BytecodeBackend;
 import io.github.sugarcubes.cloner.generation.CodeEmitter;
 import io.github.sugarcubes.cloner.generation.CodeLabel;
+import io.github.sugarcubes.cloner.generation.FieldSpec;
 import io.github.sugarcubes.cloner.generation.MethodSpec;
 
 /**
@@ -50,11 +51,14 @@ final class ClassFileBytecodeBackend implements BytecodeBackend {
     }
 
     @Override
-    public byte[] write(int version, String name, String superName, List<MethodSpec> methods) {
+    public byte[] write(int version, String name, String superName, List<FieldSpec> fields, List<MethodSpec> methods) {
         return CLASS_FILE.build(ClassDesc.ofInternalName(name), builder -> {
             builder.withVersion(version, 0);
             builder.withFlags(ClassFile.ACC_FINAL | ClassFile.ACC_SUPER | ClassFile.ACC_SYNTHETIC);
             builder.withSuperclass(ClassDesc.ofInternalName(superName));
+            for (FieldSpec field : fields) {
+                builder.withField(field.getName(), ClassDesc.ofDescriptor(field.getDescriptor()), field.getAccess());
+            }
             for (MethodSpec method : methods) {
                 builder.withMethodBody(method.getName(), MethodTypeDesc.ofDescriptor(method.getDescriptor()),
                     method.getAccess(), code -> method.emit(new Emitter(code)));
@@ -112,6 +116,31 @@ final class ClassFileBytecodeBackend implements BytecodeBackend {
         @Override
         public void putField(String owner, String name, String descriptor) {
             code.putfield(ClassDesc.ofInternalName(owner), name, ClassDesc.ofDescriptor(descriptor));
+        }
+
+        @Override
+        public void loadString(String value) {
+            code.loadConstant(value);
+        }
+
+        @Override
+        public void loadClass(String type) {
+            code.loadConstant(ClassDesc.ofInternalName(type));
+        }
+
+        @Override
+        public void getStatic(String owner, String name, String descriptor) {
+            code.getstatic(ClassDesc.ofInternalName(owner), name, ClassDesc.ofDescriptor(descriptor));
+        }
+
+        @Override
+        public void putStatic(String owner, String name, String descriptor) {
+            code.putstatic(ClassDesc.ofInternalName(owner), name, ClassDesc.ofDescriptor(descriptor));
+        }
+
+        @Override
+        public void invokeStatic(String owner, String name, String descriptor) {
+            code.invokestatic(ClassDesc.ofInternalName(owner), name, MethodTypeDesc.ofDescriptor(descriptor));
         }
 
         @Override

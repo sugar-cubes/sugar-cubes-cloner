@@ -20,11 +20,13 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Optional;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.generation.BytecodeBackend;
 import io.github.sugarcubes.cloner.unsafe.SunMiscUnsafeBridge;
+import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.Lazy;
 
@@ -64,11 +66,18 @@ class ClassDefiner8 implements ClassDefiner {
         return ANONYMOUS_CLASS_VERSION;
     }
 
+    @Override
+    public boolean supportsClassData() {
+        return false;
+    }
+
     /**
      * Defines an anonymous class of {@code sun.misc.Unsafe}, which has the access of its host class; JDK 8-16.
      */
     @Override
-    public MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor) {
+    public MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor,
+        List<?> classData) {
+        Checks.illegalArg(classData != null, "Class data needs JDK 16+.");
         Method define = DEFINE_ANONYMOUS_CLASS.get()
             .orElseThrow(() -> new ClonerException("Unsafe.defineAnonymousClass() is not available."));
         return ClonerExceptionUtils.replaceException(() -> {

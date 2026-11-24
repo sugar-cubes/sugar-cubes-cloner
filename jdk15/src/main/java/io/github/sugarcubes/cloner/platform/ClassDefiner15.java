@@ -18,9 +18,11 @@ package io.github.sugarcubes.cloner.platform;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.List;
 import java.util.Optional;
 
 import io.github.sugarcubes.cloner.generation.BytecodeBackend;
+import io.github.sugarcubes.cloner.util.Checks;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
@@ -42,21 +44,41 @@ class ClassDefiner15 implements ClassDefiner {
         return JAVA_15_CLASS_VERSION;
     }
 
+    @Override
+    public boolean supportsClassData() {
+        return false;
+    }
+
     /**
      * Defines a hidden class in the nest of the host.
      */
     @Override
-    public MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor) {
+    public MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor,
+        List<?> classData) {
         Module cloner = support.getModule();
         if (!cloner.isExported(support.getPackageName(), host.getModule())) {
             // the caller is in the module of the cloner, so it may export the package
             cloner.addExports(support.getPackageName(), host.getModule());
         }
         return ClonerExceptionUtils.replaceException(() -> {
-            MethodHandles.Lookup lookup = fullAccess(host)
-                .defineHiddenClass(bytes, true, MethodHandles.Lookup.ClassOption.NESTMATE);
+            MethodHandles.Lookup lookup = defineHidden(fullAccess(host), bytes, classData);
             return lookup.findConstructor(lookup.lookupClass(), constructor);
         });
+    }
+
+    /**
+     * Defines the hidden class in the nest of the lookup class.
+     *
+     * @param host lookup with full access to the host
+     * @param bytes class file
+     * @param classData class data or {@code null}
+     * @return lookup of the hidden class
+     * @throws IllegalAccessException if the class cannot be defined
+     */
+    MethodHandles.Lookup defineHidden(MethodHandles.Lookup host, byte[] bytes, List<?> classData)
+        throws IllegalAccessException {
+        Checks.illegalArg(classData != null, "Class data needs JDK 16+.");
+        return host.defineHiddenClass(bytes, true, MethodHandles.Lookup.ClassOption.NESTMATE);
     }
 
     /**

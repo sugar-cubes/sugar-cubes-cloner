@@ -15,6 +15,7 @@
  */
 package io.github.sugarcubes.cloner.generation;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -53,6 +54,19 @@ final class CopierTemplate {
 
     private static final String SET_FINAL = "setFinal";
 
+    private static final String METHOD_HANDLE = "java/lang/invoke/MethodHandle";
+
+    private static final String METHOD_HANDLE_DESCRIPTOR = Descriptors.descriptor(MethodHandle.class);
+
+    private static final String METHOD_HANDLES = "java/lang/invoke/MethodHandles";
+
+    private static final String SETTER = "$setter";
+
+    /**
+     * Synthetic access flag, not in {@link Modifier}.
+     */
+    private static final int SYNTHETIC = 0x1000;
+
     private static final int ORIGINAL = 1;
     private static final int CLONE = 2;
     private static final int CONTEXT = 3;
@@ -71,6 +85,11 @@ final class CopierTemplate {
     private final List<FieldPlan> holes = new ArrayList<>();
 
     /**
+     * Final fields written by setters: method handles in static final fields, read from the class data.
+     */
+    private final List<Field> setters = new ArrayList<>();
+
+    /**
      * Actions of the declared fields in their order, the class file depends on nothing else of the type.
      */
     private final StringBuilder signature = new StringBuilder();
@@ -80,8 +99,10 @@ final class CopierTemplate {
      *
      * @param model fields model of the type
      * @param policy field policy
+     * @param finalSetters whether final fields with values known at once are written by method handles from the class
+     *     data instead of field adapters
      */
-    CopierTemplate(FieldsModel<?> model, CopyPolicy<Field> policy) {
+    CopierTemplate(FieldsModel<?> model, CopyPolicy<Field> policy, boolean finalSetters) {
         this.type = model.getType();
         this.owner = Descriptors.internalName(type);
         for (Field field : model.getFields()) {
@@ -93,7 +114,11 @@ final class CopierTemplate {
             Checks.illegalArg(action == CopyAction.NULL && field.getType().isPrimitive(),
                 "Cannot apply action NULL for primitive field %s.", field);
             FieldPlan plan = new FieldPlan(field, action);
-            if (plan.isFinal) {
+            if (plan.isFinal && finalSetters && !plan.isHole()) {
+                plan.setter = setters.size();
+                setters.add(field);
+            }
+            else if (plan.isFinal) {
                 plan.index = adapters.size();
                 adapters.add(model.adapter(field).orElseThrow(() -> new ClonerException(String.format("Cannot "
                     + "access field %s: open its package to the cloner with --add-opens JVM option or use a toolset "
@@ -105,6 +130,16 @@ final class CopierTemplate {
             }
             fields.add(plan);
         }
+        signature.append(finalSetters ? '+' : '-');
+    }
+
+    /**
+     * Returns the final fields written by setters, in the order of the class data.
+     *
+     * @return fields
+     */
+    List<Field> setterFields() {
+        return setters;
     }
 
     /**
@@ -153,12 +188,38 @@ final class CopierTemplate {
     byte[] write(BytecodeBackend backend, int version) {
         String copyFields = Descriptors.method(void.class, Object.class, Object.class, CopyContext.class);
         String setField = Descriptors.method(void.class, int.class, Object.class, Object.class);
-        List<MethodSpec> methods = Arrays.asList(
+        List<MethodSpec> methods = new ArrayList<>(Arrays.asList(
             new MethodSpec(Modifier.PUBLIC, CONSTRUCTOR, constructorDescriptor(), this::constructor),
             new MethodSpec(Modifier.PROTECTED, "copyFields", copyFields, this::copyFields),
             new MethodSpec(Modifier.PROTECTED, "setField", setField, this::setField)
-        );
-        return backend.write(version, className(), SUPER, methods);
+        ));
+        List<FieldSpec> staticFields = new ArrayList<>();
+        for (int i = 0; i < setters.size(); i++) {
+            staticFields.add(new FieldSpec(Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL | SYNTHETIC, SETTER + i,
+                METHOD_HANDLE_DESCRIPTOR));
+        }
+        if (!setters.isEmpty()) {
+            methods.add(new MethodSpec(Modifier.STATIC, "<clinit>", "()V", this::staticInitializer));
+        }
+        return backend.write(version, className(), SUPER, staticFields, methods);
+    }
+
+    /**
+     * {@code $setter<i> = MethodHandles.classDataAt(MethodHandles.lookup(), "_", MethodHandle.class, i)}.
+     */
+    private void staticInitializer(CodeEmitter code) {
+        String classDataAt = "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/Class;I)"
+            + "Ljava/lang/Object;";
+        for (int i = 0; i < setters.size(); i++) {
+            code.invokeStatic(METHOD_HANDLES, "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;");
+            code.loadString("_");
+            code.loadClass(METHOD_HANDLE);
+            code.pushInt(i);
+            code.invokeStatic(METHOD_HANDLES, "classDataAt", classDataAt);
+            code.checkCast(METHOD_HANDLE);
+            code.putStatic(className(), SETTER + i, METHOD_HANDLE_DESCRIPTOR);
+        }
+        code.returnVoid();
     }
 
     /**
@@ -216,9 +277,22 @@ final class CopierTemplate {
     }
 
     /**
-     * Final field: written by the adapter with the given index.
+     * Final field: written by its setter, {@code $setter<i>.invokeExact((Type) clone, value)}, or by the adapter with
+     * the given index.
      */
     private void copyFinal(CodeEmitter code, FieldPlan field) {
+        if (field.setter >= 0) {
+            code.getStatic(className(), SETTER + field.setter, METHOD_HANDLE_DESCRIPTOR);
+            loadTyped(code, CLONE);
+            if (field.action == CopyAction.NULL) {
+                code.pushNull();
+            }
+            else {
+                readOriginal(code, field);
+            }
+            code.invokeVirtual(METHOD_HANDLE, "invokeExact", Descriptors.method(void.class, type, field.field.getType()));
+            return;
+        }
         code.loadReference(0);
         if (field.isHole()) {
             code.loadReference(CONTEXT);
@@ -300,6 +374,11 @@ final class CopierTemplate {
          * Index of the adapter of a final field or of the hole of a non-final one.
          */
         int index;
+
+        /**
+         * Index of the setter of a final field, {@code -1} if it is written by an adapter.
+         */
+        int setter = -1;
 
         FieldPlan(Field field, CopyAction action) {
             this.field = field;

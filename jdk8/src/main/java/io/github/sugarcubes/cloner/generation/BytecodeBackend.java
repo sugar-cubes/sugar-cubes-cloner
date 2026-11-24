@@ -30,9 +30,10 @@ public interface BytecodeBackend {
      * @param version class file version
      * @param name internal name of the class
      * @param superName internal name of the super class
+     * @param fields fields
      * @param methods methods
      * @return class file
      */
-    byte[] write(int version, String name, String superName, List<MethodSpec> methods);
+    byte[] write(int version, String name, String superName, List<FieldSpec> fields, List<MethodSpec> methods);
 
 }

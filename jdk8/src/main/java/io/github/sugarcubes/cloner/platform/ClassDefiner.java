@@ -17,6 +17,7 @@ package io.github.sugarcubes.cloner.platform;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
+import java.util.List;
 import java.util.Optional;
 
 import io.github.sugarcubes.cloner.generation.BytecodeBackend;
@@ -44,6 +45,14 @@ public interface ClassDefiner {
     int classVersion();
 
     /**
+     * Tells whether a defined class gets class data, which its initializer reads with
+     * {@code MethodHandles.classDataAt}, JDK 16+.
+     *
+     * @return {@code true} if class data is supported
+     */
+    boolean supportsClassData();
+
+    /**
      * Defines a class with the private access of the host class; the package of the support class (the super class
      * of the defined one) is exported to the module of the host if needed.
      *
@@ -51,10 +60,12 @@ public interface ClassDefiner {
      * @param bytes class file of a class in the package of the host
      * @param support class of the cloner the defined class uses
      * @param constructor type of the constructor of the defined class
+     * @param classData class data of the defined class, {@code null} if none; needs {@link #supportsClassData()}
      * @return the constructor
      * @throws io.github.sugarcubes.cloner.ClonerException if the class cannot be defined
      */
-    MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor);
+    MethodHandle defineNestmate(Class<?> host, byte[] bytes, Class<?> support, MethodType constructor,
+        List<?> classData);
 
     /**
      * Returns the backend of the ClassFile API, JDK 24+.

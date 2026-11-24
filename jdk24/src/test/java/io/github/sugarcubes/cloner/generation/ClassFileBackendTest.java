@@ -70,7 +70,7 @@ class ClassFileBackendTest {
         Toolset toolset = Toolsets.defaults();
         FieldsModel<Item> model = new FieldsModel<>(Item.class, toolset.getReflection(),
             toolset.getAllocatorFactory(), toolset.getFieldAdapterFactory());
-        CopierTemplate template = new CopierTemplate(model, CopyPolicy.defaultPolicy());
+        CopierTemplate template = new CopierTemplate(model, CopyPolicy.defaultPolicy(), false);
         Item original = new Item(3, "original", 3.5, null);
 
         for (BytecodeBackend backend : new BytecodeBackend[] {new AsmBytecodeBackend(),
@@ -78,7 +78,7 @@ class ClassFileBackendTest {
             MethodType constructor = MethodType.methodType(void.class, InstanceAllocator.class,
                 TwoPhaseObjectCopier.class, FieldAdapter[].class);
             TwoPhaseObjectCopier<Item> copier = (TwoPhaseObjectCopier<Item>) JdkPlatform.current()
-                .classDefiner().defineNestmate(Item.class, template.write(backend, 59), GeneratedFieldsCopier.class, constructor)
+                .classDefiner().defineNestmate(Item.class, template.write(backend, 59), GeneratedFieldsCopier.class, constructor, null)
                 .invoke(model.getAllocator().orElseThrow(), null, template.adapters());
 
             Item clone = Cloners.builder().copier(Item.class, copier).build().clone(original);

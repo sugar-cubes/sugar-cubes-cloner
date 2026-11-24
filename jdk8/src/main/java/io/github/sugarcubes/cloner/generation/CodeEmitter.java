@@ -75,6 +75,47 @@ public interface CodeEmitter {
     void putField(String owner, String name, String descriptor);
 
     /**
+     * Pushes a string constant.
+     *
+     * @param value value
+     */
+    void loadString(String value);
+
+    /**
+     * Pushes a class constant.
+     *
+     * @param type internal name of a class
+     */
+    void loadClass(String type);
+
+    /**
+     * Pushes the value of a static field.
+     *
+     * @param owner internal name of the class declaring the field
+     * @param name field name
+     * @param descriptor field descriptor
+     */
+    void getStatic(String owner, String name, String descriptor);
+
+    /**
+     * Sets a static field to the value on the stack.
+     *
+     * @param owner internal name of the class declaring the field
+     * @param name field name
+     * @param descriptor field descriptor
+     */
+    void putStatic(String owner, String name, String descriptor);
+
+    /**
+     * Invokes a static method of a class.
+     *
+     * @param owner internal name of the class declaring the method
+     * @param name method name
+     * @param descriptor method descriptor
+     */
+    void invokeStatic(String owner, String name, String descriptor);
+
+    /**
      * Invokes a constructor or a private or super method.
      *
      * @param owner internal name of the class declaring the method
