@@ -29,13 +29,24 @@ public final class Toolsets {
      * packages are opened by the cloner agent, {@code Unsafe} or Narcissus, whichever is available. Since JDK 24 the JVM
      * warns when {@code Unsafe} accesses a field for the first time. {@link Toolset#toString()} tells the choice.
      *
-     * <p>The fixed choice of {@code Toolsets.builder().build()} does not depend on the JVM: reflection with
-     * {@code Unsafe} only for fields which reflection cannot access, no module opening.</p>
+     * <p>{@link #conservative()} is the fixed choice which does not depend on the JVM.</p>
      *
      * @return default toolset
      */
     public static Toolset defaults() {
         return ToolsetDetection.builder().build();
+    }
+
+    /**
+     * Conservative toolset, the same for every JVM: reflection, with {@code Unsafe} only for fields which reflection
+     * cannot access (packages not opened to the cloner); instances are created without constructors by
+     * {@code sun.reflect.ReflectionFactory}, or by {@code Unsafe} if the runtime has no {@code jdk.unsupported} module,
+     * constructors are the last fallback; packages are not opened. The same as {@code Toolsets.builder().build()}.
+     *
+     * @return conservative toolset
+     */
+    public static Toolset conservative() {
+        return builder().build();
     }
 
     /**

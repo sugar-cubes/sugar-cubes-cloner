@@ -46,9 +46,9 @@ import io.github.sugarcubes.cloner.util.NarcissusUtils;
  * which is not available fails the build with an explanation. Custom implementations of the {@code spi} interfaces may
  * be set instead.
  *
- * <p>Not set mechanisms are fixed, they do not depend on the JVM as {@link Toolsets#defaults()} does: no module
- * opening, {@link Allocation#REFLECTION_FACTORY} as instance allocator with constructors as fallback, reflection field
- * access with {@code Unsafe} for fields which reflection cannot access.</p>
+ * <p>Not set mechanisms are those of {@link Toolsets#conservative()}, they do not depend on the JVM as
+ * {@link Toolsets#defaults()} does: no module opening, {@link Allocation#REFLECTION_FACTORY} as instance allocator with
+ * constructors as fallback, reflection field access with {@code Unsafe} for fields which reflection cannot access.</p>
  *
  * <p>Instance allocators create objects without calling constructors, as {@link Object#clone()} does. Constructors
  * may have side effects (registration, counters, validation) which a clone should not repeat, so allocators calling

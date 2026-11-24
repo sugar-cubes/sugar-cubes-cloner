@@ -56,6 +56,11 @@ class ToolsetsTest {
     }
 
     @Test
+    void conservativeIsBuilderDefaults() {
+        Assertions.assertEquals(Toolsets.builder().build().toString(), Toolsets.conservative().toString());
+    }
+
+    @Test
     void builderDefaultsDoNotDependOnJvm() throws Exception {
         Toolset toolset = Toolsets.builder().build();
 
