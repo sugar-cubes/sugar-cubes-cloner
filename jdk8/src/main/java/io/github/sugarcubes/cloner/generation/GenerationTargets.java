@@ -30,9 +30,10 @@ import java.util.WeakHashMap;
 import io.github.sugarcubes.cloner.ClonerException;
 
 /**
- * Classes whose copiers are generated, listed by masks (see {@link ClassNameFilter}) in the resources
- * {@value #RESOURCE} of all jars visible to the class loader of a class: a project lists its own classes and classes
- * of libraries, a library may list its own classes.
+ * Classes which get copy constructors (see {@link CopyConstructors}) from the build tools of the cloner, listed by
+ * masks (see {@link ClassNameFilter}) in the resource {@value #RESOURCE}: a project lists its own classes, the build
+ * tools read the resource of the project; at runtime {@link #isTarget(Class)} combines the resources of all jars
+ * visible to the class loader of a class.
  *
  * <p>The resource is a text file in UTF-8, one mask per line, {@code #} starts a comment:</p>
  * <pre>
@@ -48,7 +49,7 @@ public final class GenerationTargets {
     /**
      * Name of the resources with the masks.
      */
-    public static final String RESOURCE = "META-INF/sugar-cubes-cloner/generated-copiers";
+    public static final String RESOURCE = "META-INF/sugar-cubes-cloner/copy-constructors";
 
     /**
      * Filters of the class loaders, read once.
@@ -59,7 +60,7 @@ public final class GenerationTargets {
     }
 
     /**
-     * Tells whether the copier of the class is to be generated. Classes of the bootstrap class loader (JDK) never are.
+     * Tells whether the class is listed to get a copy constructor. Classes of the bootstrap class loader (JDK) never are.
      *
      * @param type class
      * @return {@code true} if the class matches the masks of its class loader
@@ -89,7 +90,14 @@ public final class GenerationTargets {
         return masks.isEmpty() ? ClassNameFilter.NONE : ClassNameFilter.of(masks);
     }
 
-    private static List<String> parse(URL resource) throws IOException {
+    /**
+     * Reads the masks of a resource.
+     *
+     * @param resource resource
+     * @return masks, without comments and empty lines
+     * @throws IOException if the resource cannot be read
+     */
+    public static List<String> parse(URL resource) throws IOException {
         List<String> masks = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream(),
             StandardCharsets.UTF_8))) {

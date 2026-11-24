@@ -43,7 +43,7 @@ import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 import io.github.sugarcubes.cloner.util.Lazy;
 
 /**
- * Generates copiers of classes listed by {@link GenerationTargets}: a class with the private access of the copied
+ * Generates copiers of classes copied by their fields: a class with the private access of the copied
  * class (an anonymous class of {@code sun.misc.Unsafe} on JDK 8-14, a hidden class in its nest on JDK 15+), written by
  * the ClassFile API on JDK 24+ or by ASM if it is on the classpath.
  *

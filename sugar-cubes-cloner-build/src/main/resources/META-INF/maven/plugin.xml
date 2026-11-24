@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <name>Sugar Cubes Cloner build tools</name>
+  <description>Adds copy constructors to the classes listed in META-INF/sugar-cubes-cloner/copy-constructors</description>
+  <groupId>io.github.sugar-cubes</groupId>
+  <artifactId>sugar-cubes-cloner-build</artifactId>
+  <version>@version@</version>
+  <goalPrefix>sugar-cubes-cloner</goalPrefix>
+  <isolatedRealm>false</isolatedRealm>
+  <inheritedByDefault>true</inheritedByDefault>
+  <mojos>
+    <mojo>
+      <goal>enhance</goal>
+      <description>Adds copy constructors to the compiled main classes.</description>
+      <requiresDependencyResolution>compile</requiresDependencyResolution>
+      <requiresProject>true</requiresProject>
+      <phase>process-classes</phase>
+      <implementation>io.github.sugarcubes.cloner.tools.maven.EnhanceMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>true</threadSafe>
+      <parameters>
+        <parameter>
+          <name>classesDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Directory of the compiled classes.</description>
+        </parameter>
+        <parameter>
+          <name>classpathElements</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>Classpath of the compilation.</description>
+        </parameter>
+        <parameter>
+          <name>skip</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Skips the goal.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <classesDirectory implementation="java.io.File" default-value="${project.build.outputDirectory}"/>
+        <classpathElements implementation="java.util.List" default-value="${project.compileClasspathElements}"/>
+        <skip implementation="boolean" default-value="false">${sugarcubes.cloner.skip}</skip>
+      </configuration>
+    </mojo>
+    <mojo>
+      <goal>enhance-test</goal>
+      <description>Adds copy constructors to the compiled test classes.</description>
+      <requiresDependencyResolution>test</requiresDependencyResolution>
+      <requiresProject>true</requiresProject>
+      <phase>process-test-classes</phase>
+      <implementation>io.github.sugarcubes.cloner.tools.maven.EnhanceMojo</implementation>
+      <language>java</language>
+      <instantiationStrategy>per-lookup</instantiationStrategy>
+      <executionStrategy>once-per-session</executionStrategy>
+      <threadSafe>true</threadSafe>
+      <parameters>
+        <parameter>
+          <name>classesDirectory</name>
+          <type>java.io.File</type>
+          <required>true</required>
+          <editable>true</editable>
+          <description>Directory of the compiled test classes.</description>
+        </parameter>
+        <parameter>
+          <name>classpathElements</name>
+          <type>java.util.List</type>
+          <required>true</required>
+          <editable>false</editable>
+          <description>Classpath of the test compilation.</description>
+        </parameter>
+        <parameter>
+          <name>skip</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Skips the goal.</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <classesDirectory implementation="java.io.File" default-value="${project.build.testOutputDirectory}"/>
+        <classpathElements implementation="java.util.List" default-value="${project.testClasspathElements}"/>
+        <skip implementation="boolean" default-value="false">${sugarcubes.cloner.skip}</skip>
+      </configuration>
+    </mojo>
+  </mojos>
+  <dependencies/>
+</plugin>
