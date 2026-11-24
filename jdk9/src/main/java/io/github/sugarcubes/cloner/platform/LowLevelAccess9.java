@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.ModuleOpening;
-import io.github.sugarcubes.cloner.reflection.ClonerAgent;
+import io.github.sugarcubes.cloner.agent.ClonerAgent;
 import io.github.sugarcubes.cloner.reflection.NarcissusReflection;
 import io.github.sugarcubes.cloner.spi.FieldAdapterFactory;
 import io.github.sugarcubes.cloner.spi.Reflection;

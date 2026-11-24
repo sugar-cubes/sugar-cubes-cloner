@@ -21,7 +21,7 @@ import java.util.Set;
 
 /**
  * Opens packages to the cloner by {@link Instrumentation#redefineModule}, the supported way, available when the
- * cloner agent is loaded (see {@link io.github.sugarcubes.cloner.reflection.ClonerAgent}).
+ * cloner agent is loaded (see {@link io.github.sugarcubes.cloner.agent.ClonerAgent}).
  */
 class InstrumentationModuleOpenerImpl extends ModuleOpener {
 
