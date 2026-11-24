@@ -27,6 +27,7 @@ import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
 import io.github.sugarcubes.cloner.UncopyableObjectException;
+import io.github.sugarcubes.cloner.spi.FieldAdapter;
 
 /**
  * Abstract copy context. Contains common code for the context implementations.
@@ -39,6 +40,12 @@ import io.github.sugarcubes.cloner.UncopyableObjectException;
  * @author Maxim Butov
  */
 public abstract class AbstractCopyContext implements CopyContext {
+
+    /**
+     * Depth of nested copy constructors after which objects created by copy constructors are created later, as the
+     * second phases of two-phase copiers are: a long chain of such objects would overflow the stack.
+     */
+    private static final int MAX_CONSTRUCTION_DEPTH = 64;
 
     /**
      * Copier provider.
@@ -96,6 +103,24 @@ public abstract class AbstractCopyContext implements CopyContext {
      */
     abstract void setOwner(CloneSlot owner);
 
+    /**
+     * Returns the depth of nested copy constructors run by the current thread, a mutable holder.
+     *
+     * @return holder of the depth
+     */
+    abstract int[] constructionDepth();
+
+    /**
+     * Returns the adapter of a field, for the holes left by copy constructors.
+     *
+     * @param declaringClass class declaring the field
+     * @param field name of the field
+     * @return field adapter
+     */
+    FieldAdapter fieldAdapter(Class<?> declaringClass, String field) {
+        return copierProvider.fieldAdapter(declaringClass, field);
+    }
+
     @Override
     public <T> T register(T clone) {
         throw new ClonerException("Registration must be called from copy() method.");
@@ -138,6 +163,11 @@ public abstract class AbstractCopyContext implements CopyContext {
         if (existing != null) {
             return existing;
         }
+        if (copier instanceof ConstructorCopier && constructionDepth()[0] >= MAX_CONSTRUCTION_DEPTH) {
+            // created later, the caller subscribes to the clone
+            thenInvoke(() -> copy(original));
+            return PENDING;
+        }
         return slot.start() ? create(original, copier, slot) : PENDING;
     }
 
@@ -153,14 +183,31 @@ public abstract class AbstractCopyContext implements CopyContext {
             setter.set((T) clone);
             return;
         }
+        clone = subscribePending(original, (CloneSetter<Object>) setter);
+        if (clone != null) {
+            setter.set((T) clone);
+        }
+    }
+
+    /**
+     * Subscribes the owner slot to the clone of the object after {@link #copyNow(Object)} has returned
+     * {@link #PENDING} for it. If the clone has been created meanwhile (by another thread), returns it and does not
+     * call the setter.
+     *
+     * @param original original object
+     * @param setter setter of the clone
+     * @return the clone if it already exists, otherwise {@code null}
+     */
+    Object subscribePending(Object original, CloneSetter<Object> setter) {
         CloneSlot owner = getOwner();
         CloneSlot slot = clones.get(original);
         owner.addHole(slot);
-        clone = slot.subscribe(new CloneSlot.Subscription(owner, (CloneSetter<Object>) setter));
+        Object clone = slot.subscribe(new CloneSlot.Subscription(owner, setter));
         if (clone != null) {
-            setter.set((T) clone);
+            // the owner's second phase runs in the current thread, it is not completed by this
             owner.holeFilled(slot);
         }
+        return clone;
     }
 
     @Override
@@ -215,6 +262,9 @@ public abstract class AbstractCopyContext implements CopyContext {
      */
     private <T> T create(T original, ObjectCopier<T> copier, CloneSlot slot) throws Exception {
         try {
+            if (copier instanceof ConstructorCopier) {
+                return createByConstructor(original, (ConstructorCopier<T>) copier, slot);
+            }
             return copier instanceof TwoPhaseObjectCopier
                 ? createTwoPhase(original, (TwoPhaseObjectCopier<T>) copier, slot)
                 : createSinglePhase(original, copier, slot);
@@ -230,6 +280,33 @@ public abstract class AbstractCopyContext implements CopyContext {
         notifySubscriptions(slot, clone, slot.created(clone, (TwoPhaseObjectCopier<Object>) copier));
         thenInvoke(() -> runSecondPhase(slot, original));
         return clone;
+    }
+
+    /**
+     * Creates the clone by its copy constructor, which registers the clone and copies the fields: it is the second
+     * phase of the clone, holes of reference cycles are filled later.
+     */
+    private <T> T createByConstructor(T original, ConstructorCopier<T> copier, CloneSlot slot) throws Exception {
+        CloneSlot owner = getOwner();
+        setOwner(slot);
+        int[] depth = constructionDepth();
+        depth[0]++;
+        try {
+            RegistrationContext registration = new RegistrationContext(this, original, slot);
+            T clone = checkClone(original, copier.construct(original, registration));
+            registration.check(clone);
+            registration.subscribeHoles();
+            slot.secondPhaseDone();
+            return clone;
+        }
+        catch (UncopyableObjectException e) {
+            e.addHolder(original.getClass());
+            throw e;
+        }
+        finally {
+            depth[0]--;
+            setOwner(owner);
+        }
     }
 
     private <T> T createSinglePhase(T original, ObjectCopier<T> copier, CloneSlot slot) throws Exception {

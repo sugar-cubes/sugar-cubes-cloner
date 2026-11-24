@@ -15,10 +15,13 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
+import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.util.ClonerExceptionUtils;
 
 /**
@@ -42,6 +45,27 @@ public final class RegistrationContext implements CopyContext {
      * Copying state of the original.
      */
     private final CloneSlot slot;
+
+    /**
+     * Holes of a copy constructor, created on the first hole.
+     */
+    private List<Hole> holes;
+
+    /**
+     * Field of a copy constructor waiting for the clone of its value.
+     */
+    private static final class Hole {
+
+        final Object value;
+
+        final CloneSetter<Object> setter;
+
+        Hole(Object value, CloneSetter<Object> setter) {
+            this.value = value;
+            this.setter = setter;
+        }
+
+    }
 
     /**
      * Creates registration context wrapper.
@@ -77,6 +101,41 @@ public final class RegistrationContext implements CopyContext {
     @Override
     public <T> T copy(T original) throws Exception {
         return context.copy(original);
+    }
+
+    /**
+     * Remembers a hole of the copy constructor which has got {@link CopyContext#PENDING} for a field value: the field
+     * is written when the clone of the value is ready, after the constructor has returned (the constructor writes
+     * {@code null} to it).
+     *
+     * @param value original value of the field
+     * @param target clone holding the field
+     * @param declaringClass class declaring the field
+     * @param field name of the field
+     */
+    public void subscribeField(Object value, Object target, Class<?> declaringClass, String field) {
+        FieldAdapter adapter = context.fieldAdapter(declaringClass, field);
+        if (holes == null) {
+            holes = new ArrayList<>();
+        }
+        holes.add(new Hole(value, clone -> adapter.setObject(target, clone)));
+    }
+
+    /**
+     * Subscribes the holes remembered by the copy constructor, after it has returned.
+     *
+     * @throws Exception if a field cannot be written
+     */
+    void subscribeHoles() throws Exception {
+        if (holes == null) {
+            return;
+        }
+        for (Hole hole : holes) {
+            Object clone = context.subscribePending(hole.value, hole.setter);
+            if (clone != null) {
+                hole.setter.set(clone);
+            }
+        }
     }
 
     @Override

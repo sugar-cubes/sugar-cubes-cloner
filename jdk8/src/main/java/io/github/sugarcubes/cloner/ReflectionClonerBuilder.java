@@ -129,6 +129,11 @@ public final class ReflectionClonerBuilder {
     private boolean generatedCopiers = true;
 
     /**
+     * Whether copy constructors added by the build tools are used.
+     */
+    private boolean copyConstructors = true;
+
+    /**
      * Creates a builder.
      */
     public ReflectionClonerBuilder() {
@@ -403,6 +408,18 @@ public final class ReflectionClonerBuilder {
     }
 
     /**
+     * Enables or disables copy constructors which the build tools of the cloner add to classes (enabled by default).
+     * A class is cloned by its copy constructor if it has one and the field policy copies all its fields by default.
+     *
+     * @param enabled whether copy constructors are used
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder copyConstructors(boolean enabled) {
+        this.copyConstructors = enabled;
+        return this;
+    }
+
+    /**
      * Registers type to be copied in shallow mode, i.e. field values won't be cloned.
      *
      * @param type type
@@ -497,7 +514,7 @@ public final class ReflectionClonerBuilder {
         Toolset toolset = this.toolset != null ? this.toolset : Toolsets.defaults();
 
         ReflectionCopierProvider provider = new ReflectionCopierProvider(toolset, objectPolicy, typePolicy,
-            fieldPolicy, copiers, shallows, generatedCopiers);
+            fieldPolicy, copiers, shallows, generatedCopiers, copyConstructors);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;

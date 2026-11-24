@@ -84,6 +84,16 @@ public class ParallelCopyContext extends AbstractCopyContext {
         return new ConcurrentCloneSlot(original);
     }
 
+    /**
+     * Depth of nested copy constructors run by the thread.
+     */
+    private final ThreadLocal<int[]> constructionDepth = ThreadLocal.withInitial(() -> new int[1]);
+
+    @Override
+    int[] constructionDepth() {
+        return constructionDepth.get();
+    }
+
     @Override
     CloneSlot getOwner() {
         return owner.get();

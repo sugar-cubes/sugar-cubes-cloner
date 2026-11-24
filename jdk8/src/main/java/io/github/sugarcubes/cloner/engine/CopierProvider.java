@@ -15,7 +15,9 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
+import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.ObjectCopier;
+import io.github.sugarcubes.cloner.spi.FieldAdapter;
 
 /**
  * Copier provider interface.
@@ -32,5 +34,17 @@ public interface CopierProvider {
      * @return copier
      */
     <T> ObjectCopier<T> getCopier(T original);
+
+    /**
+     * Returns the adapter of a field, for the holes left by copy constructors.
+     *
+     * @param declaringClass class declaring the field
+     * @param field name of the field
+     * @return field adapter
+     * @throws ClonerException if the field cannot be accessed
+     */
+    default FieldAdapter fieldAdapter(Class<?> declaringClass, String field) {
+        throw new ClonerException(String.format("%s does not support copy constructors.", getClass().getName()));
+    }
 
 }

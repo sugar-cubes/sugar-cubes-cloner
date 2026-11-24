@@ -60,6 +60,16 @@ public abstract class AbstractSingleThreadCopyContext extends AbstractCopyContex
         return slot.isClaimable();
     }
 
+    /**
+     * Depth of nested copy constructors.
+     */
+    private final int[] constructionDepth = new int[1];
+
+    @Override
+    int[] constructionDepth() {
+        return constructionDepth;
+    }
+
     @Override
     CloneSlot getOwner() {
         return owner;

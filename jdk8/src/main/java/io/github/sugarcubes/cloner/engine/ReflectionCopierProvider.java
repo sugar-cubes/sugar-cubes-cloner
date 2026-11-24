@@ -15,6 +15,9 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -26,7 +29,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyAction;
+import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.CopyPolicy;
 import io.github.sugarcubes.cloner.Copyable;
 import io.github.sugarcubes.cloner.NoopCopier;
@@ -37,9 +42,11 @@ import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
 import io.github.sugarcubes.cloner.TypeCopier;
 import io.github.sugarcubes.cloner.UncopyableObjectException;
 import io.github.sugarcubes.cloner.generation.CopierGenerator;
+import io.github.sugarcubes.cloner.generation.CopyConstructors;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
 import io.github.sugarcubes.cloner.platform.TypeKinds;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
+import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
 import io.github.sugarcubes.cloner.spi.Reflection;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
@@ -91,6 +98,16 @@ public class ReflectionCopierProvider implements CopierProvider {
     private final Optional<CopierGenerator> generator;
 
     /**
+     * Whether copy constructors added by the build tools are used.
+     */
+    private final boolean copyConstructors;
+
+    /**
+     * Adapters of the fields written by holes of copy constructors.
+     */
+    private final Map<Field, FieldAdapter> holeAdapters = new ConcurrentHashMap<>();
+
+    /**
      * Cache of reflection copiers.
      */
     private final Map<Map.Entry<Class<?>, Boolean>, TwoPhaseObjectCopier<?>> fieldsCopiers = new ConcurrentHashMap<>();
@@ -109,6 +126,26 @@ public class ReflectionCopierProvider implements CopierProvider {
     public ReflectionCopierProvider(Toolset toolset, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
         CopyPolicy<Field> fieldPolicy, Map<Class<?>, ObjectCopier<?>> copiers, Set<Class<?>> shallows,
         boolean generatedCopiers) {
+        this(toolset, objectPolicy, typePolicy, fieldPolicy, copiers, shallows, generatedCopiers, true);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param toolset low-level tools
+     * @param objectPolicy object policy
+     * @param typePolicy type policy
+     * @param fieldPolicy field policy
+     * @param copiers predefined copiers
+     * @param shallows shallow-mode types
+     * @param generatedCopiers whether copiers by fields are generated
+     * @param copyConstructors whether copy constructors added by the build tools are used
+     */
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    public ReflectionCopierProvider(Toolset toolset, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
+        CopyPolicy<Field> fieldPolicy, Map<Class<?>, ObjectCopier<?>> copiers, Set<Class<?>> shallows,
+        boolean generatedCopiers, boolean copyConstructors) {
+        this.copyConstructors = copyConstructors;
         this.toolset = toolset;
         this.objectPolicy = objectPolicy;
         this.typePolicy = typePolicy;
@@ -299,6 +336,10 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private ObjectCopier<?> findModelCopier(Class<?> type) {
         boolean shallow = shallows.contains(type);
+        Optional<ObjectCopier<?>> constructor = shallow ? Optional.empty() : constructorCopier(type);
+        if (constructor.isPresent()) {
+            return constructor.get();
+        }
         Optional<? extends ValuesModel<?>> values = JdkPlatform.current().typeModels().valuesModel(type, toolset.getReflection());
         if (values.isPresent()) {
             return valuesCopier(values.get(), type, shallow);
@@ -400,6 +441,44 @@ public class ReflectionCopierProvider implements CopierProvider {
             fieldsCopiers.put(key, copier);
         }
         return copier;
+    }
+
+    /**
+     * Copier by the copy constructor added by the build tools, if the class has it and the field policy copies all
+     * fields of the class and its superclasses by default.
+     */
+    private Optional<ObjectCopier<?>> constructorCopier(Class<?> type) {
+        if (!copyConstructors) {
+            return Optional.empty();
+        }
+        Optional<? extends Constructor<?>> constructor = CopyConstructors.find(type);
+        if (!constructor.isPresent() || !copiesAllFieldsByDefault(type)) {
+            return Optional.empty();
+        }
+        Reflection reflection = toolset.getReflection();
+        MethodHandle handle = ClonerExceptionUtils.replaceException(() -> MethodHandles.lookup()
+            .unreflectConstructor(reflection.makeAccessible(constructor.get()))
+            .asType(MethodType.methodType(Object.class, CopyConstructors.class, Object.class, CopyContext.class)));
+        return Optional.of(new ConstructorCopier<>(handle));
+    }
+
+    private boolean copiesAllFieldsByDefault(Class<?> type) {
+        for (Class<?> declaring = type; declaring != null; declaring = declaring.getSuperclass()) {
+            for (Field field : declaring.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers()) && fieldPolicy.getAction(field) != CopyAction.DEFAULT) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public FieldAdapter fieldAdapter(Class<?> declaringClass, String field) {
+        Field declared = ClonerExceptionUtils.replaceException(() -> declaringClass.getDeclaredField(field));
+        return holeAdapters.computeIfAbsent(declared, key -> toolset.getFieldAdapterFactory().newAdapter(key)
+            .orElseThrow(() -> new ClonerException(String.format("Cannot write field %s of a reference cycle: use a "
+                + "toolset with Unsafe field access.", key))));
     }
 
 }
