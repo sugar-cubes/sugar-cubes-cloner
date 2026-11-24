@@ -20,24 +20,32 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import io.github.sugarcubes.cloner.tools.SamplesAccess;
 
 class ClonerBuildPluginTest {
 
-    @Test
-    void pluginEnhancesClasses(@TempDir Path project) throws Exception {
+    /**
+     * Gradle running the build; the plugin is compiled against the API of Gradle 8 and is tested in both.
+     */
+    private static final String CURRENT = "current";
+
+    @ParameterizedTest
+    @ValueSource(strings = {"8.11.1", CURRENT})
+    void pluginEnhancesClasses(String gradleVersion, @TempDir Path project) throws Exception {
         setUp(project, "");
 
-        BuildResult result = build(project);
+        BuildResult result = build(project, gradleVersion);
 
         Path classes = project.resolve("build/classes/java/main");
         SamplesAccess.assertEnhanced(classes);
@@ -45,14 +53,15 @@ class ClonerBuildPluginTest {
             result.getOutput());
     }
 
-    @Test
-    void processorEnhancesClassesBeforePlugin(@TempDir Path project) throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"8.11.1", CURRENT})
+    void processorEnhancesClassesBeforePlugin(String gradleVersion, @TempDir Path project) throws Exception {
         String processorPath = Stream.of(System.getProperty("processor.classpath").split(File.pathSeparator))
             .map(path -> "'" + path.replace('\\', '/') + "'")
             .collect(Collectors.joining(", "));
         setUp(project, "dependencies {\n    annotationProcessor files(" + processorPath + ")\n}\n");
 
-        BuildResult result = build(project);
+        BuildResult result = build(project, gradleVersion);
 
         SamplesAccess.assertEnhanced(project.resolve("build/classes/java/main"));
         Assertions.assertTrue(result.getOutput().contains("Copy constructors: 0 enhanced, 5 already enhanced, 2 skipped"),
@@ -74,12 +83,18 @@ class ClonerBuildPluginTest {
         SamplesAccess.writeMasks(project.resolve("src/main/resources"));
     }
 
-    private static BuildResult build(Path project) {
-        return GradleRunner.create()
+    private static BuildResult build(Path project, String gradleVersion) {
+        List<File> pluginClasspath = Stream.of(System.getProperty("processor.classpath").split(File.pathSeparator))
+            .map(File::new)
+            .collect(Collectors.toList());
+        GradleRunner runner = GradleRunner.create()
             .withProjectDir(project.toFile())
-            .withPluginClasspath()
-            .withArguments("compileJava", "--info", "--stacktrace")
-            .build();
+            .withPluginClasspath(pluginClasspath)
+            .withArguments("compileJava", "--info", "--stacktrace");
+        if (!CURRENT.equals(gradleVersion)) {
+            runner.withGradleVersion(gradleVersion);
+        }
+        return runner.build();
     }
 
     private static void write(Path file, String content) throws IOException {

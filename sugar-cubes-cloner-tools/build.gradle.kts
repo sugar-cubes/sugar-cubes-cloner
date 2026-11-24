@@ -3,7 +3,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id("java-conventions")
     id("java-library")
-    id("java-gradle-plugin")
     id("checkstyle-conventions")
     id("maven-publish")
     id("signing")
@@ -11,7 +10,8 @@ plugins {
 
 description = "Build tools of the cloner: copy constructors by an annotation processor, a Maven or a Gradle plugin"
 
-val asmVersion = "9.11.1"
+// the processor runs in javac 8+, the Maven goals on JDK 8+: compiled by JDK 8, which checks the API
+val jdk8 = javaToolchains.compilerFor { languageVersion.set(JavaLanguageVersion.of(8)) }
 
 dependencies {
     // the multi-release jar: the classes variant of the aggregating project is empty
@@ -20,28 +20,32 @@ dependencies {
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
         }
     }
-    implementation("org.ow2.asm:asm:$asmVersion")
-    implementation("org.ow2.asm:asm-commons:$asmVersion")
+    implementation("org.ow2.asm:asm:9.11.1")
+    implementation("org.ow2.asm:asm-commons:9.11.1")
     compileOnly("org.apache.maven:maven-plugin-api:3.9.6")
+    // javac API (com.sun.source) of JDK 8
+    compileOnly(files(jdk8.map { it.metadata.installationPath.file("lib/tools.jar") }))
+    // API of Gradle 8, compiled for Java 8 unlike the API of Gradle 9; the plugin works in Gradle 8 and 9
+    compileOnly("dev.gradleplugins:gradle-api:8.11.1")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("org.apache.maven:maven-plugin-api:3.9.6")
+    testImplementation(gradleTestKit())
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
     withJavadocJar()
     withSourcesJar()
 }
 
-tasks.named<JavaCompile>("compileJava") {
-    // the processor runs in javac 8+, the plugins in Maven and Gradle on JDK 8+; --release 8 would hide the
-    // javac API (com.sun.source), so the sources must not use newer APIs
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
-    options.compilerArgs.add("-Xlint:-options")
+// tests: records among the samples, Gradle TestKit of Gradle 9 needs JDK 17
+val jdk17 = JavaLanguageVersion.of(17)
+
+tasks.named<JavaCompile>("compileTestJava") {
+    javaCompiler.set(javaToolchains.compilerFor { languageVersion.set(jdk17) })
 }
 
 tasks.named<ProcessResources>("processResources") {
@@ -52,18 +56,11 @@ tasks.named<ProcessResources>("processResources") {
     }
 }
 
-gradlePlugin {
-    // the plugin is published within the jar of this module, without a plugin marker
-    isAutomatedPublishing = false
-    plugins {
-        create("cloner") {
-            id = "io.github.sugar-cubes.cloner"
-            implementationClass = "io.github.sugarcubes.cloner.tools.gradle.ClonerBuildPlugin"
-        }
-    }
-}
-
 tasks.named<Test>("test") {
+    // JDK 17 unless -PtestJdk is given, see java-conventions
+    if (findProperty("testJdk") == null) {
+        javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(jdk17) })
+    }
     val samples = file("src/test/java")
     val processorPath = files(tasks.named("jar"), configurations.runtimeClasspath)
     inputs.files(processorPath).withPropertyName("processorPath")
