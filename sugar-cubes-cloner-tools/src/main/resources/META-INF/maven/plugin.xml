@@ -3,7 +3,7 @@
   <name>Sugar Cubes Cloner build tools</name>
   <description>Adds copy constructors to the classes listed in META-INF/sugar-cubes-cloner/copy-constructors</description>
   <groupId>io.github.sugar-cubes</groupId>
-  <artifactId>sugar-cubes-cloner-build</artifactId>
+  <artifactId>sugar-cubes-cloner-tools</artifactId>
   <version>@version@</version>
   <goalPrefix>sugar-cubes-cloner</goalPrefix>
   <isolatedRealm>false</isolatedRealm>

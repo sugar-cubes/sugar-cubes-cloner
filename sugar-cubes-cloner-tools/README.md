@@ -20,7 +20,7 @@ com.acme.model.**
 
 ## Three ways, use one or combine
 
-The jar `io.github.sugar-cubes:sugar-cubes-cloner-build` contains an annotation processor, a Maven plugin and a Gradle
+The jar `io.github.sugar-cubes:sugar-cubes-cloner-tools` contains an annotation processor, a Maven plugin and a Gradle
 plugin. Enhancing is idempotent: combined with the processor, a plugin finds the classes already enhanced.
 
 * Annotation processor: no build plugin, works in IDE builds (javac only, not Eclipse). Reports problems at the
@@ -37,7 +37,7 @@ plugin. Enhancing is idempotent: combined with the processor, a plugin finds the
 ```xml
 <plugin>
   <groupId>io.github.sugar-cubes</groupId>
-  <artifactId>sugar-cubes-cloner-build</artifactId>
+  <artifactId>sugar-cubes-cloner-tools</artifactId>
   <version>1.2.4-SNAPSHOT</version>
   <executions>
     <execution>
@@ -58,7 +58,7 @@ Processor:
     <annotationProcessorPaths>
       <path>
         <groupId>io.github.sugar-cubes</groupId>
-        <artifactId>sugar-cubes-cloner-build</artifactId>
+        <artifactId>sugar-cubes-cloner-tools</artifactId>
         <version>1.2.4-SNAPSHOT</version>
       </path>
     </annotationProcessorPaths>
@@ -71,7 +71,7 @@ Processor:
 ```kotlin
 buildscript {
     dependencies {
-        classpath("io.github.sugar-cubes:sugar-cubes-cloner-build:1.2.4-SNAPSHOT")
+        classpath("io.github.sugar-cubes:sugar-cubes-cloner-tools:1.2.4-SNAPSHOT")
     }
 }
 
@@ -79,7 +79,7 @@ apply(plugin = "io.github.sugar-cubes.cloner")
 
 dependencies {
     // optional: enhancing at compilation, also in IntelliJ IDEA builds
-    annotationProcessor("io.github.sugar-cubes:sugar-cubes-cloner-build:1.2.4-SNAPSHOT")
+    annotationProcessor("io.github.sugar-cubes:sugar-cubes-cloner-tools:1.2.4-SNAPSHOT")
 }
 ```
 
