@@ -1,10 +1,7 @@
-import java.net.URI
-
 plugins {
     id("java-conventions")
     id("java-library")
-    id("maven-publish")
-    id("signing")
+    id("publishing-conventions")
 }
 
 val clonerModules = listOf(
@@ -138,66 +135,13 @@ tasks.named<Jar>("sourcesJar") {
 }
 
 publishing {
-    repositories {
-        maven {
-            name = "ProjectLocal"
-            url = URI("file:${rootDir}/repo")
-        }
-        maven {
-            name = "GitHubPackages"
-            url = URI("https://maven.pkg.github.com/sugar-cubes/sugar-cubes-cloner")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String?
-                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String?
-            }
-        }
-        maven {
-            name = "Sonatype"
-            url = URI("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
-            credentials {
-                username = System.getenv("OSSRH_USERNAME") ?: project.findProperty("ossrhUsername") as String?
-                password = System.getenv("OSSRH_PASSWORD") ?: project.findProperty("ossrhPassword") as String?
-            }
-        }
-    }
     publications {
         register<MavenPublication>("library") {
             from(components["java"])
             pom {
                 name.set("Java deep cloning library")
                 description.set("Deep cloning of any objects")
-                url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
-                properties.set(
-                    mapOf(
-                    )
-                )
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("mbutov")
-                        name.set("Maxim Butov")
-                        email.set("mbutov(at)gmail.com")
-                        url.set("https://github.com/mbutov")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/sugar-cubes/sugar-cubes-cloner.git")
-                    developerConnection.set("scm:git:ssh://github.com/sugar-cubes/sugar-cubes-cloner.git")
-                    url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
-                    issueManagement {
-                        url.set("https://github.com/sugar-cubes/sugar-cubes-cloner/issues")
-                    }
-                }
             }
         }
     }
-}
-
-signing {
-    sign(publishing.publications["library"])
 }

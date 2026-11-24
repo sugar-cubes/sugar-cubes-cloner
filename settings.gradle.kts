@@ -3,7 +3,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-rootProject.name = "sugar-cubes-cloner"
+// not the name of the published module sugar-cubes-cloner: project names must be unique for nmcp
+rootProject.name = "sugar-cubes-cloner-root"
 
 include("jdk8")
 include("jdk9")

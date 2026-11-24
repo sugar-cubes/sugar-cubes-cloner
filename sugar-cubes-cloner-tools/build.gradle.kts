@@ -4,8 +4,7 @@ plugins {
     id("java-conventions")
     id("java-library")
     id("checkstyle-conventions")
-    id("maven-publish")
-    id("signing")
+    id("publishing-conventions")
 }
 
 description = "Build tools of the cloner: copy constructors by an annotation processor, a Maven or a Gradle plugin"
@@ -87,62 +86,13 @@ tasks.withType<Javadoc> {
 
 val gradlePluginId = "io.github.sugar-cubes.cloner"
 
-/**
- * Information about the project which Maven Central requires in every POM.
- */
-fun MavenPom.projectInfo() {
-    url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
-    licenses {
-        license {
-            name.set("The Apache License, Version 2.0")
-            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-        }
-    }
-    developers {
-        developer {
-            id.set("mbutov")
-            name.set("Maxim Butov")
-            email.set("mbutov(at)gmail.com")
-            url.set("https://github.com/mbutov")
-        }
-    }
-    scm {
-        connection.set("scm:git:git://github.com/sugar-cubes/sugar-cubes-cloner.git")
-        developerConnection.set("scm:git:ssh://github.com/sugar-cubes/sugar-cubes-cloner.git")
-        url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
-    }
-}
-
 publishing {
-    repositories {
-        maven {
-            name = "ProjectLocal"
-            url = uri("file:${rootDir}/repo")
-        }
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/sugar-cubes/sugar-cubes-cloner")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String?
-                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String?
-            }
-        }
-        maven {
-            name = "Sonatype"
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
-            credentials {
-                username = System.getenv("OSSRH_USERNAME") ?: project.findProperty("ossrhUsername") as String?
-                password = System.getenv("OSSRH_PASSWORD") ?: project.findProperty("ossrhPassword") as String?
-            }
-        }
-    }
     publications {
         register<MavenPublication>("library") {
             from(components["java"])
             pom {
                 name.set("Java deep cloning library: build tools")
                 description.set(project.description)
-                projectInfo()
             }
         }
         // the marker of the Gradle plugin: plugins { id("io.github.sugar-cubes.cloner") version "..." } finds the
@@ -154,7 +104,6 @@ publishing {
                 packaging = "pom"
                 name.set("Java deep cloning library: Gradle plugin marker")
                 description.set("Marker of the Gradle plugin $gradlePluginId in ${project.name}")
-                projectInfo()
                 withXml {
                     val dependency = asNode().appendNode("dependencies").appendNode("dependency")
                     dependency.appendNode("groupId", project.group.toString())
@@ -164,8 +113,4 @@ publishing {
             }
         }
     }
-}
-
-signing {
-    sign(publishing.publications)
 }
