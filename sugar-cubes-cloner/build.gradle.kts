@@ -36,6 +36,7 @@ jarTasks.forEach {
             mapOf(
                 "Implementation-Title" to project.name,
                 "Implementation-Version" to project.version,
+                "Implementation-Build" to project.extra["gitHash"],
                 "Multi-Release" to true,
                 "Automatic-Module-Name" to "io.github.sugarcubes.cloner",
                 "Created-By" to

@@ -38,7 +38,7 @@ plugin. Enhancing is idempotent: combined with the processor, a plugin finds the
 <plugin>
   <groupId>io.github.sugar-cubes</groupId>
   <artifactId>sugar-cubes-cloner-tools</artifactId>
-  <version>1.2.4-SNAPSHOT</version>
+  <version>2.0.0</version>
   <executions>
     <execution>
       <goals>
@@ -59,7 +59,7 @@ Processor:
       <path>
         <groupId>io.github.sugar-cubes</groupId>
         <artifactId>sugar-cubes-cloner-tools</artifactId>
-        <version>1.2.4-SNAPSHOT</version>
+        <version>2.0.0</version>
       </path>
     </annotationProcessorPaths>
   </configuration>
@@ -71,7 +71,7 @@ Processor:
 ```kotlin
 buildscript {
     dependencies {
-        classpath("io.github.sugar-cubes:sugar-cubes-cloner-tools:1.2.4-SNAPSHOT")
+        classpath("io.github.sugar-cubes:sugar-cubes-cloner-tools:2.0.0")
     }
 }
 
@@ -79,7 +79,7 @@ apply(plugin = "io.github.sugar-cubes.cloner")
 
 dependencies {
     // optional: enhancing at compilation, also in IntelliJ IDEA builds
-    annotationProcessor("io.github.sugar-cubes:sugar-cubes-cloner-tools:1.2.4-SNAPSHOT")
+    annotationProcessor("io.github.sugar-cubes:sugar-cubes-cloner-tools:2.0.0")
 }
 ```
 

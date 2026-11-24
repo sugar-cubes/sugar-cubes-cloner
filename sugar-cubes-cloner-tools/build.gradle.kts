@@ -75,6 +75,7 @@ tasks.named<Jar>("jar") {
         mapOf(
             "Implementation-Title" to project.name,
             "Implementation-Version" to project.version,
+            "Implementation-Build" to project.extra["gitHash"],
             "Automatic-Module-Name" to "io.github.sugarcubes.cloner.tools",
         )
     )

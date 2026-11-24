@@ -2,9 +2,9 @@ import com.diffplug.gradle.spotless.SpotlessExtension
 
 plugins {
     id("com.diffplug.spotless") version "8.11.0" apply false
+    // version from the Git tags
+    id("git-version")
 }
-
-val currentVersion = file("version.txt").readText().trim()
 
 // license header of Java sources, HEADER.txt wrapped into a block comment
 val licenseHeader = rootProject.file("HEADER.txt").readLines()
@@ -12,7 +12,6 @@ val licenseHeader = rootProject.file("HEADER.txt").readLines()
 
 allprojects {
     group = "io.github.sugar-cubes"
-    version = currentVersion
     description = "Java deep cloning library"
 
     repositories {
