@@ -54,7 +54,9 @@ class NoOpeningTest {
     @Test
     void defaults() {
         Assertions.assertTrue(Toolsets.isAvailable(Allocation.REFLECTION_FACTORY));
-        Assertions.assertTrue(Toolsets.defaults().toString().contains("allocation=[REFLECTION_FACTORY]"), Toolsets.defaults().toString());
+        // Unsafe opens modules before Narcissus, which is on the classpath
+        Assertions.assertEquals("Toolset[moduleOpening=UNSAFE, allocation=[UNSAFE, REFLECTION_FACTORY], "
+            + "constructorFallback=constructors, fieldAccess=[UNSAFE, REFLECTION]]", Toolsets.defaults().toString());
         OpeningTesting.assertClones(Toolsets.defaults());
         // TreeMap entries have no constructor without arguments
         TreeMap<String, Integer> original = new TreeMap<>(Map.of("a", 1, "b", 2));

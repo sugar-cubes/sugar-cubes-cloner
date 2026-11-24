@@ -42,4 +42,11 @@ class AgentTest {
             .build());
     }
 
+    @Test
+    void defaultsPreferAgent() {
+        Assertions.assertTrue(Toolsets.defaults().toString().startsWith("Toolset[moduleOpening=INSTRUMENTATION,"),
+            Toolsets.defaults().toString());
+        OpeningTesting.assertClones(Toolsets.defaults());
+    }
+
 }

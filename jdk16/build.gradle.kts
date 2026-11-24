@@ -81,6 +81,7 @@ val noOpensTest = tasks.register<Test>("noOpensTest") {
     description = "Tests module opening mechanisms on JDK 17 without --add-opens."
     moduleOpeningTest()
     filter.excludeTestsMatching("*.AgentTest")
+    filter.excludeTestsMatching("*.RestrictedJvmTest")
 }
 
 val agentTest = tasks.register<Test>("agentTest") {
@@ -91,6 +92,25 @@ val agentTest = tasks.register<Test>("agentTest") {
     jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-javaagent:${agent.singleFile}") })
 }
 
+fun Test.restrictedJvmTest(expectedOpening: String, vararg denials: String) {
+    moduleOpeningTest()
+    // the JVM options denying the mechanisms appeared in JDK 23 and 24
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
+    filter.includeTestsMatching("*.RestrictedJvmTest")
+    systemProperty("expectedOpening", expectedOpening)
+    jvmArgs(denials.toList())
+}
+
+val unsafeDeniedTest = tasks.register<Test>("unsafeDeniedTest") {
+    description = "Tests the default toolset on JDK 25 which denies Unsafe memory access."
+    restrictedJvmTest("NARCISSUS", "--sun-misc-unsafe-memory-access=deny")
+}
+
+val unsafeAndNativeDeniedTest = tasks.register<Test>("unsafeAndNativeDeniedTest") {
+    description = "Tests the default toolset on JDK 25 which denies Unsafe memory access and native access."
+    restrictedJvmTest("NONE", "--sun-misc-unsafe-memory-access=deny", "--illegal-native-access=deny")
+}
+
 tasks.named("check") {
-    dependsOn(noOpensTest, agentTest)
+    dependsOn(noOpensTest, agentTest, unsafeDeniedTest, unsafeAndNativeDeniedTest)
 }

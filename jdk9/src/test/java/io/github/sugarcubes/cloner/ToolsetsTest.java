@@ -45,9 +45,23 @@ class ToolsetsTest {
     }
 
     @Test
-    void defaultsPreferReflection() throws Exception {
+    void defaultsPreferUnsafe() throws Exception {
         Toolset toolset = Toolsets.defaults();
 
+        // no agent and no Narcissus in this JVM
+        Assertions.assertEquals("Toolset[moduleOpening=UNSAFE, allocation=[UNSAFE, REFLECTION_FACTORY], "
+            + "constructorFallback=constructors, fieldAccess=[UNSAFE, REFLECTION]]", toolset.toString());
+        Assertions.assertInstanceOf(UnsafeFieldAdapterImpl.class,
+            toolset.getFieldAdapterFactory().newAdapter(Counted.class.getDeclaredField("value")).get());
+    }
+
+    @Test
+    void builderDefaultsDoNotDependOnJvm() throws Exception {
+        Toolset toolset = Toolsets.builder().build();
+
+        Assertions.assertEquals("Toolset[moduleOpening=NONE, allocation=[REFLECTION_FACTORY], "
+            + "constructorFallback=constructors, fieldAccess=[REFLECTION, UNSAFE if reflection cannot access]]",
+            toolset.toString());
         Assertions.assertInstanceOf(ReflectionFieldAdapterImpl.class,
             toolset.getFieldAdapterFactory().newAdapter(Counted.class.getDeclaredField("value")).get());
     }

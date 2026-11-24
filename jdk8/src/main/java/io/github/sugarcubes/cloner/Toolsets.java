@@ -23,15 +23,19 @@ package io.github.sugarcubes.cloner;
 public final class Toolsets {
 
     /**
-     * Default toolset: reflection, with {@code Unsafe} only for fields which reflection cannot access (packages not
-     * opened to the cloner); instances are created without constructors by {@code sun.reflect.ReflectionFactory}, or by
-     * {@code Unsafe} if the runtime has no {@code jdk.unsupported} module, constructors are the last fallback. Since
-     * JDK 24 the JVM warns when {@code Unsafe} accesses a field for the first time.
+     * Default toolset: the fastest mechanisms which the running JVM allows, chosen once per JVM. Fields are accessed
+     * by {@code Unsafe} unless its memory access is denied, by reflection otherwise; instances are created by
+     * {@code Unsafe} or {@code sun.reflect.ReflectionFactory} without constructors, constructors are the last fallback;
+     * packages are opened by the cloner agent, {@code Unsafe} or Narcissus, whichever is available. Since JDK 24 the JVM
+     * warns when {@code Unsafe} accesses a field for the first time. {@link Toolset#toString()} tells the choice.
+     *
+     * <p>The fixed choice of {@code Toolsets.builder().build()} does not depend on the JVM: reflection with
+     * {@code Unsafe} only for fields which reflection cannot access, no module opening.</p>
      *
      * @return default toolset
      */
     public static Toolset defaults() {
-        return builder().build();
+        return ToolsetDetection.builder().build();
     }
 
     /**
