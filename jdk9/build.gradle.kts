@@ -17,6 +17,7 @@ dependencies {
     jmh("com.esotericsoftware:kryo:5.5.0")
     jmh("io.github.kostaskougios:cloning:1.10.3")
     jmh("org.ow2.asm:asm:9.11.1")
+    jmh("io.github.toolfactory:narcissus:1.0.14")
     // the multi-release jar: benchmarks run the platform of the running JDK, not the one of this module
     jmh(project(":sugar-cubes-cloner"))
 
