@@ -71,3 +71,32 @@ The version comes from the Git tags `v<major>.<minor>.<patch>` ([Semantic Versio
 a tagged commit without local changes has the version of the tag, e.g. `2.0.0`; any other build is a snapshot with
 the number of commits since the tag, e.g. `2.0.0-5-SNAPSHOT`. The commit hash is in the `Implementation-Build`
 attribute of the jar manifests.
+
+## Publishing
+
+The modules `sugar-cubes-cloner` and `sugar-cubes-cloner-tools` (with the marker of the Gradle plugin) are published
+to Maven Central through the [Central Portal](https://central.sonatype.com) and to GitHub Packages:
+
+- every push to `main` publishes a snapshot (`build` workflow): `<tag>-<commits since the tag>-SNAPSHOT` to
+  GitHub Packages and to `https://central.sonatype.com/repository/maven-snapshots/`;
+- a tag `v<version>` publishes a release (`release` workflow): signed artifacts to GitHub Packages and a deployment
+  to the Central Portal, which is published there by hand, and a GitHub release with the notes from CHANGELOG.md.
+
+The secrets of the repository:
+
+| Secret                    | Value                                                                  |
+|---------------------------|------------------------------------------------------------------------|
+| `CENTRAL_PORTAL_USERNAME` | user token name of the Central Portal                                  |
+| `CENTRAL_PORTAL_PASSWORD` | user token password of the Central Portal                              |
+| `SIGNING_KEY`             | ASCII-armored secret PGP key, its public key on a public key server     |
+| `SIGNING_PASSWORD`        | passphrase of the key                                                  |
+
+Locally the same values are the Gradle properties `centralPortalUsername`, `centralPortalPassword`, `signingKey` and
+`signingPassword`. `./gradlew nmcpZipAggregation nmcpCheckAggregationFiles` builds and checks the deployment without
+uploading it, `publishAllPublicationsToProjectLocalRepository` publishes to the directory `repo`.
+
+### Releasing
+
+1. Set the release date in the section of the version in CHANGELOG.md, commit it to `main`.
+2. Tag the commit: `git tag v2.0.0 && git push origin v2.0.0`.
+3. Check the deployment in the Central Portal and publish it.
