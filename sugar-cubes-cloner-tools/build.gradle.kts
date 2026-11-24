@@ -85,6 +85,34 @@ tasks.withType<Javadoc> {
     (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
 }
 
+val gradlePluginId = "io.github.sugar-cubes.cloner"
+
+/**
+ * Information about the project which Maven Central requires in every POM.
+ */
+fun MavenPom.projectInfo() {
+    url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
+    licenses {
+        license {
+            name.set("The Apache License, Version 2.0")
+            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+        }
+    }
+    developers {
+        developer {
+            id.set("mbutov")
+            name.set("Maxim Butov")
+            email.set("mbutov(at)gmail.com")
+            url.set("https://github.com/mbutov")
+        }
+    }
+    scm {
+        connection.set("scm:git:git://github.com/sugar-cubes/sugar-cubes-cloner.git")
+        developerConnection.set("scm:git:ssh://github.com/sugar-cubes/sugar-cubes-cloner.git")
+        url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
+    }
+}
+
 publishing {
     repositories {
         maven {
@@ -114,25 +142,24 @@ publishing {
             pom {
                 name.set("Java deep cloning library: build tools")
                 description.set(project.description)
-                url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("mbutov")
-                        name.set("Maxim Butov")
-                        email.set("mbutov(at)gmail.com")
-                        url.set("https://github.com/mbutov")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/sugar-cubes/sugar-cubes-cloner.git")
-                    developerConnection.set("scm:git:ssh://github.com/sugar-cubes/sugar-cubes-cloner.git")
-                    url.set("https://github.com/sugar-cubes/sugar-cubes-cloner")
+                projectInfo()
+            }
+        }
+        // the marker of the Gradle plugin: plugins { id("io.github.sugar-cubes.cloner") version "..." } finds the
+        // plugin in Maven Central by it
+        register<MavenPublication>("pluginMarker") {
+            groupId = gradlePluginId
+            artifactId = "$gradlePluginId.gradle.plugin"
+            pom {
+                packaging = "pom"
+                name.set("Java deep cloning library: Gradle plugin marker")
+                description.set("Marker of the Gradle plugin $gradlePluginId in ${project.name}")
+                projectInfo()
+                withXml {
+                    val dependency = asNode().appendNode("dependencies").appendNode("dependency")
+                    dependency.appendNode("groupId", project.group.toString())
+                    dependency.appendNode("artifactId", project.name)
+                    dependency.appendNode("version", project.version.toString())
                 }
             }
         }
@@ -140,5 +167,5 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["library"])
+    sign(publishing.publications)
 }

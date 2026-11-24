@@ -68,16 +68,27 @@ Processor:
 
 ### Gradle
 
+The plugin is published to Maven Central with its marker, add `mavenCentral()` to the plugin repositories:
+
 ```kotlin
-buildscript {
-    dependencies {
-        classpath("io.github.sugar-cubes:sugar-cubes-cloner-tools:2.0.0")
+// settings.gradle.kts
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
     }
 }
+```
 
-apply(plugin = "io.github.sugar-cubes.cloner")
+```kotlin
+// build.gradle.kts
+plugins {
+    java
+    id("io.github.sugar-cubes.cloner") version "2.0.0"
+}
 
 dependencies {
+    implementation("io.github.sugar-cubes:sugar-cubes-cloner:2.0.0")
     // optional: enhancing at compilation, also in IntelliJ IDEA builds
     annotationProcessor("io.github.sugar-cubes:sugar-cubes-cloner-tools:2.0.0")
 }
