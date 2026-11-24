@@ -51,7 +51,6 @@ class JdkDefaultsTest {
         ZoneId zone = ZoneId.of("Europe/Berlin");
         List<Object> emptyList = Collections.emptyList();
         Comparator<String> comparator = String.CASE_INSENSITIVE_ORDER;
-        Thread thread = Thread.currentThread();
         ClassLoader classLoader = getClass().getClassLoader();
         Module module = getClass().getModule();
         Method method;
@@ -79,7 +78,6 @@ class JdkDefaultsTest {
         Assertions.assertSame(original.zone, clone.zone);
         Assertions.assertSame(original.emptyList, clone.emptyList);
         Assertions.assertSame(original.comparator, clone.comparator);
-        Assertions.assertSame(original.thread, clone.thread);
         Assertions.assertSame(original.classLoader, clone.classLoader);
         Assertions.assertSame(original.module, clone.module);
         Assertions.assertSame(original.method, clone.method);

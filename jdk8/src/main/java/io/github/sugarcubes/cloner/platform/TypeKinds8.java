@@ -38,6 +38,7 @@ class TypeKinds8 implements TypeKinds {
         IMMUTABLE,
         CLONEABLE,
         RUNTIME,
+        UNCOPYABLE,
         OTHER,
     }
 
@@ -96,14 +97,30 @@ class TypeKinds8 implements TypeKinds {
     );
 
     /**
-     * Objects of the running JVM with all their subtypes: threads, class loaders, reflection objects, references.
+     * Objects of the running JVM with all their subtypes, shared: class loaders, reflection objects, keys of
+     * thread-local and class values. Their identity is what matters, a copy would be another object.
      */
     private static final List<Class<?>> RUNTIME_SUPER_TYPES = unmodifiableList(
-        Thread.class, ThreadGroup.class, ClassLoader.class, Runtime.class,
+        ClassLoader.class, Runtime.class,
         java.lang.reflect.AccessibleObject.class, java.lang.reflect.Parameter.class,
         java.lang.invoke.MethodHandle.class, java.lang.invoke.MethodType.class,
         java.lang.invoke.MethodHandles.Lookup.class,
-        java.lang.ref.Reference.class, java.lang.ref.ReferenceQueue.class
+        ThreadLocal.class, ClassValue.class
+    );
+
+    /**
+     * Live objects of the JVM and the operating system with all their subtypes: threads, references, open files,
+     * sockets, processes, executors. A clone cannot get its own one, and sharing the original must be chosen
+     * explicitly.
+     */
+    private static final List<Class<?>> UNCOPYABLE_SUPER_TYPES = unmodifiableList(
+        Thread.class, ThreadGroup.class, Process.class,
+        java.lang.ref.Reference.class, java.lang.ref.ReferenceQueue.class,
+        java.io.FileDescriptor.class, java.io.FileInputStream.class, java.io.FileOutputStream.class,
+        java.io.RandomAccessFile.class,
+        java.net.Socket.class, java.net.ServerSocket.class, java.net.DatagramSocket.class,
+        java.nio.channels.Channel.class, java.nio.channels.Selector.class, java.nio.channels.FileLock.class,
+        java.util.Timer.class, java.util.concurrent.ExecutorService.class
     );
 
     /**
@@ -132,6 +149,9 @@ class TypeKinds8 implements TypeKinds {
         }
         if (isSubtype(type, RUNTIME_SUPER_TYPES)) {
             return Kind.RUNTIME;
+        }
+        if (isSubtype(type, UNCOPYABLE_SUPER_TYPES)) {
+            return Kind.UNCOPYABLE;
         }
         return Kind.OTHER;
     }
@@ -174,6 +194,11 @@ class TypeKinds8 implements TypeKinds {
     @Override
     public boolean isRuntime(Class<?> type) {
         return kinds.get(type) == Kind.RUNTIME;
+    }
+
+    @Override
+    public boolean isUncopyable(Class<?> type) {
+        return kinds.get(type) == Kind.UNCOPYABLE;
     }
 
     @Override

@@ -18,7 +18,8 @@ package io.github.sugarcubes.cloner.platform;
 import java.util.List;
 
 /**
- * {@link TypeKinds} of JDK 9+: modules and module layers are objects of the running JVM.
+ * {@link TypeKinds} of JDK 9+: modules, module layers and process handles are objects of the running JVM, cleaners are
+ * uncopyable.
  *
  * @author Maxim Butov
  */
@@ -27,11 +28,20 @@ class TypeKinds9 extends TypeKinds8 {
     /**
      * Objects of the running JVM which appeared in JDK 9, with all their subtypes.
      */
-    private static final List<Class<?>> RUNTIME_SUPER_TYPES = unmodifiableList(Module.class, ModuleLayer.class);
+    private static final List<Class<?>> RUNTIME_SUPER_TYPES = unmodifiableList(Module.class, ModuleLayer.class,
+        ProcessHandle.class);
+
+    /**
+     * Uncopyable types which appeared in JDK 9, with all their subtypes.
+     */
+    private static final List<Class<?>> UNCOPYABLE_SUPER_TYPES = unmodifiableList(java.lang.ref.Cleaner.class);
 
     @Override
     Kind kindOf(Class<?> type) {
-        return isSubtype(type, RUNTIME_SUPER_TYPES) ? Kind.RUNTIME : super.kindOf(type);
+        if (isSubtype(type, RUNTIME_SUPER_TYPES)) {
+            return Kind.RUNTIME;
+        }
+        return isSubtype(type, UNCOPYABLE_SUPER_TYPES) ? Kind.UNCOPYABLE : super.kindOf(type);
     }
 
 }

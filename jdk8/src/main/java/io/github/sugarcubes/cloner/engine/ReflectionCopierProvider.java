@@ -35,8 +35,10 @@ import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.Toolset;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
 import io.github.sugarcubes.cloner.TypeCopier;
+import io.github.sugarcubes.cloner.UncopyableObjectException;
 import io.github.sugarcubes.cloner.generation.CopierGenerator;
 import io.github.sugarcubes.cloner.platform.JdkPlatform;
+import io.github.sugarcubes.cloner.platform.TypeKinds;
 import io.github.sugarcubes.cloner.spi.ContainerModel;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
 import io.github.sugarcubes.cloner.spi.Reflection;
@@ -188,11 +190,7 @@ public class ReflectionCopierProvider implements CopierProvider {
         if (Copyable.class.isAssignableFrom(type)) {
             return ObjectCopier.COPYABLE;
         }
-        if (JdkPlatform.current().typeKinds().isHidden(type)) {
-            // instances of hidden classes (e.g. lambdas) can be neither created nor written, they are shared
-            return ObjectCopier.NOOP;
-        }
-        ObjectCopier<?> jdkCopier = shallows.contains(type) ? null : findJdkCopier(type);
+        ObjectCopier<?> jdkCopier = findJdkCopier(type);
         return jdkCopier != null ? jdkCopier : findModelCopier(type);
     }
 
@@ -257,15 +255,27 @@ public class ReflectionCopierProvider implements CopierProvider {
     }
 
     /**
-     * Default copiers of JDK types: immutable objects and objects of the running JVM are shared, some types are
-     * cloned with their {@code clone()} method. Applied after the type policy and custom copiers.
+     * Default copiers of JDK types: instances of hidden classes, immutable objects and objects of the running JVM are
+     * shared, uncopyable types fail, some types are cloned with their {@code clone()} method. Applied after the type
+     * policy and custom copiers.
      */
-    private static ObjectCopier<?> findJdkCopier(Class<?> type) {
-        JdkPlatform platform = JdkPlatform.current();
-        if (platform.typeKinds().isImmutable(type) || platform.typeKinds().isRuntime(type)) {
+    private ObjectCopier<?> findJdkCopier(Class<?> type) {
+        TypeKinds kinds = JdkPlatform.current().typeKinds();
+        if (kinds.isHidden(type)) {
+            // instances of hidden classes (e.g. lambdas) can be neither created nor written, they are shared
             return ObjectCopier.NOOP;
         }
-        return platform.typeKinds().isCloneable(type) ? ObjectCopier.CLONEABLE : null;
+        if (kinds.isUncopyable(type)) {
+            // neither shared nor copied unless the type policy or a copier says so, even in shallow mode
+            throw new UncopyableObjectException(type);
+        }
+        if (shallows.contains(type)) {
+            return null;
+        }
+        if (kinds.isImmutable(type) || kinds.isRuntime(type)) {
+            return ObjectCopier.NOOP;
+        }
+        return kinds.isCloneable(type) ? ObjectCopier.CLONEABLE : null;
     }
 
     /**

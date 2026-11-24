@@ -26,6 +26,7 @@ import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.TwoPhaseObjectCopier;
+import io.github.sugarcubes.cloner.UncopyableObjectException;
 
 /**
  * Abstract copy context. Contains common code for the context implementations.
@@ -242,6 +243,10 @@ public abstract class AbstractCopyContext implements CopyContext {
             slot.completed();
             return clone;
         }
+        catch (UncopyableObjectException e) {
+            e.addHolder(original.getClass());
+            throw e;
+        }
         finally {
             setOwner(owner);
         }
@@ -313,6 +318,10 @@ public abstract class AbstractCopyContext implements CopyContext {
         try {
             slot.getCopier().deepCopy(original, slot.getClone(), this);
             slot.secondPhaseDone();
+        }
+        catch (UncopyableObjectException e) {
+            e.addHolder(original.getClass());
+            throw e;
         }
         finally {
             setOwner(owner);
