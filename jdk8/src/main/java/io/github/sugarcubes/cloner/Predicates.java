@@ -21,14 +21,13 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import io.github.sugarcubes.cloner.engine.PredicatePolicy;
 import io.github.sugarcubes.cloner.util.Checks;
 
 /**
- * Predicates factory. To be used with {@link PredicatePolicy}.
+ * Predicates factory, for the predicate variants of {@link ReflectionClonerBuilder#typeAction(Predicate, CopyAction)}
+ * and {@link ReflectionClonerBuilder#fieldAction(Predicate, CopyAction)}.
  *
  * @author Maxim Butov
- * @see PredicatePolicy
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
 public class Predicates {
