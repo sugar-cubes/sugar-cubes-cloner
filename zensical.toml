@@ -9,6 +9,15 @@ repo_name = "sugar-cubes/sugar-cubes-cloner"
 edit_uri = "edit/main/docs/"
 nav = [
   { "Home" = "index.md" },
+  { "Getting started" = "getting-started.md" },
+  { "Configuration" = "configuration.md" },
+  { "Modes" = "modes.md" },
+  { "JDK types" = "jdk-types.md" },
+  { "Toolsets" = "toolsets.md" },
+  { "Performance" = "performance.md" },
+  { "Build tools" = "build-tools.md" },
+  { "Troubleshooting" = "troubleshooting.md" },
+  { "Changelog" = "https://github.com/sugar-cubes/sugar-cubes-cloner/blob/main/CHANGELOG.md" },
   # the Javadoc is copied to api/ after the site is built
   { "API reference" = "api/" },
 ]
