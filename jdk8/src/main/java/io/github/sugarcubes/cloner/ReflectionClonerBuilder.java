@@ -517,7 +517,9 @@ public final class ReflectionClonerBuilder {
             fieldPolicy, copiers, shallows, generatedCopiers, copyConstructors);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
-        CloningMode mode = this.mode != null ? this.mode : CloningMode.SEQUENTIAL;
+        // an executor without a mode means the parallel mode
+        CloningMode mode = this.mode != null ? this.mode
+            : this.executor != null ? CloningMode.PARALLEL : CloningMode.SEQUENTIAL;
         switch (mode) {
             case RECURSIVE:
                 Checks.isNull(this.traversalAlgorithm, "Traversal algorithm must be null for recursive mode.");
