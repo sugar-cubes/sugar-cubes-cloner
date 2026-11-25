@@ -16,48 +16,40 @@
 /**
  * Java deep cloning library.
  *
- * <p>Default configuration example:</p>
+ * <p>Clone with the default cloner:</p>
  * <pre>
- *     Cloner cloner = Cloners.defaults();
- *     SomeObject myObjectClone = cloner.clone(myObject);
+ *     Order clone = Cloners.clone(order);
  * </pre>
  *
- * <p>Custom configuration example:</p>
+ * <p>Configure a cloner once and reuse it, cloners are thread safe:</p>
  * <pre>
- *     Cloner cloner =
- *         // new builder instance
- *         Cloners.builder()
- *             // create instances and access fields with Unsafe
- *             .toolset(Toolsets.unsafe())
- *             // copy thread locals by reference
- *             .typeAction(Predicates.subclass(ThreadLocal.class), CopyAction.ORIGINAL)
- *             // do not clone closeables
- *             .typeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
- *             // skip SomeObject.cachedValue field when cloning
- *             .fieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
- *             // set fields with @Transient annotation to null
- *             .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
- *             // custom copier for SomeOtherObject type
- *             .copier(CustomObject.class, new CustomObjectCopier())
- *             // parallel mode
- *             .mode(CloningMode.PARALLEL)
- *             // create cloner
- *             .build();
+ *     Cloner cloner = Cloners.builder()
+ *         // share instances of a type and its subtypes
+ *         .typeAction(Predicates.subclass(Connection.class), CopyAction.ORIGINAL)
+ *         // do not copy a field
+ *         .fieldAction(Order.class, "cachedTotal", CopyAction.SKIP)
+ *         // set fields with an annotation to null
+ *         .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
+ *         // a custom copier of a type
+ *         .copier(Money.class, new MoneyCopier())
+ *         // copy with the threads of a pool
+ *         .executor(pool)
+ *         .build();
  *
- *         // perform cloning
- *         SomeObject clone = cloner.clone(original);
+ *     Order clone = cloner.clone(order);
  * </pre>
  *
- * @see io.github.sugarcubes.cloner.Cloner
- * @see io.github.sugarcubes.cloner.ClonerException
+ * <p>Objects which cannot be copied meaningfully (threads, open files, sockets, executors) make cloning fail with
+ * {@link io.github.sugarcubes.cloner.UncopyableObjectException} unless the configuration decides what the clone gets.
+ * The low-level mechanisms (allocation, field access, module opening) are chosen by
+ * {@link io.github.sugarcubes.cloner.Toolsets#defaults()} for the running JVM, see
+ * {@link io.github.sugarcubes.cloner.Toolset}.</p>
+ *
+ * <p>The guide: <a href="https://sugar-cubes.github.io/sugar-cubes-cloner/">sugar-cubes.github.io/sugar-cubes-cloner</a>.</p>
+ *
  * @see io.github.sugarcubes.cloner.Cloners
- * @see io.github.sugarcubes.cloner.CloningMode
- * @see io.github.sugarcubes.cloner.CopyAction
- * @see io.github.sugarcubes.cloner.FieldPolicy
  * @see io.github.sugarcubes.cloner.ReflectionClonerBuilder
- * @see io.github.sugarcubes.cloner.TraversalAlgorithm
- * @see io.github.sugarcubes.cloner.TypeCopier
- * @see io.github.sugarcubes.cloner.TypePolicy
+ * @see io.github.sugarcubes.cloner.CopyAction
  * @see io.github.sugarcubes.cloner.Toolsets
  *
  * @author Maxim Butov
