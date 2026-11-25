@@ -103,6 +103,11 @@ public class ReflectionCopierProvider implements CopierProvider {
     private final boolean copyConstructors;
 
     /**
+     * Values of fields, which have priority over the field policy.
+     */
+    private final FieldValues fieldValues;
+
+    /**
      * Adapters of the fields written by holes of copy constructors.
      */
     private final Map<Field, FieldAdapter> holeAdapters = new ConcurrentHashMap<>();
@@ -145,6 +150,28 @@ public class ReflectionCopierProvider implements CopierProvider {
     public ReflectionCopierProvider(Toolset toolset, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
         CopyPolicy<Field> fieldPolicy, Map<Class<?>, ObjectCopier<?>> copiers, Set<Class<?>> shallows,
         boolean generatedCopiers, boolean copyConstructors) {
+        this(toolset, objectPolicy, typePolicy, fieldPolicy, FieldValues.NONE, copiers, shallows, generatedCopiers,
+            copyConstructors);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param toolset low-level tools
+     * @param objectPolicy object policy
+     * @param typePolicy type policy
+     * @param fieldPolicy field policy
+     * @param fieldValues values of fields, which have priority over the field policy
+     * @param copiers predefined copiers
+     * @param shallows shallow-mode types
+     * @param generatedCopiers whether copiers by fields are generated
+     * @param copyConstructors whether copy constructors added by the build tools are used
+     */
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    public ReflectionCopierProvider(Toolset toolset, CopyPolicy<Object> objectPolicy, CopyPolicy<Class<?>> typePolicy,
+        CopyPolicy<Field> fieldPolicy, FieldValues fieldValues, Map<Class<?>, ObjectCopier<?>> copiers,
+        Set<Class<?>> shallows, boolean generatedCopiers, boolean copyConstructors) {
+        this.fieldValues = fieldValues;
         this.copyConstructors = copyConstructors;
         this.toolset = toolset;
         this.objectPolicy = objectPolicy;
@@ -185,7 +212,7 @@ public class ReflectionCopierProvider implements CopierProvider {
     }
 
     /**
-     * Object copier for {@link CopyAction#NULL} or {@link CopyAction#ORIGINAL} can be returned instantly. For the
+     * Object copier for {@link CopyAction#CLEAR} or {@link CopyAction#ORIGINAL} can be returned instantly. For the
      * {@link CopyAction#DEFAULT} action #defaultCopierSupplier will be called.
      *
      * @param action copy action
@@ -194,9 +221,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private ObjectCopier<?> processAction(CopyAction action, Supplier<ObjectCopier<?>> defaultCopierSupplier) {
         switch (action) {
-            case SKIP:
-                throw new IllegalStateException("SKIP action is not applicable for objects.");
-            case NULL:
+            case CLEAR:
                 return ObjectCopier.NULL;
             case ORIGINAL:
                 return ObjectCopier.NOOP;
@@ -357,7 +382,7 @@ public class ReflectionCopierProvider implements CopierProvider {
      */
     private <T> ObjectCopier<T> valuesCopier(ValuesModel<T> model, Class<?> type, boolean shallow) {
         if (!model.hashesKeys()) {
-            return new ValuesCopier<>(model, shallow);
+            return new ValuesCopier<>(model, fieldPolicy, fieldValues, shallow);
         }
         return new HashValuesCopier<>(model, lazyFieldsCopier(type, shallow), shallow);
     }
@@ -436,8 +461,12 @@ public class ReflectionCopierProvider implements CopierProvider {
                 CopyAction action = policy.getAction(field);
                 return action == CopyAction.DEFAULT && sharesValues(field.getType()) ? CopyAction.ORIGINAL : action;
             };
-            copier = generatedCopier(model, effective, parent)
-                .orElseGet(() -> new FieldsCopier<>(parent, model, effective, false));
+            // values of fields and cleared primitive fields are written by the copier by fields
+            boolean generatable = Arrays.stream(model.getFields()).noneMatch(field -> fieldValues.valueOf(field) != null
+                || field.getType().isPrimitive() && effective.getAction(field) == CopyAction.CLEAR);
+            Optional<TwoPhaseObjectCopier<?>> generated = generatable ? generatedCopier(model, effective, parent)
+                : Optional.empty();
+            copier = generated.orElseGet(() -> new FieldsCopier<>(parent, model, effective, fieldValues, false));
             fieldsCopiers.put(key, copier);
         }
         return copier;
@@ -465,7 +494,8 @@ public class ReflectionCopierProvider implements CopierProvider {
     private boolean copiesAllFieldsByDefault(Class<?> type) {
         for (Class<?> declaring = type; declaring != null; declaring = declaring.getSuperclass()) {
             for (Field field : declaring.getDeclaredFields()) {
-                if (!Modifier.isStatic(field.getModifiers()) && fieldPolicy.getAction(field) != CopyAction.DEFAULT) {
+                if (!Modifier.isStatic(field.getModifiers())
+                    && (fieldPolicy.getAction(field) != CopyAction.DEFAULT || fieldValues.valueOf(field) != null)) {
                     return false;
                 }
             }

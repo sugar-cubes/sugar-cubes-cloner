@@ -190,7 +190,7 @@ abstract class AbstractClonerTests {
 
     }
 
-    @TypePolicy(CopyAction.NULL)
+    @TypePolicy(CopyAction.CLEAR)
     static class AnnotatedNull {
 
     }
@@ -224,13 +224,13 @@ abstract class AbstractClonerTests {
         AnnotatedNull an = new AnnotatedNull();
         AnnotatedWithCopier ac = new AnnotatedWithCopier(1);
 
-        @FieldPolicy(CopyAction.SKIP)
+        @FieldPolicy(CopyAction.CLEAR)
         Object skip;
 
         @FieldPolicy(CopyAction.ORIGINAL)
         Object orig;
 
-        @FieldPolicy(CopyAction.NULL)
+        @FieldPolicy(CopyAction.CLEAR)
         Object nil;
 
     }

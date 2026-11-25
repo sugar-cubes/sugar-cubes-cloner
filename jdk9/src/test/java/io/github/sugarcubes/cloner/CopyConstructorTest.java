@@ -163,7 +163,7 @@ class CopyConstructorTest {
     void fieldPolicyFallsBackToFields() {
         Node original = new Node("node", 1, null);
 
-        Node clone = Cloners.builder().fieldAction(Base.class, "name", CopyAction.NULL).build().clone(original);
+        Node clone = Cloners.builder().fieldAction(Base.class, "name", CopyAction.CLEAR).build().clone(original);
 
         Assertions.assertEquals(0, CONSTRUCTED.get());
         Assertions.assertNull(clone.name);

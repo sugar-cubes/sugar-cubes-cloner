@@ -17,7 +17,7 @@ package io.github.sugarcubes.cloner.engine;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.function.Supplier;
 
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyAction;
@@ -28,6 +28,7 @@ import io.github.sugarcubes.cloner.spi.FieldAdapter;
 import io.github.sugarcubes.cloner.spi.FieldsModel;
 import io.github.sugarcubes.cloner.spi.InstanceAllocator;
 import io.github.sugarcubes.cloner.util.Checks;
+import io.github.sugarcubes.cloner.util.PrimitiveType;
 
 /**
  * Copier of objects whose state is their fields. Gets from the low-level {@link FieldsModel} how to allocate an
@@ -65,8 +66,22 @@ public class FieldsCopier<T> extends TwoPhaseObjectCopier<T> {
      * @param policy field copy policy
      * @param shallow shallow mode: references are copied as is
      */
-    @SuppressWarnings("unchecked")
     public FieldsCopier(TwoPhaseObjectCopier<?> parent, FieldsModel<T> model, CopyPolicy<Field> policy, boolean shallow) {
+        this(parent, model, policy, FieldValues.NONE, shallow);
+    }
+
+    /**
+     * Creates the copier.
+     *
+     * @param parent copier of the super type
+     * @param model low-level model of the type
+     * @param policy field copy policy
+     * @param values values of fields, which have priority over the policy
+     * @param shallow shallow mode: references are copied as is
+     */
+    @SuppressWarnings("unchecked")
+    public FieldsCopier(TwoPhaseObjectCopier<?> parent, FieldsModel<T> model, CopyPolicy<Field> policy,
+        FieldValues values, boolean shallow) {
         Class<T> type = model.getType();
         // abstract superclasses and classes without suitable allocator fail only if somebody tries to create them
         this.allocator = model.getAllocator().orElseGet(() -> () -> {
@@ -75,8 +90,7 @@ public class FieldsCopier<T> extends TwoPhaseObjectCopier<T> {
         this.parent = (TwoPhaseObjectCopier<? super T>) withFields(parent);
         CopyPolicy<Field> fieldPolicy = shallow ? CopyPolicy.compound(policy, CopyPolicy.original()) : policy;
         this.steps = Arrays.stream(model.getFields())
-            .map(field -> FieldStep.of(model, field, fieldPolicy.getAction(field)))
-            .filter(Objects::nonNull)
+            .map(field -> FieldStep.of(model, field, fieldPolicy.getAction(field), values.valueOf(field)))
             .toArray(FieldStep[]::new);
     }
 
@@ -124,28 +138,49 @@ public class FieldsCopier<T> extends TwoPhaseObjectCopier<T> {
         private static final int NULL = 8;
         private static final int ORIGINAL = 9;
         private static final int CLONE = 10;
+        private static final int VALUE = 11;
 
         private final FieldAdapter adapter;
 
         private final int kind;
 
+        /**
+         * Field and supplier of its value for {@link #VALUE}.
+         */
+        private final Field field;
+
+        private final Supplier<?> value;
+
         private FieldStep(FieldAdapter adapter, int kind) {
+            this(adapter, kind, null, null);
+        }
+
+        private FieldStep(FieldAdapter adapter, int kind, Field field, Supplier<?> value) {
             this.adapter = adapter;
             this.kind = kind;
+            this.field = field;
+            this.value = value;
         }
 
         /**
          * Creates the step for the field.
          *
-         * @return step or {@code null} if the field is skipped
+         * @param model fields model
+         * @param field field
+         * @param action action of the field
+         * @param value supplier of the value of the field, or {@code null}
+         * @return step
          */
-        static FieldStep of(FieldsModel<?> model, Field field, CopyAction action) {
+        static FieldStep of(FieldsModel<?> model, Field field, CopyAction action, Supplier<?> value) {
+            if (value != null) {
+                return new FieldStep(adapter(model, field), VALUE, field, value);
+            }
             switch (action) {
-                case SKIP:
-                    return null;
-                case NULL:
-                    Checks.illegalArg(field.getType().isPrimitive(), "Cannot apply action NULL for primitive field %s.",
-                        field);
+                case CLEAR:
+                    if (field.getType().isPrimitive()) {
+                        Object zero = PrimitiveType.defaultValue(field.getType());
+                        return new FieldStep(adapter(model, field), VALUE, field, () -> zero);
+                    }
                     return new FieldStep(adapter(model, field), NULL);
                 case ORIGINAL:
                 case DEFAULT:
@@ -223,6 +258,9 @@ public class FieldsCopier<T> extends TwoPhaseObjectCopier<T> {
                     break;
                 case CLONE:
                     copyReference(original, clone, context);
+                    break;
+                case VALUE:
+                    FieldValues.write(adapter, field, clone, FieldValues.check(field, value.get()));
                     break;
                 default:
                     throw Checks.mustNotHappen();

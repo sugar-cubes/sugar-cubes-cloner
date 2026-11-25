@@ -16,8 +16,10 @@
 package io.github.sugarcubes.cloner;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
@@ -34,6 +36,7 @@ import io.github.sugarcubes.cloner.engine.AnnotatedFieldCopyPolicy;
 import io.github.sugarcubes.cloner.engine.AnnotatedTypeCopyPolicy;
 import io.github.sugarcubes.cloner.engine.ClonerImpl;
 import io.github.sugarcubes.cloner.engine.ExactPolicy;
+import io.github.sugarcubes.cloner.engine.FieldValues;
 import io.github.sugarcubes.cloner.engine.ParallelCopyContext;
 import io.github.sugarcubes.cloner.engine.PredicatePolicy;
 import io.github.sugarcubes.cloner.engine.RecursiveCopyContext;
@@ -107,6 +110,16 @@ public final class ReflectionClonerBuilder {
      * Predicate actions for fields.
      */
     private final Map<Predicate<Field>, CopyAction> fieldPredicateActions = new LinkedHashMap<>();
+
+    /**
+     * Values of fields.
+     */
+    private final Map<Field, Supplier<?>> fieldValues = new LinkedHashMap<>();
+
+    /**
+     * Values of fields by predicates.
+     */
+    private final Map<Predicate<Field>, Supplier<?>> fieldPredicateValues = new LinkedHashMap<>();
 
     /**
      * Custom copiers for types.
@@ -206,7 +219,6 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder objectAction(Object original, CopyAction action) {
         Checks.argNotNull(original, "Original");
         Checks.argNotNull(action, "Action");
-        Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
         Checks.illegalArg(objectActions.containsKey(original), "Action for %s already set.", original);
         if (action != CopyAction.DEFAULT) {
             objectActions.put(original, action);
@@ -235,7 +247,6 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder typeAction(Class<?> type, CopyAction action) {
         Checks.argNotNull(type, "Type");
         Checks.argNotNull(action, "Action");
-        Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
         Checks.illegalArg(typeActions.containsKey(type), "Action for %s already set.", type);
         if (action != CopyAction.DEFAULT) {
             typeActions.put(type, action);
@@ -267,7 +278,6 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder typeAction(Predicate<Class<?>> typePredicate, CopyAction action) {
         Checks.argNotNull(typePredicate, "Type predicate");
         Checks.argNotNull(action, "Action");
-        Checks.illegalArg(action == CopyAction.SKIP, "SKIP action is not applicable for objects.");
         if (action != CopyAction.DEFAULT) {
             typePredicateActions.put(typePredicate, action);
         }
@@ -297,8 +307,6 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder fieldAction(Field field, CopyAction action) {
         Checks.argNotNull(field, "Field");
         Checks.argNotNull(action, "Action");
-        Checks.illegalArg(action == CopyAction.NULL && field.getType().isPrimitive(),
-            "Cannot apply action NULL for primitive field %s.", field);
         Checks.illegalArg(fieldActions.containsKey(field), "Action for %s already set.", field);
         if (action != CopyAction.DEFAULT) {
             fieldActions.put(field, action);
@@ -334,6 +342,54 @@ public final class ReflectionClonerBuilder {
         if (action != CopyAction.DEFAULT) {
             fieldPredicateActions.put(fieldPredicate, action);
         }
+        return this;
+    }
+
+    /**
+     * Registers the value which clones get in the field instead of the copy of the original value. The supplier is
+     * called for every clone, so mutable values are not shared, e.g. {@code fieldValue(field, ArrayList::new)}. A value
+     * has priority over the actions and policies of the field; a primitive field takes a boxed value.
+     *
+     * @param field instance field
+     * @param value supplier of the value
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder fieldValue(Field field, Supplier<?> value) {
+        Checks.argNotNull(field, "Field");
+        Checks.argNotNull(value, "Value");
+        Checks.illegalArg(Modifier.isStatic(field.getModifiers()), "Field %s is static.", field);
+        Checks.illegalArg(fieldValues.containsKey(field), "Value of %s already set.", field);
+        fieldValues.put(field, value);
+        return this;
+    }
+
+    /**
+     * Registers the value which clones get in the field, see {@link #fieldValue(Field, Supplier)}.
+     *
+     * @param type object type
+     * @param field declared field name
+     * @param value supplier of the value
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder fieldValue(Class<?> type, String field, Supplier<?> value) {
+        Checks.argNotNull(type, "Type");
+        Checks.argNotNull(field, "Field");
+        return fieldValue(ClonerExceptionUtils.replaceException(() -> type.getDeclaredField(field)), value);
+    }
+
+    /**
+     * Registers the value which clones get in the fields matching the predicate, see
+     * {@link #fieldValue(Field, Supplier)}. Values of single fields have priority over values of predicates, the
+     * predicates are tried in the order of registration.
+     *
+     * @param fieldPredicate field predicate
+     * @param value supplier of the value
+     * @return same builder instance
+     */
+    public ReflectionClonerBuilder fieldValue(Predicate<Field> fieldPredicate, Supplier<?> value) {
+        Checks.argNotNull(fieldPredicate, "Field predicate");
+        Checks.argNotNull(value, "Value");
+        fieldPredicateValues.put(fieldPredicate, value);
         return this;
     }
 
@@ -417,6 +473,28 @@ public final class ReflectionClonerBuilder {
     public ReflectionClonerBuilder copyConstructors(boolean enabled) {
         this.copyConstructors = enabled;
         return this;
+    }
+
+    /**
+     * Values of fields: of single fields, then of predicates.
+     */
+    private FieldValues fieldValues() {
+        if (fieldValues.isEmpty() && fieldPredicateValues.isEmpty()) {
+            return FieldValues.NONE;
+        }
+        Map<Field, Supplier<?>> values = new HashMap<>(fieldValues);
+        Map<Predicate<Field>, Supplier<?>> predicateValues = new LinkedHashMap<>(fieldPredicateValues);
+        return field -> {
+            Supplier<?> value = values.get(field);
+            if (value == null) {
+                value = predicateValues.entrySet().stream()
+                    .filter(entry -> !Modifier.isStatic(field.getModifiers()) && entry.getKey().test(field))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse(null);
+            }
+            return value;
+        };
     }
 
     /**
@@ -514,7 +592,7 @@ public final class ReflectionClonerBuilder {
         Toolset toolset = this.toolset != null ? this.toolset : Toolsets.defaults();
 
         ReflectionCopierProvider provider = new ReflectionCopierProvider(toolset, objectPolicy, typePolicy,
-            fieldPolicy, copiers, shallows, generatedCopiers, copyConstructors);
+            fieldPolicy, fieldValues(), copiers, shallows, generatedCopiers, copyConstructors);
 
         Supplier<? extends AbstractCopyContext> contextSupplier;
         // an executor without a mode means the parallel mode

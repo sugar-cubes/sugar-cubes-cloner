@@ -24,19 +24,19 @@ class CopyPolicyTest {
 
     @Test
     void compoundSkipsDefaultPolicies() {
-        CopyPolicy<Object> skip = input -> CopyAction.SKIP;
+        CopyPolicy<Object> clear = input -> CopyAction.CLEAR;
 
-        CopyPolicy<Object> compound = CopyPolicy.compound(Arrays.asList(CopyPolicy.defaultPolicy(), skip));
+        CopyPolicy<Object> compound = CopyPolicy.compound(Arrays.asList(CopyPolicy.defaultPolicy(), clear));
 
-        Assertions.assertEquals(CopyAction.SKIP, compound.getAction(new Object()));
+        Assertions.assertEquals(CopyAction.CLEAR, compound.getAction(new Object()));
     }
 
     @Test
     void compoundTakesFirstNonDefaultAction() {
         CopyPolicy<Object> compound = CopyPolicy.compound(Arrays.asList(
-            input -> CopyAction.DEFAULT, input -> CopyAction.NULL, input -> CopyAction.SKIP));
+            input -> CopyAction.DEFAULT, input -> CopyAction.CLEAR, input -> CopyAction.ORIGINAL));
 
-        Assertions.assertEquals(CopyAction.NULL, compound.getAction(new Object()));
+        Assertions.assertEquals(CopyAction.CLEAR, compound.getAction(new Object()));
     }
 
 }

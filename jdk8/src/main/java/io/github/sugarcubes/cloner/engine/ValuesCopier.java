@@ -15,10 +15,16 @@
  */
 package io.github.sugarcubes.cloner.engine;
 
+import java.lang.reflect.Field;
+import java.util.function.Supplier;
+
 import io.github.sugarcubes.cloner.ClonerException;
 import io.github.sugarcubes.cloner.CopyContext;
+import io.github.sugarcubes.cloner.CopyPolicy;
 import io.github.sugarcubes.cloner.ObjectCopier;
 import io.github.sugarcubes.cloner.spi.ValuesModel;
+import io.github.sugarcubes.cloner.util.Checks;
+import io.github.sugarcubes.cloner.util.PrimitiveType;
 
 /**
  * Copier of objects created from the values of their components, e.g. records. Gets from the low-level
@@ -37,7 +43,40 @@ public class ValuesCopier<T> implements ObjectCopier<T> {
 
     private final ValuesModel<T> model;
 
+    private final CopyPolicy<Field> policy;
+
+    private final FieldValues values;
+
     private final boolean shallow;
+
+    /**
+     * Rules of the components, created on the first copy: the model does not tell the number of the components.
+     */
+    private volatile Rule[] rules;
+
+    /**
+     * What the clone gets in a component.
+     */
+    private static final class Rule {
+
+        static final Rule COPY = new Rule(null, null);
+
+        static final Rule ORIGINAL = new Rule(null, null);
+
+        /**
+         * Field of the component and the supplier of its value, or {@code null} for {@link #COPY} and
+         * {@link #ORIGINAL}.
+         */
+        final Field field;
+
+        final Supplier<?> value;
+
+        Rule(Field field, Supplier<?> value) {
+            this.field = field;
+            this.value = value;
+        }
+
+    }
 
     /**
      * Creates the copier.
@@ -46,24 +85,81 @@ public class ValuesCopier<T> implements ObjectCopier<T> {
      * @param shallow shallow mode: values are passed to the constructor as is
      */
     public ValuesCopier(ValuesModel<T> model, boolean shallow) {
+        this(model, CopyPolicy.defaultPolicy(), FieldValues.NONE, shallow);
+    }
+
+    /**
+     * Creates the copier which applies the field actions and values to the components which have fields, see
+     * {@link ValuesModel#fieldOf(int)}.
+     *
+     * @param model low-level model of the type
+     * @param policy field copy policy
+     * @param values values of fields, which have priority over the policy
+     * @param shallow shallow mode: values are passed to the constructor as is
+     */
+    public ValuesCopier(ValuesModel<T> model, CopyPolicy<Field> policy, FieldValues values, boolean shallow) {
         this.model = model;
+        this.policy = policy;
+        this.values = values;
         this.shallow = shallow;
+    }
+
+    private Rule[] rules(int count) {
+        Rule[] known = rules;
+        if (known == null) {
+            known = new Rule[count];
+            for (int k = 0; k < count; k++) {
+                known[k] = rule(model.fieldOf(k));
+            }
+            rules = known;
+        }
+        return known;
+    }
+
+    private Rule rule(Field field) {
+        Rule byDefault = shallow ? Rule.ORIGINAL : Rule.COPY;
+        if (field == null) {
+            return byDefault;
+        }
+        Supplier<?> value = values.valueOf(field);
+        if (value != null) {
+            return new Rule(field, value);
+        }
+        switch (policy.getAction(field)) {
+            case DEFAULT:
+                return byDefault;
+            case ORIGINAL:
+                return Rule.ORIGINAL;
+            case CLEAR:
+                Object zero = PrimitiveType.defaultValue(field.getType());
+                return new Rule(field, () -> zero);
+            default:
+                throw Checks.mustNotHappen();
+        }
     }
 
     @Override
     public T copy(T original, CopyContext context) throws Exception {
-        Object[] values = model.read(original);
-        if (shallow) {
-            return context.register(model.create(values));
-        }
-        Object[] copies = new Object[values.length];
-        for (int k = 0; k < values.length; k++) {
-            copies[k] = context.copyComplete(values[k]);
-        }
-        boolean[] incomplete = new boolean[values.length];
+        Object[] originals = model.read(original);
+        Rule[] rules = rules(originals.length);
+        Object[] copies = new Object[originals.length];
+        boolean[] incomplete = new boolean[originals.length];
         boolean anyIncomplete = false;
-        for (int k = 0; k < values.length; k++) {
-            incomplete[k] = !context.isComplete(values[k]);
+        for (int k = 0; k < originals.length; k++) {
+            Rule rule = rules[k];
+            if (rule == Rule.ORIGINAL) {
+                copies[k] = originals[k];
+            }
+            else if (rule != Rule.COPY) {
+                copies[k] = FieldValues.check(rule.field, rule.value.get());
+            }
+            else {
+                copies[k] = context.copyComplete(originals[k]);
+            }
+        }
+        // checked after all copies: copying of a later component may complete an earlier one
+        for (int k = 0; k < originals.length; k++) {
+            incomplete[k] = rules[k] == Rule.COPY && !context.isComplete(originals[k]);
             anyIncomplete |= incomplete[k];
         }
         if (!anyIncomplete) {

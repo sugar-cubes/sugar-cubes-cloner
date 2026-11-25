@@ -24,7 +24,7 @@ executor services. A clone cannot get its own one, and sharing the original may 
 ```java
 Cloner cloner = Cloners.builder()
     .typeAction(Predicates.subclass(Thread.class), CopyAction.ORIGINAL)
-    .fieldAction(Job.class, "executor", CopyAction.NULL)
+    .fieldAction(Job.class, "executor", CopyAction.CLEAR)
     .build();
 ```
 

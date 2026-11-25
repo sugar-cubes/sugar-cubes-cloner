@@ -26,10 +26,12 @@
  *     Cloner cloner = Cloners.builder()
  *         // share instances of a type and its subtypes
  *         .typeAction(Predicates.subclass(Connection.class), CopyAction.ORIGINAL)
- *         // do not copy a field
- *         .fieldAction(Order.class, "cachedTotal", CopyAction.SKIP)
- *         // set fields with an annotation to null
- *         .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
+ *         // clones get no value in a field
+ *         .fieldAction(Order.class, "cachedTotal", CopyAction.CLEAR)
+ *         // clones get a new list in a field
+ *         .fieldValue(Order.class, "lines", ArrayList::new)
+ *         // clear fields with an annotation
+ *         .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.CLEAR)
  *         // a custom copier of a type
  *         .copier(Money.class, new MoneyCopier())
  *         // copy with the threads of a pool

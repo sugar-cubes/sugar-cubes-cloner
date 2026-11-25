@@ -76,7 +76,7 @@ class SharedValuesTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void typePolicyIsRespected(boolean generated) {
-        Holder clone = builder(generated).typeAction(String.class, CopyAction.NULL).build().clone(new Holder());
+        Holder clone = builder(generated).typeAction(String.class, CopyAction.CLEAR).build().clone(new Holder());
 
         Assertions.assertNull(clone.text);
         Assertions.assertNotNull(clone.date);
@@ -87,7 +87,7 @@ class SharedValuesTest {
     void objectPolicyIsRespected(boolean generated) {
         Holder original = new Holder();
 
-        Holder clone = builder(generated).objectAction(original.text, CopyAction.NULL).build().clone(original);
+        Holder clone = builder(generated).objectAction(original.text, CopyAction.CLEAR).build().clone(original);
 
         Assertions.assertNull(clone.text);
         Assertions.assertSame(original.date, clone.date);

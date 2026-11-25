@@ -13,7 +13,7 @@ Order clone = Cloners.clone(order);
 ```java
 Cloner cloner = Cloners.builder()
     .typeAction(Predicates.subclass(Connection.class), CopyAction.ORIGINAL)
-    .fieldAction(Order.class, "cachedTotal", CopyAction.SKIP)
+    .fieldAction(Order.class, "cachedTotal", CopyAction.CLEAR)
     .build();
 
 Order clone = cloner.clone(order);

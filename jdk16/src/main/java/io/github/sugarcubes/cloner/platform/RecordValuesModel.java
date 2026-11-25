@@ -16,6 +16,7 @@
 package io.github.sugarcubes.cloner.platform;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
@@ -43,6 +44,11 @@ final class RecordValuesModel<T extends Record> implements ValuesModel<T> {
 
     private final Constructor<T> constructor;
 
+    /**
+     * Fields of the components, which carry the field actions of the cloner.
+     */
+    private final Field[] fields;
+
     RecordValuesModel(Class<T> type, Reflection reflection) {
         RecordComponent[] components = type.getRecordComponents();
         this.type = type;
@@ -52,6 +58,9 @@ final class RecordValuesModel<T extends Record> implements ValuesModel<T> {
             .toArray(Method[]::new);
         Class<?>[] componentTypes = Arrays.stream(components).map(RecordComponent::getType).toArray(Class<?>[]::new);
         this.constructor = reflection.makeAccessible(reflection.getDeclaredConstructor(type, componentTypes));
+        this.fields = Arrays.stream(components)
+            .map(component -> ClonerExceptionUtils.replaceException(() -> type.getDeclaredField(component.getName())))
+            .toArray(Field[]::new);
     }
 
     @Override
@@ -62,6 +71,11 @@ final class RecordValuesModel<T extends Record> implements ValuesModel<T> {
     @Override
     public String nameOf(int index) {
         return names[index];
+    }
+
+    @Override
+    public Field fieldOf(int index) {
+        return fields[index];
     }
 
     @Override

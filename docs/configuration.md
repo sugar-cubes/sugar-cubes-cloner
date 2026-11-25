@@ -6,12 +6,14 @@ A cloner is configured by `Cloners.builder()`. Everything below can be combined.
 
 What the clone gets for an object, a type or a field is a `CopyAction`:
 
-| Action     | The clone gets                                                         |
-|------------|------------------------------------------------------------------------|
-| `DEFAULT`  | a copy, unless the object is immutable or shared by default            |
-| `ORIGINAL` | the same object as the original                                        |
-| `NULL`     | `null` (not for primitive fields)                                      |
-| `SKIP`     | for fields only: the field is not written, it keeps its default value  |
+| Action     | The clone gets                                                                       |
+|------------|--------------------------------------------------------------------------------------|
+| `DEFAULT`  | a copy, unless the object is immutable or shared by default                          |
+| `ORIGINAL` | the same object as the original                                                      |
+| `CLEAR`    | `null`; a primitive field gets its default value, `0` or `false`                     |
+
+Clones are created without constructors, so field initializers do not run: a cleared field gets the default value of
+its type, not the value of its initializer. To give a field another value, see [Values of fields](#values-of-fields).
 
 ## Types
 
@@ -20,7 +22,7 @@ Cloner cloner = Cloners.builder()
     // instances of a type and of its subtypes are shared
     .typeAction(Predicates.subclass(Connection.class), CopyAction.ORIGINAL)
     // instances of exactly this class are replaced with null
-    .typeAction(Cache.class, CopyAction.NULL)
+    .typeAction(Cache.class, CopyAction.CLEAR)
     // by class name, e.g. for optional dependencies
     .typeAction("org.slf4j.Logger", CopyAction.ORIGINAL)
     .build();
@@ -33,13 +35,34 @@ Cloner cloner = Cloners.builder()
 ```java
 Cloner cloner = Cloners.builder()
     // one field
-    .fieldAction(Order.class, "cachedTotal", CopyAction.SKIP)
+    .fieldAction(Order.class, "cachedTotal", CopyAction.CLEAR)
     // all transient fields
-    .fieldAction(field -> Modifier.isTransient(field.getModifiers()), CopyAction.NULL)
+    .fieldAction(field -> Modifier.isTransient(field.getModifiers()), CopyAction.CLEAR)
     // fields with an annotation
-    .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
+    .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.CLEAR)
     .build();
 ```
+
+Field actions apply to the components of records too: the canonical constructor gets the value the action gives.
+
+## Values of fields
+
+A field can get a value of your choice instead of the copy of the original value. The supplier is called for every
+clone, so mutable values are not shared between clones:
+
+```java
+Cloner cloner = Cloners.builder()
+    // a new entity: no id, the first version, created now
+    .fieldValue(Predicates.annotatedWith(Id.class), () -> null)
+    .fieldValue(Order.class, "version", () -> 0)
+    .fieldValue(Order.class, "createdAt", Instant::now)
+    // every clone gets its own empty list
+    .fieldValue(Order.class, "lines", ArrayList::new)
+    .build();
+```
+
+A value has priority over the actions and policies of the field. A primitive field takes a boxed value; a value which
+does not fit the field fails cloning with a `ClonerException`. Values apply to the components of records too.
 
 ## Objects
 
@@ -64,7 +87,7 @@ everything at once:
 
 ```java
 Cloner cloner = Cloners.builder()
-    .typePolicy(type -> type.getName().startsWith("com.acme.cache.") ? CopyAction.NULL : CopyAction.DEFAULT)
+    .typePolicy(type -> type.getName().startsWith("com.acme.cache.") ? CopyAction.CLEAR : CopyAction.DEFAULT)
     .fieldPolicy(CopyPolicy.original())   // a shallow clone: every field references the original value
     .build();
 ```
@@ -80,12 +103,12 @@ Classes can carry their own rules:
 @TypePolicy(CopyAction.ORIGINAL)
 public class Settings { ... }
 
-@TypePolicy(value = CopyAction.NULL, applyToSubtypes = true)
+@TypePolicy(value = CopyAction.CLEAR, applyToSubtypes = true)
 public abstract class Session { ... }
 
 public class Order {
 
-    @FieldPolicy(CopyAction.SKIP)
+    @FieldPolicy(CopyAction.CLEAR)
     private transient BigDecimal cachedTotal;
 
 }

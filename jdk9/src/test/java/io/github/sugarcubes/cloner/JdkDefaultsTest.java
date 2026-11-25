@@ -91,7 +91,7 @@ class JdkDefaultsTest {
     void customRulesOverrideDefaults() throws Exception {
         Date custom = new Date(1);
         Cloner cloner = Cloners.builder()
-            .typeAction(Locale.class, CopyAction.NULL)
+            .typeAction(Locale.class, CopyAction.CLEAR)
             .copier(Date.class, (original, context) -> context.register(custom))
             .build();
 

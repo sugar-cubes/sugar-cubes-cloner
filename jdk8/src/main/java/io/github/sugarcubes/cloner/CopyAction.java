@@ -16,23 +16,16 @@
 package io.github.sugarcubes.cloner;
 
 /**
- * Actions which can be applied to objects/types/fields.
+ * Actions which can be applied to objects, types and fields: what the clone gets instead of the original value.
  *
  * @author Maxim Butov
  */
 public enum CopyAction {
 
     /**
-     * Skip field.
-     * This action is applicable to fields only.
+     * Clone the object, unless it is immutable or shared by default. For policies: the policy does not decide.
      */
-    SKIP,
-
-    /**
-     * Use {@code null} instead of original object.
-     * This action is not applicable to primitive fields.
-     */
-    NULL,
+    DEFAULT,
 
     /**
      * Use the original object.
@@ -40,8 +33,9 @@ public enum CopyAction {
     ORIGINAL,
 
     /**
-     * Clone the object, if it is not immutable.
+     * The clone gets {@code null}; a primitive field gets its default value, {@code 0} or {@code false}. Field
+     * initializers do not run, the clones are created without constructors.
      */
-    DEFAULT,
+    CLEAR,
 
 }

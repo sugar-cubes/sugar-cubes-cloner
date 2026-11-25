@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Thrown when the cloner meets a live object of the JVM or the operating system (a thread, a reference, an open file,
  * a socket, a process, an executor) and the developer has not chosen what the clone gets: a clone cannot get its own
- * one, and sharing the original must be chosen explicitly by {@link CopyAction#ORIGINAL} (or {@link CopyAction#NULL})
+ * one, and sharing the original must be chosen explicitly by {@link CopyAction#ORIGINAL} (or {@link CopyAction#CLEAR})
  * for the type, the field or the object, or by a copier of the type.
  *
  * <p>The message tells the classes of the objects holding the uncopyable one, nearest first, as far as they are
@@ -93,7 +93,7 @@ public class UncopyableObjectException extends ClonerException {
             shown++;
         }
         return message.append(": threads, references, open files, sockets, processes and executors are not copied. "
-            + "Choose CopyAction.ORIGINAL to share it or CopyAction.NULL for the type (typeAction), the field "
+            + "Choose CopyAction.ORIGINAL to share it or CopyAction.CLEAR for the type (typeAction), the field "
             + "(fieldAction) or the object (objectAction), or set a copier for the type.").toString();
     }
 

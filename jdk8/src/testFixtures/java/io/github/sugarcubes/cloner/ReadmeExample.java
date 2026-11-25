@@ -27,21 +27,21 @@ class ReadmeExample {
 
     private void doNotCloneType() {
         Cloner cloner = Cloners.builder()
-            .typeAction(NonCloneableType.class, CopyAction.NULL)
+            .typeAction(NonCloneableType.class, CopyAction.CLEAR)
             .build();
         SomeObject clone = cloner.clone(original);
     }
 
     private void skipTransientFields () {
         Cloner cloner = Cloners.builder()
-            .fieldAction(field -> Modifier.isTransient(field.getModifiers()), CopyAction.SKIP)
+            .fieldAction(field -> Modifier.isTransient(field.getModifiers()), CopyAction.CLEAR)
             .build();
         SomeObject clone = cloner.clone(original);
     }
 
     private void skipTransientHibernateFields () {
         Cloner cloner = Cloners.builder()
-            .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.SKIP)
+            .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.CLEAR)
             .build();
         SomeObject clone = cloner.clone(original);
     }
@@ -56,9 +56,9 @@ class ReadmeExample {
                 // do not clone closeables
                 .typeAction(Predicates.subclass(AutoCloseable.class), CopyAction.ORIGINAL)
                 // skip SomeObject.cachedValue field when cloning
-                .fieldAction(SomeObject.class, "cachedValue", CopyAction.SKIP)
+                .fieldAction(SomeObject.class, "cachedValue", CopyAction.CLEAR)
                 // set fields with @Transient annotation to null
-                .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.NULL)
+                .fieldAction(Predicates.annotatedWith(Transient.class), CopyAction.CLEAR)
                 // custom copier for SomeOtherObject type
                 .copier(CustomObject.class, new CustomObjectCopier())
                 // parallel mode

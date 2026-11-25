@@ -15,6 +15,8 @@
  */
 package io.github.sugarcubes.cloner.spi;
 
+import java.lang.reflect.Field;
+
 /**
  * Low-level model of a type whose instances are created from the values of their components, e.g. a record or an
  * immutable collection. Knows how to read the values and to create an instance from them; what and how to copy is
@@ -39,6 +41,17 @@ public interface ValuesModel<T> {
      * @return name of the component
      */
     String nameOf(int index);
+
+    /**
+     * Returns the field which holds the value of the component, so the field actions and values of the cloner apply
+     * to the component: e.g. the field of a record component.
+     *
+     * @param index index of the value
+     * @return field or {@code null} if the component has no field, e.g. an element of a collection
+     */
+    default Field fieldOf(int index) {
+        return null;
+    }
 
     /**
      * Tells whether the values are hashed by the created instance (elements of a set, keys of a map). Hash codes of

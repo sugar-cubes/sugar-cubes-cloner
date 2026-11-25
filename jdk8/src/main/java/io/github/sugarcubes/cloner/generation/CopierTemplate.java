@@ -108,11 +108,9 @@ final class CopierTemplate {
         for (Field field : model.getFields()) {
             CopyAction action = policy.getAction(field);
             signature.append(action.name().charAt(0));
-            if (action == CopyAction.SKIP) {
-                continue;
-            }
-            Checks.illegalArg(action == CopyAction.NULL && field.getType().isPrimitive(),
-                "Cannot apply action NULL for primitive field %s.", field);
+            // cleared primitive fields and values of fields are written by the copier by fields
+            Checks.illegalArg(action == CopyAction.CLEAR && field.getType().isPrimitive(),
+                "Generated copiers do not clear primitive field %s.", field);
             FieldPlan plan = new FieldPlan(field, action);
             if (plan.isFinal && finalSetters && !plan.isHole()) {
                 plan.setter = setters.size();
@@ -257,7 +255,7 @@ final class CopierTemplate {
      */
     private void copyDirect(CodeEmitter code, FieldPlan field) {
         loadTyped(code, CLONE);
-        if (field.action == CopyAction.NULL) {
+        if (field.action == CopyAction.CLEAR) {
             code.pushNull();
         }
         else if (field.isHole()) {
@@ -284,7 +282,7 @@ final class CopierTemplate {
         if (field.setter >= 0) {
             code.getStatic(className(), SETTER + field.setter, METHOD_HANDLE_DESCRIPTOR);
             loadTyped(code, CLONE);
-            if (field.action == CopyAction.NULL) {
+            if (field.action == CopyAction.CLEAR) {
                 code.pushNull();
             }
             else {
@@ -306,7 +304,7 @@ final class CopierTemplate {
         Class<?> valueType = field.field.getType().isPrimitive() ? field.field.getType() : Object.class;
         code.pushInt(field.index);
         code.loadReference(CLONE);
-        if (field.action == CopyAction.NULL) {
+        if (field.action == CopyAction.CLEAR) {
             code.pushNull();
         }
         else {

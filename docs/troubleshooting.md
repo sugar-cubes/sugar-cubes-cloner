@@ -3,7 +3,7 @@
 ## `UncopyableObjectException: Cannot copy java.lang.Thread in com.acme.Task ...`
 
 The graph contains a live object: a thread, a reference, an open file, a socket, a process, an executor. Decide what
-the clone gets by a type, field or object action: `CopyAction.ORIGINAL` to share it, `CopyAction.NULL` to drop it, or
+the clone gets by a type, field or object action: `CopyAction.ORIGINAL` to share it, `CopyAction.CLEAR` to drop it, or
 a custom copier. See [JDK types](jdk-types.md#not-copied-live-objects).
 
 ## `Cannot make ... accessible. Open its package to the cloner ...`
@@ -19,7 +19,7 @@ any field of a normal class.
 ## `Cannot clone ...: it is part of a reference cycle ...`
 
 An object which creates its clone from copied values (a record, a `Copyable`, a single-phase custom copier) is part of
-a cycle which needs it before its clone exists. Break the cycle for cloning, e.g. by `CopyAction.NULL` for one of its
+a cycle which needs it before its clone exists. Break the cycle for cloning, e.g. by `CopyAction.CLEAR` for one of its
 fields, or write a `TwoPhaseObjectCopier` for one of the types.
 
 ## `No instance allocator supports ...`

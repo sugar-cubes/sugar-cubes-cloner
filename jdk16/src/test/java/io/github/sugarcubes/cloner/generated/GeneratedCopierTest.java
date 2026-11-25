@@ -79,7 +79,7 @@ class GeneratedCopierTest {
         ObjectCopier<Object> copier = copierOf(original, true);
         Class<?> generated = copier.getClass();
         ReflectionCopierProvider skippingText = new ReflectionCopierProvider(Toolsets.defaults(), null,
-            CopyPolicy.defaultPolicy(), field -> field.getName().equals("text") ? CopyAction.SKIP : CopyAction.DEFAULT,
+            CopyPolicy.defaultPolicy(), field -> field.getName().equals("text") ? CopyAction.CLEAR : CopyAction.DEFAULT,
             Collections.emptyMap(), Collections.emptySet(), true);
 
         Class<?> another = skippingText.getCopier(original).getClass();
@@ -153,8 +153,8 @@ class GeneratedCopierTest {
         Sample original = new Sample(1, null);
         original.partner = new Sample(2, null);
         Cloner cloner = generating()
-            .fieldAction(Sample.class, "text", CopyAction.SKIP)
-            .fieldAction(Sample.class, "any", CopyAction.NULL)
+            .fieldAction(Sample.class, "text", CopyAction.CLEAR)
+            .fieldAction(Sample.class, "any", CopyAction.CLEAR)
             .fieldAction(Sample.class, "partner", CopyAction.ORIGINAL)
             .fieldAction(Sample.class, "finalList", CopyAction.ORIGINAL)
             .build();

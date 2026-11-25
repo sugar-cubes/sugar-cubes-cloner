@@ -51,7 +51,7 @@ Cloner cloner = Cloners.builder()
     // the clone works with the same executor
     .typeAction(ExecutorService.class, CopyAction.ORIGINAL)
     // the clone has no worker thread
-    .fieldAction(Task.class, "worker", CopyAction.NULL)
+    .fieldAction(Task.class, "worker", CopyAction.CLEAR)
     .build();
 ```
 

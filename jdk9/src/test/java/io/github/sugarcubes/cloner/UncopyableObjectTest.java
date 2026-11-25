@@ -123,7 +123,7 @@ class UncopyableObjectTest {
 
     @Test
     void fieldActionNulls() {
-        Task clone = Cloners.builder().fieldAction(Task.class, "worker", CopyAction.NULL).build().clone(new Task());
+        Task clone = Cloners.builder().fieldAction(Task.class, "worker", CopyAction.CLEAR).build().clone(new Task());
 
         Assertions.assertNull(clone.worker);
         Assertions.assertEquals("task", clone.name);
