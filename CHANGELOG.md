@@ -32,6 +32,7 @@ _A redesign: the implementation is hidden behind the exported packages `io.githu
 
 ### Fixed
 
+- Enable the parallel mode by `executor()` without `mode()`, as documented ([`01a43a6`](https://github.com/sugar-cubes/sugar-cubes-cloner/commit/01a43a6)) (Maxim Butov)
 - Return the only non-default policy from `CopyPolicy.compound()` ([`bf5d7e6`](https://github.com/sugar-cubes/sugar-cubes-cloner/commit/bf5d7e6)) (Maxim Butov)
 
 _Releases before 2.0.0 are described on [GitHub](https://github.com/sugar-cubes/sugar-cubes-cloner/releases)._
